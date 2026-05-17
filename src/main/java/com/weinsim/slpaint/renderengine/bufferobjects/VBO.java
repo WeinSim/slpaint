@@ -12,7 +12,7 @@ import org.lwjglx.util.vector.Vector3f;
 import org.lwjglx.util.vector.Vector4f;
 
 import com.weinsim.slpaint.renderengine.Cleanable;
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.math.SVector;
 
 public abstract class VBO implements Cleanable {
 

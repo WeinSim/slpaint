@@ -33,8 +33,8 @@ import com.weinsim.slpaint.renderengine.renderers.RectFillRenderer;
 import com.weinsim.slpaint.renderengine.renderers.RectOutlineRenderer;
 import com.weinsim.slpaint.renderengine.renderers.ShapeRenderer;
 import com.weinsim.slpaint.renderengine.renderers.TextRenderer;
-import com.weinsim.slpaint.sutil.SUtil;
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.math.SVector;
 
 public class UIRenderMaster {
 

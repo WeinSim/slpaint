@@ -1,9 +1,9 @@
 package com.weinsim.slpaint.renderengine;
 
+import static com.weinsim.sutil.ui.UI.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL14.*;
-import static com.weinsim.slpaint.sutil.ui.UI.*;
 
 import org.lwjglx.util.vector.Vector4f;
 
@@ -12,18 +12,18 @@ import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.renderengine.bufferobjects.FrameBufferObject;
 import com.weinsim.slpaint.renderengine.font.TextFont;
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.UI;
-import com.weinsim.slpaint.sutil.ui.UIColors;
-import com.weinsim.slpaint.sutil.ui.UIShape;
-import com.weinsim.slpaint.sutil.ui.UISizes;
-import com.weinsim.slpaint.sutil.ui.elements.UIContainer;
-import com.weinsim.slpaint.sutil.ui.elements.UIElement;
-import com.weinsim.slpaint.sutil.ui.elements.UIImage;
-import com.weinsim.slpaint.sutil.ui.elements.UIText;
 import com.weinsim.slpaint.ui.components.AlphaScale;
 import com.weinsim.slpaint.ui.components.HueSatField;
 import com.weinsim.slpaint.ui.components.LightnessScale;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.UIColors;
+import com.weinsim.sutil.ui.UIShape;
+import com.weinsim.sutil.ui.UISizes;
+import com.weinsim.sutil.ui.elements.UIContainer;
+import com.weinsim.sutil.ui.elements.UIElement;
+import com.weinsim.sutil.ui.elements.UIImage;
+import com.weinsim.sutil.ui.elements.UIText;
 
 public class AppRenderer implements Cleanable {
 

@@ -11,10 +11,10 @@ import com.weinsim.slpaint.settings.BooleanSetting;
 import com.weinsim.slpaint.renderengine.AppRenderer;
 import com.weinsim.slpaint.renderengine.Window;
 import com.weinsim.slpaint.renderengine.font.TextFont;
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.UI;
-import com.weinsim.slpaint.sutil.ui.elements.UIRoot;
 import com.weinsim.slpaint.ui.AppUI;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.elements.UIRoot;
 
 public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, ResizeApp {
 

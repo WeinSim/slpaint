@@ -6,11 +6,11 @@ import java.util.function.BooleanSupplier;
 
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.tools.DragTool;
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.UI;
-import com.weinsim.slpaint.sutil.ui.UIColors;
-import com.weinsim.slpaint.sutil.ui.UISizes;
 import com.weinsim.slpaint.ui.components.SizeKnob;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.UIColors;
+import com.weinsim.sutil.ui.UISizes;
 
 public abstract sealed class DragToolContainer<T extends DragTool> extends ToolContainer<T>
         permits SelectionToolContainer, TextToolContainer {
@@ -76,8 +76,8 @@ public abstract sealed class DragToolContainer<T extends DragTool> extends ToolC
                 int mouseX = mouseImagePos[0],
                         mouseY = mouseImagePos[1];
 
-                int endX = Math.min(Math.max(0, mouseX), app.getImage().getWidth() - 1),
-                        endY = Math.min(Math.max(0, mouseY), app.getImage().getHeight() - 1);
+                int endX = Math.clamp(mouseX, 0, app.getImage().getWidth() - 1),
+                        endY = Math.clamp(mouseY, 0, app.getImage().getHeight() - 1);
 
                 int margin = tool.getMargin();
 

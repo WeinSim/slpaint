@@ -10,19 +10,19 @@ import com.weinsim.slpaint.main.tools.PencilTool;
 import com.weinsim.slpaint.main.tools.Resizable;
 import com.weinsim.slpaint.main.tools.SelectionTool;
 import com.weinsim.slpaint.main.tools.TextTool;
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.UI;
-import com.weinsim.slpaint.sutil.ui.UIColors;
-import com.weinsim.slpaint.sutil.ui.UISizes;
-import com.weinsim.slpaint.sutil.ui.elements.UIContainer;
-import com.weinsim.slpaint.sutil.ui.elements.UIElement;
-import com.weinsim.slpaint.sutil.ui.elements.UIFloatContainer;
-import com.weinsim.slpaint.sutil.ui.elements.UIImage;
 import com.weinsim.slpaint.ui.components.toolContainers.LineToolContainer;
 import com.weinsim.slpaint.ui.components.toolContainers.PencilToolContainer;
 import com.weinsim.slpaint.ui.components.toolContainers.SelectionToolContainer;
 import com.weinsim.slpaint.ui.components.toolContainers.TextToolContainer;
 import com.weinsim.slpaint.ui.components.toolContainers.ToolContainer;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.UIColors;
+import com.weinsim.sutil.ui.UISizes;
+import com.weinsim.sutil.ui.elements.UIContainer;
+import com.weinsim.sutil.ui.elements.UIElement;
+import com.weinsim.sutil.ui.elements.UIFloatContainer;
+import com.weinsim.sutil.ui.elements.UIImage;
 
 public class ImageCanvas extends UIContainer {
 
@@ -150,7 +150,7 @@ public class ImageCanvas extends UIContainer {
     private void zoom(int delta, SVector origin) {
         double prevZoom = getImageZoom();
         imageZoomLevel += delta;
-        imageZoomLevel = Math.min(Math.max(MIN_ZOOM_LEVEL, imageZoomLevel), MAX_ZOOM_LEVEL);
+        imageZoomLevel = Math.clamp(imageZoomLevel, MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL);
         double zoom = getImageZoom();
         imageTranslation.sub(origin).scale(zoom / prevZoom).add(origin);
     }
@@ -221,7 +221,7 @@ public class ImageCanvas extends UIContainer {
         double widthRatio = size.x / (imageWidth * uiScale),
                 heightRatio = size.y / (imageHeight * uiScale);
         int level = (int) Math.floor(Math.log(Math.min(widthRatio, heightRatio)) / Math.log(ZOOM_BASE));
-        level = Math.min(Math.max(MIN_ZOOM_LEVEL, level), MAX_ZOOM_LEVEL);
+        level = Math.clamp(level, MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL);
         return level;
     }
 
@@ -383,7 +383,7 @@ public class ImageCanvas extends UIContainer {
 
         @Override
         public void setWidth(int width) {
-            newWidth = Math.min(Math.max(MainApp.MIN_IMAGE_SIZE, width), MainApp.MAX_IMAGE_SIZE);
+            newWidth = Math.clamp(width, MainApp.MIN_IMAGE_SIZE, MainApp.MAX_IMAGE_SIZE);
         }
 
         @Override
@@ -393,7 +393,7 @@ public class ImageCanvas extends UIContainer {
 
         @Override
         public void setHeight(int height) {
-            newHeight = Math.min(Math.max(MainApp.MIN_IMAGE_SIZE, height), MainApp.MAX_IMAGE_SIZE);
+            newHeight = Math.clamp(height, MainApp.MIN_IMAGE_SIZE, MainApp.MAX_IMAGE_SIZE);
         }
     }
 }

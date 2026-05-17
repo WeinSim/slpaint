@@ -1,9 +1,9 @@
 package com.weinsim.slpaint.settings;
 
 import com.weinsim.slpaint.main.ColorArray;
-import com.weinsim.slpaint.sutil.json.values.JSONArray;
-import com.weinsim.slpaint.sutil.json.values.JSONObject;
-import com.weinsim.slpaint.sutil.json.values.JSONValue;
+import com.weinsim.sutil.json.values.JSONArray;
+import com.weinsim.sutil.json.values.JSONObject;
+import com.weinsim.sutil.json.values.JSONValue;
 
 public final class ColorArraySetting extends Setting<ColorArray> {
 

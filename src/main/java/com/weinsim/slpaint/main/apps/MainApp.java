@@ -23,13 +23,13 @@ import com.weinsim.slpaint.settings.Settings;
 import com.weinsim.slpaint.main.tools.ImageTool;
 import com.weinsim.slpaint.renderengine.Window;
 import com.weinsim.slpaint.renderengine.font.TextFont;
-import com.weinsim.slpaint.sutil.SUtil;
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.UI;
-import com.weinsim.slpaint.sutil.ui.elements.UITextInput;
 import com.weinsim.slpaint.ui.AppUI;
 import com.weinsim.slpaint.ui.MainUI;
 import com.weinsim.slpaint.ui.components.ImageCanvas;
+import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.elements.UITextInput;
 
 /**
  * <pre>
@@ -132,7 +132,10 @@ import com.weinsim.slpaint.ui.components.ImageCanvas;
  *   Layering inconsistency: the SizeKnobs' outline appears above the dropdowns
  *     of the top row (Rotate, Flip, font selection)
  *   Make side panel collapsable?
- *   Add options for hyperlinks in about text?
+ *   About
+ *     Make hyperlinks clickable? (=> underlined text!)
+ *     Title "About" looks weird. It is a bit off-center because of the "X"
+ *       button
  *   Add Alt + Letter navigation options for menu bar
  *     Would require underlined letters
  *   Add tooltips (on mouse hover)
@@ -180,11 +183,8 @@ import com.weinsim.slpaint.ui.components.ImageCanvas;
  * 
  * Backend:
  *   Proper package names / structure
- *     Put package names in signular: sutil.ui.elements, renderengine.fonts,
- *       renderengine.shaders
  *   Make SUtil a git submodule / maven subproject?
  *   Make MainApp static?
- *   Use Math.clamp wherever it is possible
  *   Sizes
  *     Move things that should not be part of sutil.ui into ui package
  *   GLFW key input: automatically recognize keyboard layout and remappings to
@@ -393,8 +393,8 @@ public final class MainApp extends App {
     public void resizeImage(int newWidth, int newHeight) {
         finishActiveTool();
 
-        newWidth = Math.min(Math.max(MIN_IMAGE_SIZE, newWidth), MAX_IMAGE_SIZE);
-        newHeight = Math.min(Math.max(MIN_IMAGE_SIZE, newHeight), MAX_IMAGE_SIZE);
+        newWidth = Math.clamp(newWidth, MIN_IMAGE_SIZE, MAX_IMAGE_SIZE);
+        newHeight = Math.clamp(newHeight, MIN_IMAGE_SIZE, MAX_IMAGE_SIZE);
 
         renderer.setTempFBOSize(newWidth, newHeight);
         renderer.resizeImage(getImage(), newWidth, newHeight);
@@ -418,8 +418,8 @@ public final class MainApp extends App {
         finishActiveTool();
 
         Image image = getImage();
-        newWidth = Math.min(Math.max(MIN_IMAGE_SIZE, newWidth), MAX_IMAGE_SIZE);
-        newHeight = Math.min(Math.max(MIN_IMAGE_SIZE, newHeight), MAX_IMAGE_SIZE);
+        newWidth = Math.clamp(newWidth, MIN_IMAGE_SIZE, MAX_IMAGE_SIZE);
+        newHeight = Math.clamp(newHeight, MIN_IMAGE_SIZE, MAX_IMAGE_SIZE);
 
         image.crop(x, y, newWidth, newHeight, secondaryColor);
         renderer.setTempFBOSize(newWidth, newHeight);

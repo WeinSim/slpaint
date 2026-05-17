@@ -7,7 +7,7 @@ import java.awt.image.BufferedImage;
 import com.weinsim.slpaint.main.ClipboardManager;
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.image.Image;
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.math.SVector;
 
 public final class SelectionTool extends DragTool {
 
@@ -113,8 +113,8 @@ public final class SelectionTool extends DragTool {
         finish();
 
         SVector spawnPos = app.getImagePosition(app.getCanvas().getAbsolutePosition());
-        x = Math.min(Math.max((int) spawnPos.x, 0), app.getImage().getWidth() - paste.getWidth());
-        y = Math.min(Math.max((int) spawnPos.y, 0), app.getImage().getHeight() - paste.getHeight());
+        x = Math.clamp((int) spawnPos.x, 0, app.getImage().getWidth() - paste.getWidth());
+        y = Math.clamp((int) spawnPos.y, 0, app.getImage().getHeight() - paste.getHeight());
         width = paste.getWidth();
         height = paste.getHeight();
 

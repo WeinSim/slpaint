@@ -5,10 +5,10 @@ import java.util.function.Supplier;
 
 import org.lwjglx.util.vector.Vector4f;
 
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.UIColors;
-import com.weinsim.slpaint.sutil.ui.UISizes;
-import com.weinsim.slpaint.sutil.ui.elements.UIElement;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.UIColors;
+import com.weinsim.sutil.ui.UISizes;
+import com.weinsim.sutil.ui.elements.UIElement;
 
 public class UIColorElement extends UIElement {
 

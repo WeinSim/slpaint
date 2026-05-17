@@ -2,7 +2,7 @@ package com.weinsim.slpaint.ui.components.toolContainers;
 
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.tools.ImageTool;
-import com.weinsim.slpaint.sutil.ui.elements.UIFloatContainer;
+import com.weinsim.sutil.ui.elements.UIFloatContainer;
 
 public sealed class ToolContainer<T extends ImageTool> extends UIFloatContainer
         permits DragToolContainer, PencilToolContainer, LineToolContainer {

@@ -10,10 +10,10 @@ import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.main.tools.Draggable;
 import com.weinsim.slpaint.main.tools.ImageTool;
 import com.weinsim.slpaint.main.tools.LineTool;
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.UI;
-import com.weinsim.slpaint.sutil.ui.elements.UIImage;
 import com.weinsim.slpaint.ui.components.DragKnob;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.elements.UIImage;
 
 public final class LineToolContainer extends ToolContainer<LineTool> {
 

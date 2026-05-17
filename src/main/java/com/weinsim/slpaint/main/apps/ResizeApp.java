@@ -1,10 +1,10 @@
 package com.weinsim.slpaint.main.apps;
 
 import com.weinsim.slpaint.renderengine.Window;
-import com.weinsim.slpaint.sutil.ui.UI;
-import com.weinsim.slpaint.sutil.ui.elements.UINumberInput;
 import com.weinsim.slpaint.ui.AppUI;
 import com.weinsim.slpaint.ui.ResizeUI;
+import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.elements.UINumberInput;
 
 public final class ResizeApp extends App {
 

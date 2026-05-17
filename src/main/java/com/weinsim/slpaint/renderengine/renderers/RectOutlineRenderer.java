@@ -6,7 +6,7 @@ import com.weinsim.slpaint.renderengine.bufferobjects.FloatVBO;
 import com.weinsim.slpaint.renderengine.bufferobjects.IntVBO;
 import com.weinsim.slpaint.renderengine.bufferobjects.MatrixVBO;
 import com.weinsim.slpaint.renderengine.drawcalls.RectOutlineDrawCall;
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.math.SVector;
 
 public class RectOutlineRenderer extends InstanceShapeRenderer<RectOutlineDrawCall> {
 

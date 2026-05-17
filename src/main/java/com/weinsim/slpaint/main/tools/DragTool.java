@@ -25,8 +25,8 @@ public abstract sealed class DragTool extends ImageTool implements Resizable per
     public void click(int x, int y, int mouseButton) {
         if (state == NONE) {
             if (mouseButton == GLFW_MOUSE_BUTTON_LEFT) {
-                startX = Math.min(Math.max(0, x), app.getImage().getWidth() - 1);
-                startY = Math.min(Math.max(0, y), app.getImage().getHeight() - 1);
+                startX = Math.clamp(x, 0, app.getImage().getWidth() - 1);
+                startY = Math.clamp(y, 0, app.getImage().getHeight() - 1);
 
                 state = INITIAL_DRAG;
             }

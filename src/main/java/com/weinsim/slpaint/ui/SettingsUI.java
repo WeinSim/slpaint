@@ -13,18 +13,18 @@ import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.apps.SettingsApp;
 import com.weinsim.slpaint.renderengine.font.TextFont;
 import com.weinsim.slpaint.settings.Settings;
-import com.weinsim.slpaint.sutil.ui.UI;
-import com.weinsim.slpaint.sutil.ui.UISizes;
-import com.weinsim.slpaint.sutil.ui.elements.UIButton;
-import com.weinsim.slpaint.sutil.ui.elements.UIContainer;
-import com.weinsim.slpaint.sutil.ui.elements.UIContextMenu;
-import com.weinsim.slpaint.sutil.ui.elements.UIDropdown;
-import com.weinsim.slpaint.sutil.ui.elements.UIFloatMenu;
-import com.weinsim.slpaint.sutil.ui.elements.UISeparator;
-import com.weinsim.slpaint.sutil.ui.elements.UIText;
 import com.weinsim.slpaint.ui.components.ColorPickContainer;
 import com.weinsim.slpaint.ui.components.CustomColorContainer;
 import com.weinsim.slpaint.ui.components.UIColorElement;
+import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.UISizes;
+import com.weinsim.sutil.ui.elements.UIButton;
+import com.weinsim.sutil.ui.elements.UIContainer;
+import com.weinsim.sutil.ui.elements.UIContextMenu;
+import com.weinsim.sutil.ui.elements.UIDropdown;
+import com.weinsim.sutil.ui.elements.UIFloatMenu;
+import com.weinsim.sutil.ui.elements.UISeparator;
+import com.weinsim.sutil.ui.elements.UIText;
 
 public class SettingsUI extends AppUI<SettingsApp> {
 

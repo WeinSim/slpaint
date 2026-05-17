@@ -1,6 +1,6 @@
 package com.weinsim.slpaint.settings;
 
-import com.weinsim.slpaint.sutil.json.values.JSONValue;
+import com.weinsim.sutil.json.values.JSONValue;
 
 public abstract sealed class Setting<T> permits BooleanSetting, StringSetting, ColorSetting, ColorArraySetting {
 

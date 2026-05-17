@@ -6,8 +6,8 @@ import org.lwjglx.util.vector.Vector4f;
 
 import com.weinsim.slpaint.main.ColorArray;
 import com.weinsim.slpaint.main.apps.MainApp;
-import com.weinsim.slpaint.sutil.ui.UISizes;
-import com.weinsim.slpaint.sutil.ui.elements.UIContainer;
+import com.weinsim.sutil.ui.UISizes;
+import com.weinsim.sutil.ui.elements.UIContainer;
 
 public class CustomColorContainer extends UIContainer {
 

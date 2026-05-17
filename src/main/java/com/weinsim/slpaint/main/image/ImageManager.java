@@ -12,7 +12,7 @@ import org.lwjgl.util.nfd.NFDOpenDialogArgs;
 import org.lwjgl.util.nfd.NFDSaveDialogArgs;
 
 import com.weinsim.slpaint.main.apps.MainApp;
-import com.weinsim.slpaint.sutil.ui.UI;
+import com.weinsim.sutil.ui.UI;
 
 public class ImageManager {
 

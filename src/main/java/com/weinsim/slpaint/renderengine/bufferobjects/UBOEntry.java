@@ -27,6 +27,8 @@ public class UBOEntry {
         // produces a VerifyError. See bottom of the file for the full error message or
         // https://chatgpt.com/c/69864e48-fb0c-8326-ad68-26af8652a274
         // for an explanation.
+        // Edit: still not fixed in java 26
+
         VBO.put(data, switch (data) {
             case Float _ -> 1;
             case Integer _ -> 1;
@@ -41,10 +43,10 @@ public class UBOEntry {
         }, buffer, true);
 
         // VBO.put(data, switch (data) {
-        // case Float _, Integer _ , Double _-> 1;
-        // case Vector2f _, Matrix2f _ -> 2;
-        // case Vector3f _, Matrix3f _ -> 3;
-        // case Vector4f _, Matrix4f _ -> 4;
+        // case Float _,Integer _,Double _ -> 1;
+        // case Vector2f _,Matrix2f _ -> 2;
+        // case Vector3f _,Matrix3f _ -> 3;
+        // case Vector4f _,Matrix4f _ -> 4;
         // default -> 0;
         // }, buffer, true);
     }

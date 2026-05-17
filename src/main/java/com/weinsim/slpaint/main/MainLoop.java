@@ -16,7 +16,7 @@ import org.newdawn.slick.util.Log;
 import com.weinsim.slpaint.main.apps.App;
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.renderengine.Window;
-import com.weinsim.slpaint.sutil.SUtil;
+import com.weinsim.sutil.SUtil;
 
 public class MainLoop {
 
@@ -136,10 +136,14 @@ public class MainLoop {
     }
 
     /**
-     * checks that all sutil imports are self contained
+     * Checks that all sutil imports are self contained.
+     * Would probably make more sense to explicitly forbid com.weinsim.slpaint
+     * instead of manually allowing certain imports.
      */
     private static void testImports() {
-        testImports(new File("src/sutil"), new String[] { "sutil", "java", "org" });
+        testImports(
+                new File("src/main/java/com/weinsim/sutil"),
+                new String[] { "com.weinsim.sutil", "java", "org" });
     }
 
     private static void testImports(File file, String[] allowedImports) {
@@ -162,11 +166,11 @@ public class MainLoop {
                         continue;
 
                     String importName = parts[parts.length - 1];
-                    int endIndex = importName.indexOf('.');
-                    importName = importName.substring(0, endIndex);
+                    // int endIndex = importName.indexOf('.');
+                    // importName = importName.substring(0, endIndex);
                     boolean allowed = false;
                     for (String allowedImport : allowedImports) {
-                        if (allowedImport.equals(importName)) {
+                        if (importName.startsWith(allowedImport)) {
                             allowed = true;
                             break;
                         }

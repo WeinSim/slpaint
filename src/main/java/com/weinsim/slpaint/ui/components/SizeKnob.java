@@ -6,7 +6,7 @@ import java.util.function.BooleanSupplier;
 
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.tools.Resizable;
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.math.SVector;
 
 public class SizeKnob extends DragKnob {
 

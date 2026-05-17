@@ -31,8 +31,8 @@ import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.system.Platform;
 
 import com.weinsim.slpaint.main.Loader;
-import com.weinsim.slpaint.sutil.SUtil;
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.math.SVector;
 
 public class Window {
 

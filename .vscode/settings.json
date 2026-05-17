@@ -4,28 +4,4 @@
     ],
     "java.project.outputPath": "bin",
     "java.configuration.updateBuildConfiguration": "interactive",
-    // "java.project.referencedLibraries": [
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-glfw-javadoc.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-assimp-javadoc.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-stb-natives-linux.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-opengl-javadoc.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-nfd-natives-linux.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-natives-linux.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-glfw-natives-linux.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-openal-natives-linux.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-javadoc.jar",
-    //     "/home/simon/code/java/SLPaint/lib/slick-util3/slick-util3.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-opengl.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-openal.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-openal-javadoc.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-opengl-natives-linux.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-glfw.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-stb-javadoc.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-assimp-natives-linux.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-nfd.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-assimp.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-nfd-javadoc.jar",
-    //     "/home/simon/code/java/SLPaint/lib/lwjgl-release-3.3.6-custom/lwjgl-stb.jar"
-    // ]
 }

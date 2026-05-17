@@ -2,8 +2,8 @@ package com.weinsim.slpaint.ui.components;
 
 import com.weinsim.slpaint.main.ColorPicker;
 import com.weinsim.slpaint.main.apps.App;
-import com.weinsim.slpaint.sutil.ui.UI;
-import com.weinsim.slpaint.sutil.ui.elements.UIScale;
+import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.elements.UIScale;
 
 public class LightnessScale extends UIScale {
 

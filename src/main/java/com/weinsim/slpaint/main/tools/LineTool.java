@@ -66,7 +66,7 @@ public final class LineTool extends ImageTool {
     }
 
     public void setSize(int size) {
-        this.size = Math.min(Math.max(size, MIN_SIZE), MAX_SIZE);
+        this.size = Math.clamp(size, MIN_SIZE, MAX_SIZE);
     }
 
     public Draggable getDrag1() {

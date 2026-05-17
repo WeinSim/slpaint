@@ -3,7 +3,7 @@ package com.weinsim.slpaint.renderengine.drawcalls;
 import org.lwjglx.util.vector.Matrix3f;
 
 import com.weinsim.slpaint.renderengine.bufferobjects.UBOEntry;
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.math.SVector;
 
 public final class HSLDrawCall extends DrawCall {
 

@@ -1,9 +1,9 @@
 package com.weinsim.slpaint.settings;
 
 import com.weinsim.slpaint.main.ColorPicker;
-import com.weinsim.slpaint.sutil.SUtil;
-import com.weinsim.slpaint.sutil.json.values.JSONArray;
-import com.weinsim.slpaint.sutil.json.values.JSONValue;
+import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.json.values.JSONArray;
+import com.weinsim.sutil.json.values.JSONValue;
 
 public final class ColorSetting extends Setting<ColorPicker> {
 

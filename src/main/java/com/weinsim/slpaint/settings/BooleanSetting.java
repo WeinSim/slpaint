@@ -1,7 +1,7 @@
 package com.weinsim.slpaint.settings;
 
-import com.weinsim.slpaint.sutil.json.values.JSONBoolean;
-import com.weinsim.slpaint.sutil.json.values.JSONValue;
+import com.weinsim.sutil.json.values.JSONBoolean;
+import com.weinsim.sutil.json.values.JSONValue;
 
 public final class BooleanSetting extends Setting<Boolean> {
 

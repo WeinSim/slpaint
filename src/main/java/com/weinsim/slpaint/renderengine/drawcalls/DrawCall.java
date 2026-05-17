@@ -3,8 +3,8 @@ package com.weinsim.slpaint.renderengine.drawcalls;
 import org.lwjglx.util.vector.Matrix3f;
 
 import com.weinsim.slpaint.renderengine.bufferobjects.UBOEntry;
-import com.weinsim.slpaint.sutil.SUtil;
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.math.SVector;
 
 public abstract sealed class DrawCall permits RectDrawCall, EllipseDrawCall, HSLDrawCall, ImageDrawCall, TextDrawCall {
 

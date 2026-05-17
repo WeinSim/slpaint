@@ -3,7 +3,7 @@ package com.weinsim.slpaint.renderengine.drawcalls;
 import org.lwjglx.util.vector.Matrix3f;
 import org.lwjglx.util.vector.Vector4f;
 
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.math.SVector;
 
 public final class RectOutlineDrawCall extends RectDrawCall {
 

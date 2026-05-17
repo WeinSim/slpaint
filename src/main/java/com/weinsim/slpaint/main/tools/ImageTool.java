@@ -3,7 +3,7 @@ package com.weinsim.slpaint.main.tools;
 import java.util.function.BooleanSupplier;
 
 import com.weinsim.slpaint.main.apps.MainApp;
-import com.weinsim.slpaint.sutil.ui.UI;
+import com.weinsim.sutil.ui.UI;
 
 public abstract sealed class ImageTool permits PencilTool, LineTool, DragTool, FillBucketTool, PipetteTool, MagicTool {
 

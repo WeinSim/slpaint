@@ -1,7 +1,7 @@
 package com.weinsim.slpaint.renderengine.drawcalls;
 
-import com.weinsim.slpaint.sutil.SUtil;
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.math.SVector;
 
 public class ClipAreaInfo {
 

@@ -144,29 +144,30 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- <plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.6.2</version>
                 <executions>
                     <execution>
-                        <id>server</id>
+                        <id>main</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.weinsim.slpaint.main.MainLoop</mainClass>
                                 </transformer>
                             </transformers>
-                            <finalName>slpaint</finalName>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <!-- <finalName>slpaint</finalName> -->
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin> -->
+            </plugin>
             <!-- <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -176,11 +177,6 @@
                     <outputDirectory>${project.basedir}/doc</outputDirectory>
                 </configuration>
             </plugin> -->
-            <!--
-            Source - https://stackoverflow.com/a/38339518
-            Posted by sphinks, modified by community. See post 'Timeline' for change history
-            Retrieved 2026-05-14, License - CC BY-SA 4.0
-            -->
         </plugins>
     </build>
 

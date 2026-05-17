@@ -1,7 +1,7 @@
 package com.weinsim.slpaint.main;
 
-import com.weinsim.slpaint.sutil.SUtil;
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.math.SVector;
 
 public class ColorPicker {
 
@@ -41,31 +41,31 @@ public class ColorPicker {
     }
 
     public void setHSLSaturation(double hslSaturation) {
-        this.hslSaturation = Math.min(Math.max(hslSaturation, 0), 1);
+        this.hslSaturation = Math.clamp(hslSaturation, 0, 1);
         updateRGBFromHSL();
         updateHSVFromHSL();
     }
 
     public void setHSVSaturation(double hsvSaturation) {
-        this.hsvSaturation = Math.min(Math.max(hsvSaturation, 0), 1);
+        this.hsvSaturation = Math.clamp(hsvSaturation, 0, 1);
         updateRGBFromHSV();
         updateHSLFromHSV();
     }
 
     public void setLightness(double lightness) {
-        this.lightness = Math.min(Math.max(lightness, 0), 1);
+        this.lightness = Math.clamp(lightness, 0, 1);
         updateRGBFromHSL();
         updateHSVFromHSL();
     }
 
     public void setValue(double value) {
-        this.value = Math.min(Math.max(value, 0), 1);
+        this.value = Math.clamp(value, 0, 1);
         updateRGBFromHSV();
         updateHSLFromHSV();
     }
 
     public void setAlpha(int alpha) {
-        this.alpha = Math.min(Math.max(alpha, 0), 255);
+        this.alpha = Math.clamp(alpha, 0, 255);
         setComponent(24, this.alpha);
     }
 

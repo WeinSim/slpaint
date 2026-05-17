@@ -13,16 +13,16 @@ import org.newdawn.slick.opengl.TextureLoader;
 import com.weinsim.slpaint.main.Loader;
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.settings.StringSetting;
+import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.json.JSONParser;
+import com.weinsim.sutil.json.values.JSONArray;
+import com.weinsim.sutil.json.values.JSONObject;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.UI;
 import com.weinsim.slpaint.renderengine.UIRenderMaster;
 import com.weinsim.slpaint.renderengine.bufferobjects.FloatVBO;
 import com.weinsim.slpaint.renderengine.bufferobjects.IntVBO;
 import com.weinsim.slpaint.renderengine.drawcalls.TextDrawCall;
-import com.weinsim.slpaint.sutil.SUtil;
-import com.weinsim.slpaint.sutil.json.JSONParser;
-import com.weinsim.slpaint.sutil.json.values.JSONArray;
-import com.weinsim.slpaint.sutil.json.values.JSONObject;
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.UI;
 
 public class TextFont {
 

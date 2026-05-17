@@ -9,16 +9,16 @@ import org.lwjglx.util.vector.Vector4f;
 import com.weinsim.slpaint.main.ColorPicker;
 import com.weinsim.slpaint.main.apps.App;
 import com.weinsim.slpaint.main.apps.MainApp;
-import com.weinsim.slpaint.sutil.SUtil;
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.UIColors;
-import com.weinsim.slpaint.sutil.ui.UISizes;
-import com.weinsim.slpaint.sutil.ui.UIStyle;
-import com.weinsim.slpaint.sutil.ui.elements.UIButton;
-import com.weinsim.slpaint.sutil.ui.elements.UIContainer;
-import com.weinsim.slpaint.sutil.ui.elements.UINumberInput;
-import com.weinsim.slpaint.sutil.ui.elements.UIScale;
-import com.weinsim.slpaint.sutil.ui.elements.UIText;
+import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.UIColors;
+import com.weinsim.sutil.ui.UISizes;
+import com.weinsim.sutil.ui.UIStyle;
+import com.weinsim.sutil.ui.elements.UIButton;
+import com.weinsim.sutil.ui.elements.UIContainer;
+import com.weinsim.sutil.ui.elements.UINumberInput;
+import com.weinsim.sutil.ui.elements.UIScale;
+import com.weinsim.sutil.ui.elements.UIText;
 
 public class ColorPickContainer extends UIContainer {
 
@@ -136,7 +136,7 @@ public class ColorPickContainer extends UIContainer {
                 default -> null;
             };
             IntConsumer setter = switch (i) {
-                case 0 -> hue -> colorPicker.setHSVHue(Math.min(Math.max(hue, 0), 360));
+                case 0 -> hue -> colorPicker.setHSVHue(Math.clamp(hue, 0, 360));
                 case 1 -> saturation -> colorPicker.setHSVSaturation(saturation / 100.0);
                 case 2 -> value -> colorPicker.setValue(value / 100.0);
                 default -> null;
@@ -161,7 +161,7 @@ public class ColorPickContainer extends UIContainer {
             };
             final int j = i;
             IntConsumer setter = component -> {
-                component = Math.min(Math.max(component, 0), 255);
+                component = Math.clamp(component, 0, 255);
                 int color = colorPicker.getRGB();
                 int shiftAmount = 8 * (2 - j);
                 int mask = 0xFF << shiftAmount;

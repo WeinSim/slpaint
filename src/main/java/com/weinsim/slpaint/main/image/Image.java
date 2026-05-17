@@ -14,8 +14,8 @@ import java.util.Arrays;
 import org.lwjgl.BufferUtils;
 
 import com.weinsim.slpaint.renderengine.Cleanable;
-import com.weinsim.slpaint.sutil.SUtil;
-import com.weinsim.slpaint.sutil.math.SVector;
+import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.math.SVector;
 
 public class Image implements Cleanable {
 
@@ -335,7 +335,7 @@ public class Image implements Cleanable {
                     if (!isInside(x, y))
                         continue;
                     SVector pa = new SVector(x - x0, y - y0);
-                    double h = Math.min(Math.max(pa.dot(ba) * invBaSq, 0), 1);
+                    double h = Math.clamp(pa.dot(ba) * invBaSq, 0, 1);
                     if (Double.isFinite(h)) {
                         pa.x -= ba.x * h;
                         pa.y -= ba.y * h;
@@ -359,7 +359,7 @@ public class Image implements Cleanable {
                     if (!isInside(x, y))
                         continue;
                     SVector pa = new SVector(x - x0, y - y0);
-                    double h = Math.min(Math.max(pa.dot(ba) * invBaSq, 0), 1);
+                    double h = Math.clamp(pa.dot(ba) * invBaSq, 0, 1);
                     if (Double.isFinite(h)) {
                         pa.x -= ba.x * h;
                         pa.y -= ba.y * h;

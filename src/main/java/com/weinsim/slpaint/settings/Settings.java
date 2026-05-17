@@ -13,10 +13,10 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
 import com.weinsim.slpaint.main.Loader;
-import com.weinsim.slpaint.sutil.json.JSONParser;
-import com.weinsim.slpaint.sutil.json.JSONSerializer;
-import com.weinsim.slpaint.sutil.json.values.JSONObject;
-import com.weinsim.slpaint.sutil.json.values.JSONValue;
+import com.weinsim.sutil.json.JSONParser;
+import com.weinsim.sutil.json.JSONSerializer;
+import com.weinsim.sutil.json.values.JSONObject;
+import com.weinsim.sutil.json.values.JSONValue;
 
 /**
  * This class manages global (user) settings, such as the color theme (base

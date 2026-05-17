@@ -6,13 +6,13 @@ import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
 import com.weinsim.slpaint.main.apps.ResizeApp;
-import com.weinsim.slpaint.sutil.ui.UI;
-import com.weinsim.slpaint.sutil.ui.elements.UIButton;
-import com.weinsim.slpaint.sutil.ui.elements.UIContainer;
-import com.weinsim.slpaint.sutil.ui.elements.UINumberInput;
-import com.weinsim.slpaint.sutil.ui.elements.UIRadioButtonList;
-import com.weinsim.slpaint.sutil.ui.elements.UIText;
-import com.weinsim.slpaint.sutil.ui.elements.UIToggleList;
+import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.elements.UIButton;
+import com.weinsim.sutil.ui.elements.UIContainer;
+import com.weinsim.sutil.ui.elements.UINumberInput;
+import com.weinsim.sutil.ui.elements.UIRadioButtonList;
+import com.weinsim.sutil.ui.elements.UIText;
+import com.weinsim.sutil.ui.elements.UIToggleList;
 
 public class ResizeUI extends AppUI<ResizeApp> {
 

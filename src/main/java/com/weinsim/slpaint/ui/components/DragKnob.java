@@ -5,11 +5,11 @@ import java.util.function.Supplier;
 
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.tools.Draggable;
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.UI;
-import com.weinsim.slpaint.sutil.ui.UIColors;
-import com.weinsim.slpaint.sutil.ui.UISizes;
-import com.weinsim.slpaint.sutil.ui.elements.UIFloatContainer;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.UIColors;
+import com.weinsim.sutil.ui.UISizes;
+import com.weinsim.sutil.ui.elements.UIFloatContainer;
 
 public class DragKnob extends UIFloatContainer {
 

@@ -3,8 +3,8 @@ package com.weinsim.slpaint.ui.components.toolContainers;
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.tools.ImageTool;
 import com.weinsim.slpaint.main.tools.SelectionTool;
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.elements.UIImage;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.elements.UIImage;
 
 public final class SelectionToolContainer extends DragToolContainer<SelectionTool> {
 

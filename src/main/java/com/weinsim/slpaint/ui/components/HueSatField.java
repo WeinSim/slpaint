@@ -2,14 +2,14 @@ package com.weinsim.slpaint.ui.components;
 
 import com.weinsim.slpaint.main.ColorPicker;
 import com.weinsim.slpaint.main.apps.App;
-import com.weinsim.slpaint.sutil.math.SVector;
-import com.weinsim.slpaint.sutil.ui.UIColors;
-import com.weinsim.slpaint.sutil.ui.UISizes;
-import com.weinsim.slpaint.sutil.ui.UIStyle;
-import com.weinsim.slpaint.sutil.ui.elements.UIContainer;
-import com.weinsim.slpaint.sutil.ui.elements.UIDragContainer;
-import com.weinsim.slpaint.sutil.ui.elements.UIElement;
-import com.weinsim.slpaint.sutil.ui.elements.UIFloatContainer;
+import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.ui.UIColors;
+import com.weinsim.sutil.ui.UISizes;
+import com.weinsim.sutil.ui.UIStyle;
+import com.weinsim.sutil.ui.elements.UIContainer;
+import com.weinsim.sutil.ui.elements.UIDragContainer;
+import com.weinsim.sutil.ui.elements.UIElement;
+import com.weinsim.sutil.ui.elements.UIFloatContainer;
 
 public class HueSatField extends UIDragContainer {
 
@@ -79,7 +79,7 @@ public class HueSatField extends UIDragContainer {
         if (App.isCircularHueSatField()) {
             nextX = x;
         } else {
-            x = Math.min(Math.max(0, x), 1);
+            x = Math.clamp(x, 0, 1);
             if (App.isHSLColorSpace()) {
                 colorPicker.setHSLHue(x * 360.0);
             } else {
@@ -103,7 +103,7 @@ public class HueSatField extends UIDragContainer {
                 colorPicker.setHSVSaturation(Math.min(1, 2 * Math.sqrt(x * x + y * y)));
             }
         } else {
-            y = Math.min(Math.max(0, y), 1);
+            y = Math.clamp(y, 0, 1);
             if (App.isHSLColorSpace()) {
                 colorPicker.setHSLSaturation(1 - y);
             } else {

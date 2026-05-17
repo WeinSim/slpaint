@@ -4,7 +4,7 @@ import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.tools.DragTool;
 import com.weinsim.slpaint.main.tools.ImageTool;
 import com.weinsim.slpaint.main.tools.TextTool;
-import com.weinsim.slpaint.sutil.ui.elements.UITextInput;
+import com.weinsim.sutil.ui.elements.UITextInput;
 
 public final class TextToolContainer extends DragToolContainer<TextTool> {
 
