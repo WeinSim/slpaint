@@ -27,4 +27,8 @@ void main(void) {
     vec4 sampleColor = texture(textureSamplers[samplerID], uvCoords);
 
     outColor = sampleColor;
+
+    // float brightness = (sampleColor.r + sampleColor.g + sampleColor.b) / 3;
+    // outColor = vec4(brightness, brightness, brightness, sampleColor.a);
+
 }

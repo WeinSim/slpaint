@@ -17,7 +17,7 @@ public class UIContainer extends UIElement {
             TOP = UI.TOP,
             CENTER = UI.CENTER,
             RIGHT = UI.RIGHT,
-            BOTTOM = UI.BOTH;
+            BOTTOM = UI.BOTTOM;
 
     protected static final int VERTICAL = UI.VERTICAL,
             HORIZONTAL = UI.HORIZONTAL,
@@ -244,7 +244,7 @@ public class UIContainer extends UIElement {
 
     // Layout stuff
 
-    public void setMinSize() {
+    protected void setMinSize() {
         for (UIElement child : getChildren()) {
             if (child instanceof UIContainer container) {
                 container.setMinSize();

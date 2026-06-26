@@ -6,9 +6,6 @@ import static org.lwjgl.opengl.GL30.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 
 import org.lwjglx.util.vector.Vector4f;
 import org.newdawn.slick.opengl.Texture;
@@ -18,16 +15,12 @@ import com.weinsim.slpaint.main.ColorPicker;
 import com.weinsim.slpaint.main.Loader;
 import com.weinsim.slpaint.main.apps.App;
 import com.weinsim.slpaint.main.apps.MainApp;
+import com.weinsim.slpaint.renderengine.Cleanable;
+import com.weinsim.slpaint.renderengine.font.TextFont;
 import com.weinsim.slpaint.settings.BooleanSetting;
 import com.weinsim.slpaint.settings.ColorSetting;
 import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.ui.UI;
-import com.weinsim.sutil.ui.UIColors;
-import com.weinsim.sutil.ui.UISizes;
-import com.weinsim.sutil.ui.UIStyle;
-import com.weinsim.sutil.ui.elements.UIElement;
-import com.weinsim.slpaint.renderengine.Cleanable;
-import com.weinsim.slpaint.renderengine.font.TextFont;
 
 public abstract class AppUI<T extends App> extends UI implements Cleanable {
 
@@ -69,18 +62,6 @@ public abstract class AppUI<T extends App> extends UI implements Cleanable {
             UI.addKeyboardShortcut("reload_shaders", GLFW_KEY_S, GLFW_MOD_SHIFT, true, app::reloadShaders);
             UI.addKeyboardShortcut("reload_ui", GLFW_KEY_R, GLFW_MOD_SHIFT, true, () -> app.queueEvent(app::loadUI));
         }
-    }
-
-    public static <E extends UIElement> E setSelectableButtonStyle(E element, BooleanSupplier selectedSupplier) {
-        Supplier<Vector4f> backgroundColorSupplier = () -> selectedSupplier.getAsBoolean()
-                ? UIColors.BACKGROUND_2.get()
-                : null;
-        Supplier<Vector4f> outlineColorSupplier = () -> element.mouseAbove()
-                ? UIColors.OUTLINE.get()
-                : null;
-        DoubleSupplier strokeWeightSupplier = UISizes.STROKE_WEIGHT;
-        element.setStyle(new UIStyle(backgroundColorSupplier, outlineColorSupplier, strokeWeightSupplier));
-        return element;
     }
 
     @Override

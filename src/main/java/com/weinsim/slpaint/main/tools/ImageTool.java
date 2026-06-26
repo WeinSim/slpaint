@@ -59,4 +59,5 @@ public abstract sealed class ImageTool permits PencilTool, LineTool, DragTool, F
         BooleanSupplier possible = () -> (getState() & possibleStates) != 0;
         UI.addKeyboardShortcut(identifier, key, modifiers, possible, shortcutAction);
     }
+
 }

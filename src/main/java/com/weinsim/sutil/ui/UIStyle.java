@@ -6,6 +6,8 @@ import java.util.function.Supplier;
 
 import org.lwjglx.util.vector.Vector4f;
 
+import com.weinsim.sutil.ui.elements.UIElement;
+
 public class UIStyle {
 
     private Supplier<Vector4f> backgroundColor;
@@ -35,6 +37,18 @@ public class UIStyle {
 
         setNoBackgroundCheckerboard();
         setNoStrokeCheckerboard();
+    }
+
+    public static <E extends UIElement> E setSelectableButtonStyle(E element, BooleanSupplier selectedSupplier) {
+        Supplier<Vector4f> backgroundColorSupplier = () -> selectedSupplier.getAsBoolean()
+                ? UIColors.BACKGROUND_2.get()
+                : null;
+        Supplier<Vector4f> outlineColorSupplier = () -> element.mouseAbove()
+                ? UIColors.OUTLINE.get()
+                : null;
+        DoubleSupplier strokeWeightSupplier = UISizes.STROKE_WEIGHT;
+        element.setStyle(new UIStyle(backgroundColorSupplier, outlineColorSupplier, strokeWeightSupplier));
+        return element;
     }
 
     public Vector4f backgroundColor() {
@@ -157,4 +171,5 @@ public class UIStyle {
             DoubleSupplier size) {
 
     }
+
 }

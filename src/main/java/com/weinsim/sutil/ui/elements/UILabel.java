@@ -139,6 +139,14 @@ public class UILabel extends UIContainer {
         this.textSize = textSize;
     }
 
+    public void setIconSize(Supplier<SVector> iconSize) {
+        this.iconSize = iconSize;
+    }
+
+    public void setTextSize(DoubleSupplier textSize) {
+        this.textSize = textSize;
+    }
+
     private SVector getIconSize() {
         return iconSize.get();
     }

@@ -465,13 +465,25 @@ public class Image implements Cleanable {
                 }
             }
         } else {
-            for (int row = 0; row < numRows; row++) {
+            for (int row = 0; row < numRows; row++)
                 System.arraycopy(pixels, row * stride + offset, pixelArray, (y0 + row) * width + x0, len);
-            }
         }
 
         setDirty(x0, y0);
         setDirty(x1 - 1, y1 - 1);
+    }
+
+    public void forEachPixel(PixelFunction effect) {
+        for (int i = 0; i < pixelArray.length; i++)
+            pixelArray[i] = effect.process(pixelArray[i]);
+        setDirty(0, 0);
+        setDirty(width - 1, height - 1);
+    }
+
+    public static interface PixelFunction {
+
+        public int process(int color);
+
     }
 
     private void setDirty(int x, int y) {

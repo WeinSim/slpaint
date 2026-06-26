@@ -14,6 +14,7 @@ import org.lwjglx.util.vector.Vector4f;
 import com.weinsim.slpaint.main.ColorArray;
 import com.weinsim.slpaint.main.ColorPicker;
 import com.weinsim.slpaint.main.Loader;
+import com.weinsim.slpaint.main.effects.Effect;
 import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.main.image.ImageFormat;
 import com.weinsim.slpaint.main.image.ImageManager;
@@ -34,6 +35,9 @@ import com.weinsim.sutil.ui.elements.UITextInput;
 /**
  * <pre>
  * TODO continue:
+ * Effects
+ *   Shader effects would be cool, currently b/w takes ~60ms and contrast
+ *     takes ~120ms.
  * 
  * App:
  *   Keyboard shortcuts
@@ -88,6 +92,7 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       can be set. Solution: add UIContainer.setMargin()?
  *   Change UIContainer defaults? .zeroMargin().noOutline() is used in a ton of
  *     places and should maybe be the default.
+ *   UITabs: make it a bit prettier
  *   Tool cursors
  *   Text
  *     Text input
@@ -190,6 +195,10 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *   GLFW key input: automatically recognize keyboard layout and remappings to
  *     avoid manual conversion between Y/Z and Esc/CapsLock (see Window.KEY_MAP)
  *   Performance: only ~50fps on Microsoft Surface
+ *     Mouse movement has a huge impact: keeping the mouse still drops the
+ *       update time from >10ms to <2ms. This even happens when we don't even
+ *       call glfwGetCursorPos() and even when the mouse is not even about the
+ *       window.
  *   Error handling
  * </pre>
  */
@@ -208,7 +217,7 @@ public final class MainApp extends App {
      * <li>Adds a test context menu to the settings window
      * </ul>
      */
-    public static final boolean DEV_BUILD = true;
+    public static final boolean DEV_BUILD = false;
 
     /**
      * https://images.minitool.com/de.minitool.com/images/uploads/news/2022/02/microsoft-paint-herunterladen-installieren/microsoft-paint-herunterladen-installieren-1.png
@@ -503,6 +512,17 @@ public final class MainApp extends App {
 
     public void cancelActiveTool() {
         activeTool.cancel();
+    }
+
+    public void applyEffect(Effect effect) {
+        long start = System.nanoTime();
+        effect.apply(getImage());
+        long end = System.nanoTime();
+        System.out.format("Effect \"%s\" took %.1fms\n",
+                effect.getClass().getSimpleName(),
+                (end - start) * 1e-6);
+        effect.init();
+        imageManager.addSnapshot();
     }
 
     public void undo() {
