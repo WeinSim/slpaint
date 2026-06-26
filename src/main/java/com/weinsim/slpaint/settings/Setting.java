@@ -30,4 +30,5 @@ public abstract sealed class Setting<T> permits BooleanSetting, StringSetting, C
                 expected, actual);
         throw new RuntimeException(message);
     }
+
 }

@@ -109,4 +109,5 @@ public class ResizeUI extends AppUI<ResizeApp> {
     public void setInputMode(int sizeMode) {
         this.inputMode = sizeMode;
     }
+
 }

@@ -105,4 +105,5 @@ public abstract sealed class DragTool extends ImageTool implements Resizable per
     public void setHeight(int height) {
         this.height = height;
     }
+
 }

@@ -54,4 +54,5 @@ public final class TextDrawCall extends DrawCall {
     public boolean usesAlpha() {
         return true;
     }
+
 }

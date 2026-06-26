@@ -582,4 +582,5 @@ public class UIRenderMaster {
         for (ShapeRenderer<?> renderer : renderers)
             renderer.cleanUp();
     }
+
 }

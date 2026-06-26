@@ -150,4 +150,5 @@ public final class LineToolContainer extends ToolContainer<LineTool> {
             return false;
         }
     }
+
 }

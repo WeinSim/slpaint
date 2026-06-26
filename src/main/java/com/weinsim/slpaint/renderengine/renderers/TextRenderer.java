@@ -87,4 +87,5 @@ public class TextRenderer extends InstanceShapeRenderer<TextDrawCall> {
         }
         return numVertices;
     }
+
 }

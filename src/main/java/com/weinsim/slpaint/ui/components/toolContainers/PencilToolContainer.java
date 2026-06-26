@@ -49,4 +49,5 @@ public final class PencilToolContainer extends ToolContainer<PencilTool> {
     protected int getVisibleStates() {
         return PencilTool.DRAWING_PRIMARY | PencilTool.DRAWING_SECONDARY;
     }
+
 }

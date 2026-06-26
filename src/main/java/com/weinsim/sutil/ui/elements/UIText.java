@@ -120,4 +120,5 @@ public class UIText extends UIElement {
         this.colorUpdater = colorUpdater;
         return this;
     }
+
 }

@@ -25,4 +25,5 @@ public enum JSONLiteralToken implements JSONToken {
             default -> null;
         };
     }
+
 }

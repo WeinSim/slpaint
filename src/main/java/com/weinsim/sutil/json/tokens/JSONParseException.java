@@ -7,4 +7,5 @@ public class JSONParseException extends IOException {
     public JSONParseException(String message) {
         super(message);
     }
+
 }

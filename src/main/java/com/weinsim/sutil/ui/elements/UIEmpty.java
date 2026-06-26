@@ -21,4 +21,5 @@ public class UIEmpty extends UIElement {
         if (sizeSupplier != null)
             size.set(sizeSupplier.get());
     }
+
 }

@@ -44,4 +44,5 @@ public final class PipetteTool extends ImageTool {
     public String getName() {
         return "Pipette";
     }
+
 }

@@ -26,4 +26,5 @@ public sealed class ToolContainer<T extends ImageTool> extends UIFloatContainer
     protected int getVisibleStates() {
         return 0;
     }
+
 }

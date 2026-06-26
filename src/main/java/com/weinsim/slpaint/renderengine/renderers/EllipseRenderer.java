@@ -41,4 +41,5 @@ public class EllipseRenderer extends InstanceShapeRenderer<EllipseDrawCall> {
             batchIndex++;
         }
     }
+
 }

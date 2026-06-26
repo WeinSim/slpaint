@@ -132,4 +132,5 @@ public final class JSONObject extends JSONValue {
         Boolean b = getBoolean(name);
         return b != null ? b : defaultValue;
     }
+
 }

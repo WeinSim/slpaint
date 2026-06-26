@@ -38,4 +38,5 @@ public class FrameBufferObject implements Cleanable {
         glDeleteFramebuffers(fboID);
         glDeleteTextures(textureID);
     }
+
 }

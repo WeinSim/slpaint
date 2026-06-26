@@ -27,4 +27,5 @@ public class AlphaScale extends UIScale {
             return colorPicker.getRGB();
         }
     }
+
 }

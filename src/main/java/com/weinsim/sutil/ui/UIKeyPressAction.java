@@ -60,4 +60,5 @@ public class UIKeyPressAction {
     public boolean isPossible() {
         return possible.getAsBoolean();
     }
+
 }

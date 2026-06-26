@@ -55,4 +55,5 @@ public abstract sealed class RectDrawCall extends DrawCall permits RectFillDrawC
             return color1.w < 1;
         }
     }
+
 }

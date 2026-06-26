@@ -86,4 +86,5 @@ public abstract class AttributeVBO extends VBO {
     public String attributeName() {
         return attributeName;
     }
+
 }

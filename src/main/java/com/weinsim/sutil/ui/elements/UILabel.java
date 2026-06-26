@@ -162,4 +162,5 @@ public class UILabel extends UIContainer {
     public boolean isActive() {
         return active.getAsBoolean();
     }
+
 }

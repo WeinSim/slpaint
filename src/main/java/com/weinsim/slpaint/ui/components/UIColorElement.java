@@ -48,4 +48,5 @@ public class UIColorElement extends UIElement {
     public Vector4f getColor() {
         return colorSupplier.get();
     }
+
 }

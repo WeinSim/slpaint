@@ -22,4 +22,5 @@ public final class BooleanSetting extends Setting<Boolean> {
             handleIncorrectJSONType("JSONBoolean", json.getClass().getName());
         }
     }
+
 }

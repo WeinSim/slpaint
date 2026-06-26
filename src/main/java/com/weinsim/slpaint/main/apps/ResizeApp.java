@@ -230,4 +230,5 @@ public final class ResizeApp extends App {
     public void setLockRatio(boolean lockRatio) {
         this.lockRatio = lockRatio;
     }
+
 }

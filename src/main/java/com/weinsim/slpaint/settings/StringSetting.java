@@ -22,4 +22,5 @@ public final class StringSetting extends Setting<String> {
             handleIncorrectJSONType("JSONString", json.getClass().getName());
         }
     }
+
 }

@@ -12,4 +12,5 @@ public final class RectFillDrawCall extends RectDrawCall {
 
         super(position, depth, size, uiMatrix, clipAreaInfo, color1, color2, checkerboardSize, applyCheckerboard);
     }
+
 }

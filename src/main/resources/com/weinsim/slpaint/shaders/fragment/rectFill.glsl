@@ -31,4 +31,5 @@ void main(void) {
         int yComp = int(relativePos.y / checkerboardSize);
         outColor = (xComp + yComp) % 2 == 0 ? color1 : color2;
     }
+
 }

@@ -52,4 +52,5 @@ public class LightnessScale extends UIScale {
             return colorPicker.getHSLSaturation();
         }
     }
+
 }

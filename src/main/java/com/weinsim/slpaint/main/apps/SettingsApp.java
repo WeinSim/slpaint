@@ -54,4 +54,5 @@ public final class SettingsApp extends App {
     protected AppUI<?> createUI() {
         return new SettingsUI(this);
     }
+
 }

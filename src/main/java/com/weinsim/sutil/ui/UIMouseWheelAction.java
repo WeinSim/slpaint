@@ -22,4 +22,5 @@ public record UIMouseWheelAction(int mods, boolean mouseAbove, BooleanSupplier p
             return action.test(scroll);
         return false;
     }
+
 }

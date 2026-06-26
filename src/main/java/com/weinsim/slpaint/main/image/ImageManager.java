@@ -356,4 +356,5 @@ public class ImageManager {
     public Image getImage() {
         return image;
     }
+
 }

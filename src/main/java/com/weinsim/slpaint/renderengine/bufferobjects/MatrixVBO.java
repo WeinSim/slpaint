@@ -39,4 +39,5 @@ public final class MatrixVBO extends AttributeVBO {
     public int getNumAttributes() {
         return coordinateSize;
     }
+
 }

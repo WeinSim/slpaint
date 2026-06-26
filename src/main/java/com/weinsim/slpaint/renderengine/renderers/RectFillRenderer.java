@@ -36,4 +36,5 @@ public class RectFillRenderer extends InstanceShapeRenderer<RectFillDrawCall> {
             i++;
         }
     }
+
 }

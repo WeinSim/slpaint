@@ -23,4 +23,5 @@ public final class JSONFloat extends JSONValue {
     public void setValue(double value) {
         this.value = value;
     }
+
 }

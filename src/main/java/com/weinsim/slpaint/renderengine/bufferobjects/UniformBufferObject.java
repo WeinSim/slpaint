@@ -71,4 +71,5 @@ public class UniformBufferObject implements Cleanable {
     public void cleanUp() {
         glDeleteBuffers(bufferID);
     }
+
 }

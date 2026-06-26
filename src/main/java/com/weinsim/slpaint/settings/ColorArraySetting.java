@@ -48,4 +48,5 @@ public final class ColorArraySetting extends Setting<ColorArray> {
             handleIncorrectJSONType("JSONObject", json.getClass().getName());
         }
     }
+
 }

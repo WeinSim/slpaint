@@ -35,4 +35,5 @@ public final class ColorEditorApp extends App {
     protected AppUI<?> createUI() {
         return new ColorEditorUI(this);
     }
+
 }

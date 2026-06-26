@@ -85,4 +85,5 @@ public enum UISizes implements DoubleSupplier {
             size = (int) Math.round(size);
         return size;
     }
+
 }

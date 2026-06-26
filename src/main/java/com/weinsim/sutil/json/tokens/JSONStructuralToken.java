@@ -43,4 +43,5 @@ public enum JSONStructuralToken implements JSONToken {
             default -> throw new JSONParseException("Invalid structural token");
         };
     }
+
 }

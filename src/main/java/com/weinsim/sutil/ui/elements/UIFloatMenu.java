@@ -229,4 +229,5 @@ public class UIFloatMenu extends UIFloatContainer {
                 expandedLabel = this;
         }
     }
+
 }

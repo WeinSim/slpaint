@@ -39,4 +39,5 @@ public class HSLRenderer extends InstanceShapeRenderer<HSLDrawCall> {
             batchIndex++;
         }
     }
+
 }

@@ -24,4 +24,5 @@ public class UISeparator extends UIContainer {
             setVFillSize();
         }
     }
+
 }

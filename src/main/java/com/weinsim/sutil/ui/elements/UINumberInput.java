@@ -47,4 +47,5 @@ public class UINumberInput extends UITextInput {
         double textSize = uiText.getTextSize();
         setHFixedSize(textSize * 3.3333);
     }
+
 }

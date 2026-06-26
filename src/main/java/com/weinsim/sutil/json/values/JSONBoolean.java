@@ -24,4 +24,5 @@ public final class JSONBoolean extends JSONValue {
     public void setValue(boolean value) {
         this.value = value;
     }
+
 }

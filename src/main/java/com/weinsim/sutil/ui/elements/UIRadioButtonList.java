@@ -86,4 +86,5 @@ public class UIRadioButtonList extends UIContainer {
             size.set(UISizes.RADIO_INSIDE.getWidthHeight());
         }
     }
+
 }

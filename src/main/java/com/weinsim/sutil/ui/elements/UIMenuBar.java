@@ -67,4 +67,5 @@ public class UIMenuBar extends UIContainer {
                 expandedMenu = this;
         }
     }
+
 }

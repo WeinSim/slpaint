@@ -46,4 +46,5 @@ public final class TextToolContainer extends DragToolContainer<TextTool> {
             app.setTextToolInput(this);
         }
     }
+
 }

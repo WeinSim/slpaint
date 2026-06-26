@@ -44,4 +44,5 @@ public final class ImageDrawCall extends DrawCall {
     public boolean usesAlpha() {
         return true;
     }
+
 }

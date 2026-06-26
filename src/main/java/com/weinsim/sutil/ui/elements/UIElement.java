@@ -434,4 +434,5 @@ public abstract class UIElement {
 
         style = new UIStyle(backgroundColorSupplier, outlineColorSupplier, strokeWeightSupplier);
     }
+
 }

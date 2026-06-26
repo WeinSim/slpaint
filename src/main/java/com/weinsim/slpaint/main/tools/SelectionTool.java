@@ -187,4 +187,5 @@ public final class SelectionTool extends DragTool {
     public boolean lockRatio() {
         return MainApp.isLockSelectionRatio();
     }
+
 }

@@ -55,4 +55,5 @@ public final class HSLDrawCall extends DrawCall {
         return ((flags & 0x03) == HUE_SAT_FIELD_CIRC) |
                 ((flags & 0x03) == ALPHA_SCALE);
     }
+
 }

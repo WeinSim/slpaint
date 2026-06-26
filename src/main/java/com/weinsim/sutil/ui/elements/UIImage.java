@@ -65,4 +65,5 @@ public class UIImage extends UIElement {
     public void setSize(Supplier<SVector> sizeSupplier) {
         this.sizeSupplier = sizeSupplier;
     }
+
 }

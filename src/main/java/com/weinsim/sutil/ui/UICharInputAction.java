@@ -16,4 +16,5 @@ public record UICharInputAction(boolean selected, Consumer<Character> action) {
         if (!selected || isSelected)
             action.accept(c);
     }
+
 }

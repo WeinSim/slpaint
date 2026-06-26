@@ -24,4 +24,5 @@ public class ColorEditorUI extends AppUI<ColorEditorApp> {
                 true,
                 true));
     }
+
 }

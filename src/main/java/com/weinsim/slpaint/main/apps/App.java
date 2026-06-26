@@ -343,4 +343,5 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
     public void setDialogType(int dialogType) {
         this.dialogType = dialogType;
     }
+
 }

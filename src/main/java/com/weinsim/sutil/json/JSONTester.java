@@ -109,4 +109,5 @@ public class JSONTester {
         double percent = ((double) numPass) / total * 100.0;
         System.out.format("Invalid files: correctly identified %d / %d (%03.1f%%)\n", numPass, total, percent);
     }
+
 }

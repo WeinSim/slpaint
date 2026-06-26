@@ -162,4 +162,5 @@ public class JSONSerializer {
             builder.append(TAB_SEQUENCE);
         }
     }
+
 }

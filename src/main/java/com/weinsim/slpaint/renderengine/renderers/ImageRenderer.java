@@ -115,4 +115,5 @@ public class ImageRenderer extends InstanceShapeRenderer<ImageDrawCall> {
 
         glDeleteTextures(textureIDs);
     }
+
 }

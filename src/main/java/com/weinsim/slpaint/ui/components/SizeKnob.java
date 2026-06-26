@@ -92,4 +92,5 @@ public class SizeKnob extends DragKnob {
         resizable.setX((int) Math.round(x));
         resizable.setY((int) Math.round(y));
     }
+
 }

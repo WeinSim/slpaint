@@ -140,4 +140,5 @@ public final class LineTool extends ImageTool {
             }
         };
     }
+
 }

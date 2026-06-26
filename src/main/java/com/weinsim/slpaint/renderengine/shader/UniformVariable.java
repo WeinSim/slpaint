@@ -75,4 +75,5 @@ public class UniformVariable {
     public String getName() {
         return name;
     }
+
 }

@@ -117,4 +117,5 @@ public class UIModalDialog extends UIFloatContainer {
     public void cancel() {
         finish(UI.CANCEL_OPTION);
     }
+
 }

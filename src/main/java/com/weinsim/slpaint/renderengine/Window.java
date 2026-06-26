@@ -468,4 +468,5 @@ public class Window {
 
     public record ScrollInfo(double xoffset, double yoffset) {
     }
+
 }

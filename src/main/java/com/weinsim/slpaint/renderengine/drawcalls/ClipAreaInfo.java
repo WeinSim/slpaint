@@ -80,4 +80,5 @@ public class ClipAreaInfo {
         array[2] = (float) (position.x + size.x);
         array[3] = (float) (position.y + size.y);
     }
+
 }

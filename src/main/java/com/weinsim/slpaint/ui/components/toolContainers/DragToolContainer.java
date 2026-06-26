@@ -128,4 +128,5 @@ public abstract sealed class DragToolContainer<T extends DragTool> extends ToolC
         double zoom = app.getImageZoom();
         return new SVector(tool.getX(), tool.getY()).scale(zoom).add(app.getCanvas().getImageTranslation());
     }
+
 }

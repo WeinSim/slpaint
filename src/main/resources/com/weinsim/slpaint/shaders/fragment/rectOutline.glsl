@@ -42,4 +42,5 @@ void main(void) {
         int yComp = int(relPosClip.y / checkerboardSize);
         outColor = (xComp + yComp) % 2 == 0 ? color1 : color2;
     }
+
 }

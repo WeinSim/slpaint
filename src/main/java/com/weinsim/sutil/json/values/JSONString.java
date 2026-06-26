@@ -24,4 +24,5 @@ public final class JSONString extends JSONValue {
     public void setValue(String value) {
         this.value = value;
     }
+
 }

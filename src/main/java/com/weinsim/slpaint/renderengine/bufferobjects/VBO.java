@@ -133,4 +133,5 @@ public abstract class VBO implements Cleanable {
     public void cleanUp() {
         glDeleteBuffers(vboID);
     }
+
 }

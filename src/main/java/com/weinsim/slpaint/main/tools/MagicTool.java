@@ -28,4 +28,5 @@ public final class MagicTool extends ImageTool {
     public String getName() {
         return "Magic";
     }
+
 }

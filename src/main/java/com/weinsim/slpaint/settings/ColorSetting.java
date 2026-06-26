@@ -44,4 +44,5 @@ public final class ColorSetting extends Setting<ColorPicker> {
             return 0;
         }
     }
+
 }

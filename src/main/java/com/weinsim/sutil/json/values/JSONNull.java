@@ -9,4 +9,5 @@ public final class JSONNull extends JSONValue {
     public boolean equals(Object obj) {
         return obj instanceof JSONNull;
     }
+
 }

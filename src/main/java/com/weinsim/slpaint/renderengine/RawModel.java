@@ -146,4 +146,5 @@ public class RawModel implements Cleanable {
         final String baseStr = "Unexpected datatype for VBO \"%s\". Expected %s, got %s.";
         throw new RuntimeException(String.format(baseStr, name, expected, got));
     }
+
 }

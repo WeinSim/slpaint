@@ -396,4 +396,5 @@ public class ImageCanvas extends UIContainer {
             newHeight = Math.clamp(height, MainApp.MIN_IMAGE_SIZE, MainApp.MAX_IMAGE_SIZE);
         }
     }
+
 }

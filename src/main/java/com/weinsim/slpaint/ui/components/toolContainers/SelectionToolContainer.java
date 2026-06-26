@@ -40,4 +40,5 @@ public final class SelectionToolContainer extends DragToolContainer<SelectionToo
             size.scale(app.getImageZoom());
         }
     }
+
 }

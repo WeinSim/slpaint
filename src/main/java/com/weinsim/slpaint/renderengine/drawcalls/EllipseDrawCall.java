@@ -42,4 +42,5 @@ public final class EllipseDrawCall extends DrawCall {
     public boolean usesAlpha() {
         return true;
     }
+
 }

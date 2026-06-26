@@ -20,4 +20,5 @@ public enum ShaderType {
     public boolean hasGeometry() {
         return geometryPath != null;
     }
+
 }

@@ -129,4 +129,5 @@ public final class TextTool extends DragTool {
     public boolean lockRatio() {
         return false;
     }
+
 }

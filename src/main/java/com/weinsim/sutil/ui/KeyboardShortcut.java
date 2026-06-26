@@ -19,4 +19,5 @@ public class KeyboardShortcut extends UIKeyPressAction {
     public String getIdentifier() {
         return identifier;
     }
+
 }

@@ -113,4 +113,5 @@ public class ImageFile {
     public long getSize() {
         return file.length();
     }
+
 }

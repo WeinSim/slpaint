@@ -52,4 +52,5 @@ public abstract class InstanceShapeRenderer<C extends DrawCall> extends ShapeRen
 
         model.finishVertexVBOs();
     }
+
 }

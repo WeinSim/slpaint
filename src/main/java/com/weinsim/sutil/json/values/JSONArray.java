@@ -125,4 +125,5 @@ public final class JSONArray extends JSONValue {
         Boolean b = getBoolean(index);
         return b != null ? b : defaultValue;
     }
+
 }

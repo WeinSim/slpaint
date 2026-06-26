@@ -117,4 +117,5 @@ public abstract class ShapeRenderer<C extends DrawCall> implements Cleanable {
             return drawCalls;
         }
     }
+
 }

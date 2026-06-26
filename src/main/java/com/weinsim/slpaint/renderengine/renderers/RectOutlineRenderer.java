@@ -68,4 +68,5 @@ public class RectOutlineRenderer extends InstanceShapeRenderer<RectOutlineDrawCa
 
         model.finishVertexVBOs();
     }
+
 }

@@ -24,4 +24,5 @@ public class IndexVBO extends VBO {
     public int indexCount() {
         return indices.length;
     }
+
 }

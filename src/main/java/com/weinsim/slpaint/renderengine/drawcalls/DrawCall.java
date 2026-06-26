@@ -67,4 +67,5 @@ public abstract sealed class DrawCall permits RectDrawCall, EllipseDrawCall, HSL
 
         return c1 == back ? -1 : 1;
     }
+
 }

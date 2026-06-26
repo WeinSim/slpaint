@@ -67,4 +67,5 @@ public enum UIColors implements Supplier<Vector4f> {
             return darkMode ? darkColor : lightColor;
         }
     }
+
 }

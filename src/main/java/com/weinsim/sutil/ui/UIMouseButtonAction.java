@@ -11,4 +11,5 @@ public record UIMouseButtonAction(int button, boolean mouseAbove, Runnable actio
         if ((!mouseAbove || isMouseAbove) && this.button == button)
             action.run();
     }
+
 }

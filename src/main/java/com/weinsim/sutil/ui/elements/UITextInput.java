@@ -161,4 +161,5 @@ public class UITextInput extends UIContainer {
             setFixedSize(new SVector(UISizes.STROKE_WEIGHT.get(), uiText.getTextSize()));
         }
     }
+
 }

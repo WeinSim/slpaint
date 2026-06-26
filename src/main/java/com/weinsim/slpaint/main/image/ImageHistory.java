@@ -81,4 +81,5 @@ public class ImageHistory {
     public String toString() {
         return String.format("ImageHistory [size=%d, index=%d]", history.size(), index);
     }
+
 }

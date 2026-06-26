@@ -185,4 +185,5 @@ public abstract class AppUI<T extends App> extends UI implements Cleanable {
             glDeleteTextures(texture);
         }
     }
+
 }

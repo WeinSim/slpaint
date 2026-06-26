@@ -73,4 +73,5 @@ public final class PencilTool extends ImageTool {
     public void setApplyTransparency(boolean applyTransparency) {
         this.applyTransparency.set(applyTransparency);
     }
+
 }

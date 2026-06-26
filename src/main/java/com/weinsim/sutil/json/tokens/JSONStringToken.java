@@ -11,4 +11,5 @@ public final class JSONStringToken implements JSONToken {
     public String getContent() {
         return content;
     }
+
 }

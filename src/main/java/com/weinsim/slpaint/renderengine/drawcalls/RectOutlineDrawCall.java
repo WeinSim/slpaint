@@ -17,4 +17,5 @@ public final class RectOutlineDrawCall extends RectDrawCall {
 
         this.strokeWeight = strokeWeight;
     }
+
 }

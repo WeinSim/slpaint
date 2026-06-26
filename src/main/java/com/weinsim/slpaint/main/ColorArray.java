@@ -30,4 +30,5 @@ public class ColorArray {
     public int getCapacity() {
         return colors.length;
     }
+
 }
