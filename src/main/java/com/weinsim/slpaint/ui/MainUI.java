@@ -21,7 +21,9 @@ import com.weinsim.slpaint.ui.components.CustomColorContainer;
 import com.weinsim.slpaint.ui.components.ImageCanvas;
 import com.weinsim.slpaint.ui.components.UIColorElement;
 import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UISizes;
 import com.weinsim.sutil.ui.UIStyle;
 import com.weinsim.sutil.ui.elements.*;
@@ -83,6 +85,7 @@ public class MainUI extends AppUI<MainApp> {
         mainRow.setFillSize();
         mainRow.add(createSidePanel());
         mainRow.add(new ImageCanvas(VERTICAL, RIGHT, TOP, app));
+        mainRow.add(createDebugPanel());
         root.add(mainRow);
 
         UIContainer statusBar = createStatusBar();
@@ -434,50 +437,20 @@ public class MainUI extends AppUI<MainApp> {
                 false)
                 .setHFillSize());
 
-        UIContainer debugPanel = new UIContainer(VERTICAL, LEFT, TOP, VERTICAL);
-        debugPanel.setFillSize().noOutline();
-
-        // UIImage debugImage = new UIImage(() -> app.getImage().getTextureID(), new
-        // SVector(200, 200));
-        // debugImage.withOutline();
-        // debugPanel.add(debugImage);
-
-        debugPanel.add(new UIText("Tools"));
-        for (ImageTool tool : ImageTool.INSTANCES) {
-            debugPanel.add(new UIText(() -> String.format(" %s: state = %d", tool.getName(), tool.getState())));
-        }
-        debugPanel.add(new UIText(() -> String.format("Active tool: %s", app.getActiveTool().getName())));
-        debugPanel.add(new UIText(() -> String.format(" State: %d", app.getActiveTool().getState())));
-        debugPanel.add(new UIText(() -> String.format("TextTool.text: \"%s\"", ImageTool.TEXT.getText())));
-        // debugPanel.add(new UIText(() -> String.format("TextTool.font: \"%s\"",
-        // ImageTool.TEXT.getFont())));
-
-        // debugPanel.add(new UIText(" "));
-        // String[] lipsum = lipsum(Integer.MAX_VALUE, 3);
-        // for (int i = 0; i < 20; i++) {
-        // for (String line : lipsum)
-        // debugPanel.add(new UIText(line, UISizes.TEXT_SMALL));
-        // }
-
-        // debugPanel.add(new UITextInput(this::getDebugString, this::setDebugString,
-        // true));
-
-        // sidePanel.add(debugPanel.addScrollbars());
-
         return colorPanel.addScrollbars();
     }
 
     private UIContainer createEffectsPanel() {
-        UIContainer effects = new UIContainer(VERTICAL, CENTER);
-        effects.noOutline();
-        effects.withSeparators(true);
+        UIContainer panel = new UIContainer(VERTICAL, CENTER);
+        panel.noOutline();
+        panel.withSeparators(true);
         // effects.setMarginScale(2.0);
         // effects.setPaddingScale(2.0);
         // final String[] effectNames = { "Black / White", "Contrast" };
-        final Runnable[] effectActions = {
-                () -> app.applyEffect(Effect.BLACK_WHITE),
-                () -> app.applyEffect(Effect.CONTRAST),
-                () -> app.applyEffect(Effect.BRIGHTNESS)
+        final Effect[] effects = {
+                Effect.BLACK_WHITE,
+                Effect.CONTRAST,
+                Effect.BRIGHTNESS
         };
         for (int i = 0; i < 3; i++) {
             UIContainer row = new UIContainer(HORIZONTAL, CENTER);
@@ -525,15 +498,62 @@ public class MainUI extends AppUI<MainApp> {
                                             Brightness.MIN_BRIGHTNESS, Brightness.MAX_BRIGHTNESS))));
                     row.add(left);
                     row.add(new UINumberInput(
-                            () ->  Math.round(Effect.BRIGHTNESS.getBrightness()),
+                            () -> Math.round(Effect.BRIGHTNESS.getBrightness()),
                             b -> Effect.BRIGHTNESS.setBrightness(b)));
                 }
                 default -> throw new RuntimeException(String.format("Missing Effect UI: %d", i));
             }
-            row.add(new UIButton("->", effectActions[i]));
-            effects.add(row);
+            final Effect effect = effects[i];
+            row.add(new UIButton("->", () -> app.applyEffect(effect)));
+            panel.add(row);
         }
-        return effects;
+        return panel;
+    }
+
+    private UIContainer createDebugPanel() {
+        UIContainer debugPanel = new UIContainer(VERTICAL, CENTER, TOP, VERTICAL);
+        debugPanel.setVFillSize().noOutline();
+
+        debugPanel.add(new UILabel("DEBUG"));
+
+        for (int i = 0; i < 2; i++) {
+            final int j = i;
+            UIImage image = new UIImage(
+                    () -> app.getImage().getFBO().textureIDs[j],
+                    new SVector(200, 200));
+            image.setStyle(
+                    new UIStyle(
+                            () -> null,
+                            UIColors.HIGHLIGHT,
+                            () -> app.getImage().getFBO().getActiveTexture() == j ? 2 : 0));
+            debugPanel.add(image);
+        }
+
+        // debugPanel.add(new UIText("Tools"));
+        // for (ImageTool tool : ImageTool.INSTANCES) {
+        // debugPanel.add(new UIText(() -> String.format(" %s: state = %d",
+        // tool.getName(), tool.getState())));
+        // }
+        // debugPanel.add(new UIText(() -> String.format("Active tool: %s",
+        // app.getActiveTool().getName())));
+        // debugPanel.add(new UIText(() -> String.format(" State: %d",
+        // app.getActiveTool().getState())));
+        // debugPanel.add(new UIText(() -> String.format("TextTool.text: \"%s\"",
+        // ImageTool.TEXT.getText())));
+        // debugPanel.add(new UIText(() -> String.format("TextTool.font: \"%s\"",
+        // ImageTool.TEXT.getFont())));
+
+        // debugPanel.add(new UIText(" "));
+        // String[] lipsum = lipsum(Integer.MAX_VALUE, 3);
+        // for (int i = 0; i < 20; i++) {
+        // for (String line : lipsum)
+        // debugPanel.add(new UIText(line, UISizes.TEXT_SMALL));
+        // }
+
+        // debugPanel.add(new UITextInput(this::getDebugString, this::setDebugString,
+        // true));
+
+        return debugPanel.addScrollbars();
     }
 
     private UIContainer createStatusBar() {

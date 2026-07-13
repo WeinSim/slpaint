@@ -14,25 +14,10 @@ import org.lwjglx.util.vector.Vector3f;
 import org.lwjglx.util.vector.Vector4f;
 
 import com.weinsim.slpaint.main.apps.App;
-import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.image.Image;
-import com.weinsim.slpaint.renderengine.bufferobjects.FrameBufferObject;
-import com.weinsim.slpaint.renderengine.drawcalls.ClipAreaInfo;
-import com.weinsim.slpaint.renderengine.drawcalls.DrawCall;
-import com.weinsim.slpaint.renderengine.drawcalls.EllipseDrawCall;
-import com.weinsim.slpaint.renderengine.drawcalls.HSLDrawCall;
-import com.weinsim.slpaint.renderengine.drawcalls.ImageDrawCall;
-import com.weinsim.slpaint.renderengine.drawcalls.RectFillDrawCall;
-import com.weinsim.slpaint.renderengine.drawcalls.RectOutlineDrawCall;
-import com.weinsim.slpaint.renderengine.drawcalls.TextDrawCall;
+import com.weinsim.slpaint.renderengine.drawcalls.*;
 import com.weinsim.slpaint.renderengine.font.TextFont;
-import com.weinsim.slpaint.renderengine.renderers.EllipseRenderer;
-import com.weinsim.slpaint.renderengine.renderers.HSLRenderer;
-import com.weinsim.slpaint.renderengine.renderers.ImageRenderer;
-import com.weinsim.slpaint.renderengine.renderers.RectFillRenderer;
-import com.weinsim.slpaint.renderengine.renderers.RectOutlineRenderer;
-import com.weinsim.slpaint.renderengine.renderers.ShapeRenderer;
-import com.weinsim.slpaint.renderengine.renderers.TextRenderer;
+import com.weinsim.slpaint.renderengine.renderers.*;
 import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.math.SVector;
 
@@ -56,14 +41,8 @@ public class UIRenderMaster {
     private TextRenderer textRenderer;
     private ImageRenderer imageRenderer;
 
-    /**
-     * Used for drawing text and selected parts of the image first onto this texture
-     * (by openGL) and is then drawn onto the actual image (by the CPU, since only
-     * pixels need to be copied).
-     */
-    private FrameBufferObject tempFBO;
-
-    private FrameBufferObject currentFramebuffer;
+    private int[] framebufferSize;
+    private boolean defaultFramebuffer;
 
     private Matrix3f uiMatrix;
     private LinkedList<Matrix3f> uiMatrixStack;
@@ -97,8 +76,6 @@ public class UIRenderMaster {
         renderers.add(ellipseRenderer = new EllipseRenderer());
         renderers.add(textRenderer = new TextRenderer(TextFont.getCurrentFont()));
         renderers.add(imageRenderer = new ImageRenderer());
-
-        createTempFBO();
 
         uiMatrixStack = new LinkedList<>();
         clipAreaStack = new LinkedList<>();
@@ -150,6 +127,7 @@ public class UIRenderMaster {
     // make sure to first render the shape in the back.
     public void render() {
         Matrix3f viewMatrix = createViewMatrix();
+        glViewport(0, 0, framebufferSize[0], framebufferSize[1]);
 
         // drawcall at index LO must come before drawcall at index HI
         ArrayList<Long> orderRequirements = new ArrayList<>();
@@ -210,45 +188,30 @@ public class UIRenderMaster {
         }
     }
 
-    private void createTempFBO() {
-        if (app instanceof MainApp mainApp) {
-            Image image = mainApp.getImage();
-            createTempFBO(image.getWidth(), image.getHeight());
-        }
-    }
-
-    private void createTempFBO(int width, int height) {
-        tempFBO = new FrameBufferObject(width, height);
-    }
-
-    public void setTempFBOSize(int width, int height) {
-        if (tempFBO.width == width && tempFBO.height == height)
-            return;
-        tempFBO.cleanUp();
-        createTempFBO(width, height);
-    }
-
     public void defaultFramebuffer() {
         framebuffer(null);
     }
 
-    public void tempFrameBuffer() {
-        framebuffer(tempFBO);
-    }
-
-    public void framebuffer(FrameBufferObject framebuffer) {
-        int fboID = framebuffer == null ? 0 : framebuffer.fboID;
-        glBindFramebuffer(GL_FRAMEBUFFER, fboID);
-
-        int[] size = framebuffer == null
-                ? app.getDisplaySize()
-                : new int[] { framebuffer.width, framebuffer.height };
-        glViewport(0, 0, size[0], size[1]);
-
-        currentFramebuffer = framebuffer;
+    /**
+     * Specify which framebuffer to render to. This can either be an {@code Image}'s
+     * framebuffer or the default framebuffer (the window).
+     * 
+     * @param image the image whose framebuffer to render to, or {@code null} to
+     *              render to the default framebuffer
+     */
+    public void framebuffer(Image image) {
+        defaultFramebuffer = image == null;
+        if (defaultFramebuffer) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            framebufferSize = app.getDisplaySize();
+        } else {
+            image.bindFramebuffer();
+            framebufferSize = new int[] { image.getWidth(), image.getHeight() };
+        }
     }
 
     public void setBGColor(Vector4f bgColor) {
+        // glViewport(0, 0, framebufferSize[0], framebufferSize[1]);
         glClearColor(bgColor.x, bgColor.y, bgColor.z, bgColor.w);
         glClearDepth(1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -557,25 +520,14 @@ public class UIRenderMaster {
 
     private Matrix3f createViewMatrix() {
         Matrix3f matrix = new Matrix3f();
-        int width, height;
-        float sign = currentFramebuffer == null ? -1 : 1;
-        if (currentFramebuffer == null) {
-            int[] displaySize = app.getDisplaySize();
-            width = displaySize[0];
-            height = displaySize[1];
-        } else {
-            width = currentFramebuffer.width;
-            height = currentFramebuffer.height;
-        }
+        int width = framebufferSize[0],
+                height = framebufferSize[1];
+        float sign = defaultFramebuffer ? -1 : 1;
         matrix.m00 = 2f / width;
         matrix.m11 = sign * 2f / height;
         matrix.m20 = -1;
         matrix.m21 = -sign;
         return matrix;
-    }
-
-    public FrameBufferObject getTempFBO() {
-        return tempFBO;
     }
 
     public void cleanUp() {

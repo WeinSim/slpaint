@@ -135,7 +135,7 @@ public abstract class UIElement {
      * @param scroll
      * @param mods   Only contains the {@code GLFW_MOD_CONTROL} and
      *               {@code GLFW_MOD_SHIFT} modifiers
-     * @return Wether the mouse scroll action has been "used up" by this
+     * @return Whether the mouse scroll action has been "used up" by this
      *         {@code UIElement}.
      */
     public final boolean mouseWheel(SVector scroll, int mods) {

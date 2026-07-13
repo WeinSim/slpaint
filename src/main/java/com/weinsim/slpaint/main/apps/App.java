@@ -202,7 +202,7 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
 
     /**
      * 
-     * @return Wether to actually close the window
+     * @return Whether to actually close the window
      */
     public boolean finish() {
         renderer.cleanUp();

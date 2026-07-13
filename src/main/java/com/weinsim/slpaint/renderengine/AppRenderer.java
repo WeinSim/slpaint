@@ -1,16 +1,12 @@
 package com.weinsim.slpaint.renderengine;
 
 import static com.weinsim.sutil.ui.UI.*;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.*;
-import static org.lwjgl.opengl.GL14.*;
 
 import org.lwjglx.util.vector.Vector4f;
 
 import com.weinsim.slpaint.main.apps.App;
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.image.Image;
-import com.weinsim.slpaint.renderengine.bufferobjects.FrameBufferObject;
 import com.weinsim.slpaint.renderengine.font.TextFont;
 import com.weinsim.slpaint.ui.components.AlphaScale;
 import com.weinsim.slpaint.ui.components.HueSatField;
@@ -61,9 +57,8 @@ public class AppRenderer implements Cleanable {
     }
 
     public void render() {
-        uiMaster.setBGColor(new Vector4f(0, 0, 0, 1));
-
         uiMaster.start();
+        uiMaster.setBGColor(new Vector4f(0, 0, 0, 1));
 
         if (DEBUG_RENDERING) {
             renderDebug();
@@ -159,17 +154,13 @@ public class AppRenderer implements Cleanable {
             }
         }
         if (doOutline) {
-            // TODO: this is kind of an ugly hack to ensure that a container's outline
-            // renders above all of its children.
-
+            // this is kind of an ugly hack to ensure that a container's outline renders
+            // above all of its children.
             int oldOldDivision = division;
-
             division = NUM_DIVISIONS - 1 - division;
-
             uiMaster.depth(getDepth(0));
             uiMaster.noFill();
             uiMaster.rect(position, size);
-
             division = oldOldDivision;
         }
 
@@ -285,26 +276,13 @@ public class AppRenderer implements Cleanable {
     }
 
     public void renderImageToImage(Image srcImage, int x, int y, int width, int height, Image dstImage) {
-        glDisable(GL_BLEND);
-
+        srcImage.syncOpenGLTexture();
+        dstImage.syncOpenGLTexture();
         uiMaster.start();
-        uiMaster.tempFrameBuffer();
-        uiMaster.setBGColor(new Vector4f(0, 0, 0, 0));
+        uiMaster.framebuffer(dstImage);
         uiMaster.image(srcImage.getTextureID(), new SVector(x, y), new SVector(width, height));
         uiMaster.render();
-
-        // glEnable(GL_BLEND);
-
-        FrameBufferObject fbo = uiMaster.getTempFBO();
-        int fboWidth = fbo.width, fboHeight = fbo.height;
-
-        int[] array = new int[fboWidth * fboHeight];
-        glBindTexture(GL_TEXTURE_2D, fbo.textureID);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, array);
-
-        glEnable(GL_BLEND);
-
-        dstImage.drawSubImage(0, 0, fboWidth, fboHeight, array);
+        dstImage.markOpenGLTextureDirty();
     }
 
     public void renderTextToImage(String text, double x, double y, double size, Vector4f color, TextFont font,
@@ -313,60 +291,31 @@ public class AppRenderer implements Cleanable {
         if (text.isEmpty())
             return;
 
+        image.syncOpenGLTexture();
         uiMaster.start();
-        uiMaster.tempFrameBuffer();
-
-        // For this text rendering, we only care about the alpha output.
-        // The color channel should be filled with the text color.
-        glBlendFuncSeparate(
-                GL_ONE, GL_ONE, // rgb
-                GL_ONE_MINUS_DST_ALPHA, GL_ONE); // alpha
-
-        uiMaster.setBGColor(new Vector4f(0, 0, 0, 0));
+        uiMaster.framebuffer(image);
         uiMaster.fill(color);
         uiMaster.textFont(font);
         uiMaster.textSize(size);
         uiMaster.text(text, new SVector(x, y));
-
         uiMaster.render();
-
-        FrameBufferObject fbo = uiMaster.getTempFBO();
-        int width = fbo.width, height = fbo.height;
-
-        int[] array = new int[width * height];
-        glBindTexture(GL_TEXTURE_2D, fbo.textureID);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, array);
-
-        image.drawSubImage(0, 0, width, height, array);
+        image.markOpenGLTextureDirty();
     }
 
-    /**
-     * WARNING: this method expects the temp framebuffer to have a size of
-     * {@code newWidth} x {@code newHeight}!
-     */
-    public void resizeImage(Image image, int newWidth, int newHeight) {
-        uiMaster.start();
-        uiMaster.tempFrameBuffer();
-
-        glDisable(GL_BLEND);
-
-        uiMaster.image(image.getTextureID(), new SVector(), new SVector(newWidth, newHeight));
-
-        uiMaster.render();
-
-        FrameBufferObject fbo = uiMaster.getTempFBO();
-        int width = fbo.width, height = fbo.height;
-
-        int[] array = new int[width * height];
-        glBindTexture(GL_TEXTURE_2D, fbo.textureID);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, array);
-
-        image.resize(newWidth, newHeight, array);
-    }
-
-    public void setTempFBOSize(int width, int height) {
-        uiMaster.setTempFBOSize(width, height);
-    }
+    // public void resizeImage(Image image, int newWidth, int newHeight) {
+    // uiMaster.start();
+    // uiMaster.tempFrameBuffer();
+    // glDisable(GL_BLEND);
+    // uiMaster.image(image.getTextureID(), new SVector(), new SVector(newWidth,
+    // newHeight));
+    // uiMaster.render();
+    // FrameBufferObject fbo = uiMaster.getTempFBO();
+    // int width = fbo.width, height = fbo.height;
+    // int[] array = new int[width * height];
+    // glBindTexture(GL_TEXTURE_2D, fbo.textureID);
+    // glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, array);
+    // image.resize(newWidth, newHeight, array);
+    // }
 
     @Override
     public void cleanUp() {

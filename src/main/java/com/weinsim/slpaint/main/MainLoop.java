@@ -48,9 +48,14 @@ public class MainLoop {
         NFD_Init();
 
         apps = new ArrayList<>();
-        MainApp mainApp = new MainApp(args.length == 0
-                ? (MainApp.DEV_BUILD ? "src/main/resources/com/weinsim/slpaint/images/test.png" : null)
-                : args[0]);
+        String filename;
+        if (args.length > 0)
+            filename = args[0];
+        else if (MainApp.DEV_BUILD)
+            filename = "src/main/resources/com/weinsim/slpaint/images/test.png";
+        else
+            filename = null;
+        MainApp mainApp = new MainApp(filename);
         eventQueue = new LinkedList<>();
 
         double deltaT = 1.0 / 60.0;

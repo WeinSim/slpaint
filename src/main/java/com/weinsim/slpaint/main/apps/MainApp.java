@@ -18,12 +18,12 @@ import com.weinsim.slpaint.main.effects.Effect;
 import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.main.image.ImageFormat;
 import com.weinsim.slpaint.main.image.ImageManager;
-import com.weinsim.slpaint.settings.BooleanSetting;
-import com.weinsim.slpaint.settings.ColorArraySetting;
-import com.weinsim.slpaint.settings.Settings;
 import com.weinsim.slpaint.main.tools.ImageTool;
 import com.weinsim.slpaint.renderengine.Window;
 import com.weinsim.slpaint.renderengine.font.TextFont;
+import com.weinsim.slpaint.settings.BooleanSetting;
+import com.weinsim.slpaint.settings.ColorArraySetting;
+import com.weinsim.slpaint.settings.Settings;
 import com.weinsim.slpaint.ui.AppUI;
 import com.weinsim.slpaint.ui.MainUI;
 import com.weinsim.slpaint.ui.components.ImageCanvas;
@@ -36,9 +36,14 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  * <pre>
  * TODO continue:
  * Effects
- *   Shader effects would be cool, currently b/w takes ~60ms and contrast
- *     takes ~120ms.
- * 
+ *   Implement effects using shaders
+ *     Effect previews
+ *       It seems like the 2nd FBO texture only gets properly initialized once
+ *         we set it as the active texture
+ *       Improve performance
+ *       Which effects to preview?
+ *   Effect order?? how to set in UI?
+ *
  * App:
  *   Keyboard shortcuts
  *     Selecting one of the radio buttons in the resize ui and pressing enter
@@ -113,6 +118,7 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *     Starting a tool action (e.g. putting a tool in the IDLE state) and then
  *       pressing Ctrl+Z should cancel (not finish) the current tool.
  *       Currently it does nothing (except sometimes with selection).
+ *   Color hex code input?
  *   Icons
  *     The current icons look kind of bad in light mode
  *       -> separate icons for light and dark mode?
@@ -217,7 +223,7 @@ public final class MainApp extends App {
      * <li>Adds a test context menu to the settings window
      * </ul>
      */
-    public static final boolean DEV_BUILD = false;
+    public static final boolean DEV_BUILD = true;
 
     /**
      * https://images.minitool.com/de.minitool.com/images/uploads/news/2022/02/microsoft-paint-herunterladen-installieren/microsoft-paint-herunterladen-installieren-1.png
@@ -329,6 +335,12 @@ public final class MainApp extends App {
     public void update(double deltaT) {
         super.update(deltaT);
 
+        // try {
+        //     Thread.sleep(200);
+        // } catch (InterruptedException e) {
+        //     e.printStackTrace();
+        // }
+
         if (frameCount == 1)
             resetImageTransform();
 
@@ -346,7 +358,8 @@ public final class MainApp extends App {
         window.setTitle(String.format("%s%s - SLPaint", hasUnsavedChanges ? "" + (char) 0x2022 + " " : "", filename));
 
         // update image texture
-        getImage().updateOpenGLTexture();
+        getImage().applyEffect(Effect.BLACK_WHITE, true);
+        getImage().sync();
     }
 
     @Override
@@ -395,6 +408,12 @@ public final class MainApp extends App {
         };
     }
 
+    @Override
+    public void reloadShaders() {
+        super.reloadShaders();
+        Effect.reloadShaders();
+    }
+
     /**
      * Stretches / squishes the image.
      * Not to be confused with {@link MainApp#cropImage(int, int)}.
@@ -405,8 +424,8 @@ public final class MainApp extends App {
         newWidth = Math.clamp(newWidth, MIN_IMAGE_SIZE, MAX_IMAGE_SIZE);
         newHeight = Math.clamp(newHeight, MIN_IMAGE_SIZE, MAX_IMAGE_SIZE);
 
-        renderer.setTempFBOSize(newWidth, newHeight);
-        renderer.resizeImage(getImage(), newWidth, newHeight);
+        // renderer.resizeImage(getImage(), newWidth, newHeight);
+        getImage().resize(newWidth, newHeight);
 
         addImageSnapshot();
     }
@@ -431,7 +450,6 @@ public final class MainApp extends App {
         newHeight = Math.clamp(newHeight, MIN_IMAGE_SIZE, MAX_IMAGE_SIZE);
 
         image.crop(x, y, newWidth, newHeight, secondaryColor);
-        renderer.setTempFBOSize(newWidth, newHeight);
         // If the top left corner of the image changes, its translation should change in
         // the opposite way such that the rest of the image stays in the same place.
         translateImage(x, y);
@@ -443,7 +461,6 @@ public final class MainApp extends App {
         finishActiveTool();
         Image image = getImage();
         image.rotateRight();
-        renderer.setTempFBOSize(image.getWidth(), image.getHeight());
         addImageSnapshot();
     }
 
@@ -451,7 +468,6 @@ public final class MainApp extends App {
         finishActiveTool();
         Image image = getImage();
         image.rotateLeft();
-        renderer.setTempFBOSize(image.getWidth(), image.getHeight());
         addImageSnapshot();
     }
 
@@ -475,7 +491,6 @@ public final class MainApp extends App {
 
     public void setImage(BufferedImage image) {
         getImage().setBufferedImage(image);
-        renderer.setTempFBOSize(image.getWidth(), image.getHeight());
         addImageSnapshot();
     }
 
@@ -516,7 +531,7 @@ public final class MainApp extends App {
 
     public void applyEffect(Effect effect) {
         long start = System.nanoTime();
-        effect.apply(getImage());
+        getImage().applyEffect(effect);
         long end = System.nanoTime();
         System.out.format("Effect \"%s\" took %.1fms\n",
                 effect.getClass().getSimpleName(),

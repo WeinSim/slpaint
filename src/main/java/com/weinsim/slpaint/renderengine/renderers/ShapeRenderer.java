@@ -5,6 +5,7 @@ import static org.lwjgl.opengl.GL20.*;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.lwjgl.BufferUtils;
 import org.lwjglx.util.vector.Matrix3f;
@@ -27,7 +28,7 @@ public abstract class ShapeRenderer<C extends DrawCall> implements Cleanable {
     protected ArrayList<Batch> batches;
 
     public ShapeRenderer(String shaderName, ShaderType shaderType) {
-        shaderProgram = new ShaderProgram(shaderName, shaderType);
+        shaderProgram = new ShaderProgram(shaderName, shaderType, List.of("cornerPos", "offset"));
         model = shaderProgram.getRawModel();
         batches = new ArrayList<>();
     }

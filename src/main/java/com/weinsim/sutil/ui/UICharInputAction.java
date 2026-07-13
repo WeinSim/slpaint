@@ -3,7 +3,7 @@ package com.weinsim.sutil.ui;
 import java.util.function.Consumer;
 
 /**
- * The {@code selected} field controls wether this UIElement has to be selected
+ * The {@code selected} field controls whether this UIElement has to be selected
  * in order for this char input action to run.
  */
 public record UICharInputAction(boolean selected, Consumer<Character> action) {

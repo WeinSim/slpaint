@@ -64,7 +64,7 @@ public class RawModel implements Cleanable {
                 vbo.storeDataInAttributeList();
     }
 
-    public AttributeVBO getVBO(String name) {
+    private AttributeVBO getVBO(String name) {
         AttributeVBO vbo = vbos.get(name);
         if (vbo == null)
             vboNotFount(name);
@@ -145,6 +145,11 @@ public class RawModel implements Cleanable {
     private static void invalidVBODatatype(String name, String expected, String got) {
         final String baseStr = "Unexpected datatype for VBO \"%s\". Expected %s, got %s.";
         throw new RuntimeException(String.format(baseStr, name, expected, got));
+    }
+
+    public static RawModel generateQuad() {
+        ArrayList<AttributeVBO> vbos = new ArrayList<>();
+        return new RawModel(vbos);
     }
 
 }

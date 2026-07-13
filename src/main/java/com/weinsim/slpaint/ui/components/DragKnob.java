@@ -18,7 +18,7 @@ public class DragKnob extends UIFloatContainer {
     protected final Draggable draggable;
 
     /**
-     * Wether {@code this} DragKnob is currently being dragged.
+     * Whether {@code this} DragKnob is currently being dragged.
      */
     protected boolean dragging;
     protected SVector dragStartPos;

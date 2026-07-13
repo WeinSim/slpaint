@@ -61,8 +61,8 @@ public final class LineToolContainer extends ToolContainer<LineTool> {
         Image image = app.getImage();
         int width = image.getWidth(),
                 height = image.getHeight();
-        int[] pixels = new int[width * height];
-        previewImage.resize(width, height, pixels);
+        // int[] pixels = new int[width * height];
+        previewImage.setSizeAndClear(width, height, 0);
 
         switch (tool.getState()) {
             case LineTool.INITIAL_DRAG -> {
@@ -101,7 +101,7 @@ public final class LineToolContainer extends ToolContainer<LineTool> {
             }
         }
 
-        previewImage.updateOpenGLTexture();
+        previewImage.sync();
     }
 
     private void drawPreviewLine() {

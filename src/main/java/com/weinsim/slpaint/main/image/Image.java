@@ -13,28 +13,42 @@ import java.util.Arrays;
 
 import org.lwjgl.BufferUtils;
 
+import com.weinsim.slpaint.main.effects.Effect;
 import com.weinsim.slpaint.renderengine.Cleanable;
+import com.weinsim.slpaint.renderengine.RawModel;
+import com.weinsim.slpaint.renderengine.bufferobjects.PingPongFBO;
+import com.weinsim.slpaint.renderengine.shader.ShaderProgram;
 import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.math.SVector;
 
+/**
+ * Responsible for syncing a CPU-backed pixel array with an openGL texture.
+ */
 public class Image implements Cleanable {
 
-    private int textureID;
+    private static final int CLEAN = 0,
+            OPENGL_DIRTY = 1,
+            PIXEL_ARRAY_DIRTY = 2;
 
     private BufferedImage bufferedImage;
     private int[] pixelArray; // the backing array of bufferedImage
     private int width, height;
 
-    private boolean dirty;
+    private final PingPongFBO fbo;
+
+    private boolean validPreviewTexture;
+
+    private int syncStatus;
+
     private int dirtyMinX;
     private int dirtyMaxX;
     private int dirtyMinY;
     private int dirtyMaxY;
 
     public Image(BufferedImage image) {
-        textureID = glGenTextures();
-
+        fbo = new PingPongFBO();
         setBufferedImage(image);
+        fbo.initInactiveTexture(width, height);
     }
 
     public void setBufferedImage(BufferedImage image) {
@@ -44,7 +58,7 @@ public class Image implements Cleanable {
     /**
      * 
      * @param image
-     * @param copy  Wether to copy the underlying image data.
+     * @param copy  Whether to copy the underlying image data.
      */
     public void setBufferedImage(BufferedImage image, boolean copy) {
         // convert image to ARGB format
@@ -67,22 +81,64 @@ public class Image implements Cleanable {
         width = image.getWidth();
         height = image.getHeight();
 
+        syncStatus = PIXEL_ARRAY_DIRTY;
         updateOpenGLTexture(false);
     }
 
-    public void updateOpenGLTexture() {
-        if (dirty) {
+    /**
+     * Synchronizes the cpu pixel buffer with the openGL texture.
+     */
+    public void sync() {
+        if (syncStatus == PIXEL_ARRAY_DIRTY)
             updateOpenGLTexture(true);
-        }
+        else if (syncStatus == OPENGL_DIRTY)
+            updatePixelArray();
     }
 
-    public void updateOpenGLTexture(boolean subArea) {
+    public void syncPixelArray() {
+        if (syncStatus == OPENGL_DIRTY)
+            updatePixelArray();
+    }
+
+    public void syncOpenGLTexture() {
+        if (syncStatus == PIXEL_ARRAY_DIRTY)
+            updateOpenGLTexture(true);
+    }
+
+    public void markOpenGLTextureDirty() {
+        if (syncStatus == PIXEL_ARRAY_DIRTY)
+            System.err.println(
+                    "Image sync error: openGL texture marked as dirty while pixel array was also dirty");
+        syncStatus = OPENGL_DIRTY;
+        validPreviewTexture = false;
+    }
+
+    private void setDirty(int x, int y) {
+        if (syncStatus == OPENGL_DIRTY)
+            System.err.format(
+                    "Image sync error: pixel (%d, %d) marked as dirty while openGL texture was also dirty\n",
+                    x, y);
+        if (syncStatus == CLEAN) {
+            dirtyMinX = x;
+            dirtyMaxX = x;
+            dirtyMinY = y;
+            dirtyMaxY = y;
+        } else {
+            // syncStatus == PIXEL_ARRAY_DIRTY
+            dirtyMinX = Math.min(dirtyMinX, x);
+            dirtyMaxX = Math.max(dirtyMaxX, x);
+            dirtyMinY = Math.min(dirtyMinY, y);
+            dirtyMaxY = Math.max(dirtyMaxY, y);
+        }
+        syncStatus = PIXEL_ARRAY_DIRTY;
+    }
+
+    private void updateOpenGLTexture(boolean subArea) {
         IntBuffer buffer = BufferUtils.createIntBuffer(width * height);
         buffer.put(pixelArray);
         buffer.flip();
 
-        glBindTexture(GL_TEXTURE_2D, textureID);
-
+        glBindTexture(GL_TEXTURE_2D, fbo.getTextureID());
         if (subArea) {
             int dirtyWidth = dirtyMaxX - dirtyMinX + 1,
                     dirtyHeight = dirtyMaxY - dirtyMinY + 1;
@@ -94,36 +150,31 @@ public class Image implements Cleanable {
             glTexSubImage2D(GL_TEXTURE_2D, 0, dirtyMinX, dirtyMinY, dirtyWidth, dirtyHeight, GL_BGRA,
                     GL_UNSIGNED_INT_8_8_8_8_REV, buffer);
 
-            dirty = false;
-
             glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
             glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
             glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
         } else {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA,
                     GL_UNSIGNED_INT_8_8_8_8_REV, buffer);
         }
 
         glGenerateMipmap(GL_TEXTURE_2D);
+        validPreviewTexture = false;
+        syncStatus = CLEAN;
     }
 
-    private static BufferedImage copyBufferedImage(BufferedImage oldImage) {
-        int width = oldImage.getWidth(),
-                height = oldImage.getHeight();
-        int[] oldPixels = ((DataBufferInt) oldImage.getRaster().getDataBuffer()).getData();
-
-        BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        int[] newPixels = ((DataBufferInt) newImage.getRaster().getDataBuffer()).getData();
-
-        System.arraycopy(oldPixels, 0, newPixels, 0, oldPixels.length);
-
-        return newImage;
-    }
-
-    public BufferedImage createBufferedImageCopy() {
-        return copyBufferedImage(bufferedImage);
+    private void updatePixelArray() {
+        if (bufferedImage.getWidth() != width || bufferedImage.getHeight() != height) {
+            // TODO: this part is copied from above
+            bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            pixelArray = ((DataBufferInt) bufferedImage.getRaster().getDataBuffer()).getData();
+        }
+        glBindTexture(GL_TEXTURE_2D, fbo.getTextureID());
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, pixelArray);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        syncStatus = CLEAN;
     }
 
     public void crop(int startX, int startY, int newWidth, int newHeight, int backgroundColor) {
@@ -160,12 +211,25 @@ public class Image implements Cleanable {
         setBufferedImage(newImage);
     }
 
-    public void resize(int newWidth, int newHeight, int[] pixels) {
+    public void setSizeAndClear(int newWidth, int newHeight, int backgroundColor) {
         BufferedImage image = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
         int[] imagePixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-        System.arraycopy(pixels, 0, imagePixels, 0, pixels.length);
-
+        // System.arraycopy(pixels, 0, imagePixels, 0, pixels.length);
+        Arrays.fill(imagePixels, backgroundColor);
         setBufferedImage(image);
+    }
+
+    public void resize(int newWidth, int newHeight) {
+        if (width == newWidth && height == newHeight)
+            return;
+
+        setSize(newWidth, newHeight);
+        applyEffect(Effect.RESIZE);
+    }
+
+    private void setSize(int newWidth, int newHeight) {
+        width = newWidth;
+        height = newHeight;
     }
 
     public void rotateLeft() {
@@ -441,7 +505,7 @@ public class Image implements Cleanable {
 
     /**
      * 
-     * @param pixels Are expected to have premultiplied alpha
+     * @param pixels are expected to have premultiplied alpha
      */
     private void drawSubImage(int x, int y, int w, int h, int[] pixels, boolean doAlphaBlending) {
         if (x >= width || x + w <= 0 || y >= height || y + h <= 0)
@@ -473,63 +537,42 @@ public class Image implements Cleanable {
         setDirty(x1 - 1, y1 - 1);
     }
 
-    public void forEachPixel(PixelFunction effect) {
-        for (int i = 0; i < pixelArray.length; i++)
-            pixelArray[i] = effect.process(pixelArray[i]);
-        setDirty(0, 0);
-        setDirty(width - 1, height - 1);
+    public void applyEffect(Effect effect) {
+        applyEffect(effect, false);
     }
 
-    public static interface PixelFunction {
+    public void applyEffect(Effect effect, boolean preview) {
+        syncOpenGLTexture();
+        fbo.initInactiveTexture(width, height);
+        fbo.bind(false);
+        ShaderProgram shader = effect.getShader();
+        RawModel quad = shader.getRawModel();
+        shader.start();
+        quad.bind();
+        quad.enableVBOs();
+        glViewport(0, 0, width, height);
+        glClearColor(1, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDisable(GL_BLEND);
+        effect.loadUniforms();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, fbo.getTextureID());
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, quad.vertexCount());
+        quad.disableVBOs();
+        quad.unbind();
+        shader.stop();
 
-        public int process(int color);
-
-    }
-
-    private void setDirty(int x, int y) {
-        if (!dirty) {
-            dirtyMinX = x;
-            dirtyMaxX = x;
-            dirtyMinY = y;
-            dirtyMaxY = y;
+        if (preview) {
+            validPreviewTexture = true;
         } else {
-            dirtyMinX = Math.min(dirtyMinX, x);
-            dirtyMaxX = Math.max(dirtyMaxX, x);
-            dirtyMinY = Math.min(dirtyMinY, y);
-            dirtyMaxY = Math.max(dirtyMaxY, y);
+            validPreviewTexture = false;
+            fbo.swapTextures();
+            markOpenGLTextureDirty();
         }
-        dirty = true;
     }
 
-    @Override
-    public void cleanUp() {
-        glDeleteTextures(textureID);
-    }
-
-    /**
-     * 
-     * @param copy Wether to return a copy of the underlying {@code BufferedImage}
-     *             or the {@code BufferedImage} itself
-     * @return
-     */
-    public BufferedImage getBufferedImage(boolean copy) {
-        return copy ? copyBufferedImage(bufferedImage) : bufferedImage;
-    }
-
-    public BufferedImage getBufferedImage() {
-        return getBufferedImage(false);
-    }
-
-    public int getTextureID() {
-        return textureID;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
+    public void bindFramebuffer() {
+        fbo.bind();
     }
 
     private void checkBounds(int x, int y) {
@@ -544,6 +587,61 @@ public class Image implements Cleanable {
 
     public boolean isInside(int x, int y) {
         return x >= 0 && x < width && y >= 0 && y < height;
+    }
+
+    public BufferedImage getBufferedImage() {
+        return getBufferedImage(false);
+    }
+
+    /**
+     * 
+     * @param copy Whether to return a copy of the underlying {@code BufferedImage}
+     *             or the {@code BufferedImage} itself
+     * @return
+     */
+    public BufferedImage getBufferedImage(boolean copy) {
+        syncPixelArray();
+        return copy ? copyBufferedImage(bufferedImage) : bufferedImage;
+    }
+
+    private static BufferedImage copyBufferedImage(BufferedImage oldImage) {
+        int width = oldImage.getWidth(),
+                height = oldImage.getHeight();
+        int[] oldPixels = ((DataBufferInt) oldImage.getRaster().getDataBuffer()).getData();
+        BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        int[] newPixels = ((DataBufferInt) newImage.getRaster().getDataBuffer()).getData();
+        System.arraycopy(oldPixels, 0, newPixels, 0, oldPixels.length);
+        return newImage;
+    }
+
+    @Override
+    public void cleanUp() {
+        fbo.cleanUp();
+    }
+
+    public int getTextureID() {
+        return fbo.getTextureID();
+    }
+
+    public int getPreviewTextureID() {
+        return validPreviewTexture ? fbo.getInactiveTextureID() : fbo.getTextureID();
+    }
+
+    /**
+     * <b>Only for debugging</b>
+     * 
+     * @return this image's FBO
+     */
+    public PingPongFBO getFBO() {
+        return fbo;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
 }
