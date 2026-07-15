@@ -302,21 +302,6 @@ public class AppRenderer implements Cleanable {
         image.markOpenGLTextureDirty();
     }
 
-    // public void resizeImage(Image image, int newWidth, int newHeight) {
-    // uiMaster.start();
-    // uiMaster.tempFrameBuffer();
-    // glDisable(GL_BLEND);
-    // uiMaster.image(image.getTextureID(), new SVector(), new SVector(newWidth,
-    // newHeight));
-    // uiMaster.render();
-    // FrameBufferObject fbo = uiMaster.getTempFBO();
-    // int width = fbo.width, height = fbo.height;
-    // int[] array = new int[width * height];
-    // glBindTexture(GL_TEXTURE_2D, fbo.textureID);
-    // glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, array);
-    // image.resize(newWidth, newHeight, array);
-    // }
-
     @Override
     public void cleanUp() {
         uiMaster.cleanUp();

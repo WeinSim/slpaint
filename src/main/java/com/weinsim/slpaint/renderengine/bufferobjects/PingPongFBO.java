@@ -12,8 +12,7 @@ import com.weinsim.slpaint.renderengine.Cleanable;
 public class PingPongFBO implements Cleanable {
 
     private final int fboID;
-    // private final int texture0, texture1;
-    public final int[] textureIDs;
+    private final int[] textureIDs;
 
     private int activeTexture;
 
@@ -21,29 +20,41 @@ public class PingPongFBO implements Cleanable {
         glGetError();
         fboID = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, fboID);
-        // texture0 = glGenTextures();
-        // texture1 = glGenTextures();
         textureIDs = new int[] { glGenTextures(), glGenTextures() };
-        // bind both textures to make sure the texture objects are actually created
-        // glBindTexture(GL_TEXTURE_2D, texture0);
-        // glBindTexture(GL_TEXTURE_2D, texture1);
-        // glBindTexture(GL_TEXTURE_2D, 0);
         // System.out.format("error: 0x%X (NO_ERROR = 0x%X)\n", glGetError(),
         // GL_NO_ERROR);
         activeTexture = 0;
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    public void initInactiveTexture(int width, int height) {
-        glBindTexture(GL_TEXTURE_2D, getInactiveTextureID());
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
+    /**
+     * Wrapper around {@code glTexImage2D}. It is only called if the texture is not
+     * initialized or the texture size changes.
+     * 
+     * @param active Which of the two textures to work on. {@code true} refers to
+     *               the active texture, {@code false} to the inactive one.
+     * @param width  the desired width of the texture
+     * @param height the desired height of the texture
+     */
+    public void setTextureSize(boolean active, int width, int height) {
+        int textureID = textureIDs[active ? activeTexture : 1 - activeTexture];
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        int currentWidth = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH),
+                currentHeight = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH);
+        if (currentWidth != width || currentHeight != height)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
     }
 
+    /**
+     * Binds this framebuffer and attaches the active for rendering.
+     */
     public void bind() {
         bind(true);
     }
 
     /**
+     * Binds this framebuffer and attaches the specified texture (active / inactive)
+     * for rendering.
      * 
      * @param drawOnActiveTexture Whether to use the currently active texture as the
      *                            rendering target. Passing {@code false} will
@@ -56,6 +67,14 @@ public class PingPongFBO implements Cleanable {
         // smaller of the 2 textures
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
         glDrawBuffers(GL_COLOR_ATTACHMENT0);
+    }
+
+    /**
+     * Unbinds the FBO and detaches the texture.
+     */
+    public void unbind() {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
     }
 
     @Override

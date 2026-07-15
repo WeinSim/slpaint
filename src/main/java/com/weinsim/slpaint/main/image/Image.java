@@ -2,6 +2,7 @@ package com.weinsim.slpaint.main.image;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL30.*;
 
 import java.awt.AlphaComposite;
@@ -36,7 +37,9 @@ public class Image implements Cleanable {
 
     private final PingPongFBO fbo;
 
-    private boolean validPreviewTexture;
+    // TODO: we are not yet considering effect parameters (e.g. the brightness
+    // value)
+    private Effect currentPreviewEffect;
 
     private int syncStatus;
 
@@ -48,7 +51,6 @@ public class Image implements Cleanable {
     public Image(BufferedImage image) {
         fbo = new PingPongFBO();
         setBufferedImage(image);
-        fbo.initInactiveTexture(width, height);
     }
 
     public void setBufferedImage(BufferedImage image) {
@@ -110,7 +112,7 @@ public class Image implements Cleanable {
             System.err.println(
                     "Image sync error: openGL texture marked as dirty while pixel array was also dirty");
         syncStatus = OPENGL_DIRTY;
-        validPreviewTexture = false;
+        currentPreviewEffect = null;
     }
 
     private void setDirty(int x, int y) {
@@ -160,7 +162,7 @@ public class Image implements Cleanable {
         }
 
         glGenerateMipmap(GL_TEXTURE_2D);
-        validPreviewTexture = false;
+        currentPreviewEffect = null;
         syncStatus = CLEAN;
     }
 
@@ -542,30 +544,44 @@ public class Image implements Cleanable {
     }
 
     public void applyEffect(Effect effect, boolean preview) {
+        // make sure the texture we read from (the active texture) has the right data
         syncOpenGLTexture();
-        fbo.initInactiveTexture(width, height);
+        // if we only want a preview but that preview is already rendered to the
+        // inactive texture, we don't need to do anything
+        if (preview && currentPreviewEffect == effect)
+            return;
+        // initialize drawing to the inactive texture
+        // fbo.initInactiveTexture(width, height);
+        fbo.setTextureSize(false, width, height);
         fbo.bind(false);
+        // setup rendering
         ShaderProgram shader = effect.getShader();
         RawModel quad = shader.getRawModel();
         shader.start();
         quad.bind();
         quad.enableVBOs();
         glViewport(0, 0, width, height);
-        glClearColor(1, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
+        // glClearColor(0, 0, 0, 1);
+        // glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_BLEND);
         effect.loadUniforms();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, fbo.getTextureID());
+        // render
         glDrawArrays(GL_TRIANGLE_STRIP, 0, quad.vertexCount());
+        // clean up
         quad.disableVBOs();
         quad.unbind();
         shader.stop();
-
+        fbo.unbind();
+        // mark inactive texture either as active or as a valid preview
         if (preview) {
-            validPreviewTexture = true;
+            currentPreviewEffect = effect;
+            glBindTexture(GL_TEXTURE_2D, fbo.getInactiveTextureID());
+            glGenerateMipmap(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, 0);
         } else {
-            validPreviewTexture = false;
+            currentPreviewEffect = null;
             fbo.swapTextures();
             markOpenGLTextureDirty();
         }
@@ -624,7 +640,7 @@ public class Image implements Cleanable {
     }
 
     public int getPreviewTextureID() {
-        return validPreviewTexture ? fbo.getInactiveTextureID() : fbo.getTextureID();
+        return currentPreviewEffect != null ? fbo.getInactiveTextureID() : fbo.getTextureID();
     }
 
     /**

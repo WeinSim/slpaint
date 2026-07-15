@@ -18,7 +18,7 @@ import com.weinsim.sutil.ui.elements.UIRoot;
 
 public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, ResizeApp {
 
-    private static final double FRAME_TIME_GAMMA = 0.015;
+    private static final double FRAME_TIME_GAMMA = 0.02;
 
     /**
      * 0 = normal 1 = mouse above, 2 = always
@@ -108,7 +108,7 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
         UI.setContext(ui);
     }
 
-    public void update(double deltaT) {
+    public final void update(double deltaT) {
         long updateStart = System.nanoTime();
         if (avgFrameTime < 0) {
             avgFrameTime = deltaT;
@@ -188,12 +188,17 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
 
         window.setCursor(ui.getCursorShape());
 
+        childUpdate(deltaT);
+
         double updateDuration = (System.nanoTime() - updateStart) * 1e-9;
         if (avgUpdateTime < 0) {
             avgUpdateTime = deltaT;
         } else {
             avgUpdateTime = (1 - FRAME_TIME_GAMMA) * avgUpdateTime + FRAME_TIME_GAMMA * updateDuration;
         }
+    }
+
+    protected void childUpdate(double deltaT) {
     }
 
     public void reloadShaders() {
@@ -332,7 +337,7 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
         return 1.0 / avgFrameTime;
     }
 
-    public double getAvgUpdateTime() {
+    public double getUpdateTime() {
         return avgUpdateTime;
     }
 

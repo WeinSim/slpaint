@@ -85,7 +85,7 @@ public class MainUI extends AppUI<MainApp> {
         mainRow.setFillSize();
         mainRow.add(createSidePanel());
         mainRow.add(new ImageCanvas(VERTICAL, RIGHT, TOP, app));
-        mainRow.add(createDebugPanel());
+        // mainRow.add(createDebugPanel());
         root.add(mainRow);
 
         UIContainer statusBar = createStatusBar();
@@ -519,7 +519,9 @@ public class MainUI extends AppUI<MainApp> {
         for (int i = 0; i < 2; i++) {
             final int j = i;
             UIImage image = new UIImage(
-                    () -> app.getImage().getFBO().textureIDs[j],
+                    // set PingPongFBO#textureIDs to public for this to work
+                    // () -> app.getImage().getFBO().textureIDs[j],
+                    () -> 0,
                     new SVector(200, 200));
             image.setStyle(
                     new UIStyle(
@@ -607,9 +609,12 @@ public class MainUI extends AppUI<MainApp> {
                     "%d UI elements",
                     countUIElements(UI.getRoot())));
             addStatusBarLabel(statusBar, () -> String.format(
-                    "%5.3f ms update",
-                    app.getAvgUpdateTime() / 1e-3));
-            addStatusBarLabel(statusBar, () -> String.format("%4.1f fps", app.getFrameRate()));
+                    "%4.2f ms update",
+                    app.getUpdateTime() / 1e-3));
+            addStatusBarLabel(statusBar, () -> String.format(
+                    "%4.1f fps (%4.1f%%)",
+                    app.getFrameRate(),
+                    100.0 * app.getUpdateTime() * app.getFrameRate()));
             addStatusBarLabel(statusBar, () -> String.format("Frame %5d", app.getFrameCount()));
         }
 

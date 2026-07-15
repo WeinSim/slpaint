@@ -38,10 +38,8 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  * Effects
  *   Implement effects using shaders
  *     Effect previews
- *       It seems like the 2nd FBO texture only gets properly initialized once
- *         we set it as the active texture
- *       Improve performance
  *       Which effects to preview?
+ *       Improve performance
  *   Effect order?? how to set in UI?
  *
  * App:
@@ -205,6 +203,8 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       update time from >10ms to <2ms. This even happens when we don't even
  *       call glfwGetCursorPos() and even when the mouse is not even about the
  *       window.
+ *   Memory usage: image history can grow quite large (~100MiB for uncompressed
+ *     WindowsXP test image (2880x2613))
  *   Error handling
  * </pre>
  */
@@ -332,13 +332,11 @@ public final class MainApp extends App {
     }
 
     @Override
-    public void update(double deltaT) {
-        super.update(deltaT);
-
+    public void childUpdate(double deltaT) {
         // try {
-        //     Thread.sleep(200);
+        // Thread.sleep(200);
         // } catch (InterruptedException e) {
-        //     e.printStackTrace();
+        // e.printStackTrace();
         // }
 
         if (frameCount == 1)
@@ -359,6 +357,8 @@ public final class MainApp extends App {
 
         // update image texture
         getImage().applyEffect(Effect.BLACK_WHITE, true);
+        // technically this is unneccessary because applying the effect already syncs
+        // the texture data
         getImage().sync();
     }
 
