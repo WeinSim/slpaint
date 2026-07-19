@@ -1,6 +1,6 @@
 package com.weinsim.slpaint.main.effects;
 
-public class Brightness extends Effect {
+public class Brightness extends EffectInstance {
 
     public static final int MIN_BRIGHTNESS = -255,
             MAX_BRIGHTNESS = 255;
@@ -8,18 +8,18 @@ public class Brightness extends Effect {
     private int brightness;
 
     Brightness() {
-        super("brightness");
+        brightness = 0;
     }
 
     @Override
-    public void init() {
-        brightness = 0;
+    public Effect getEffect() {
+        return Effect.BRIGHTNESS;
     }
 
     @Override
     public void loadUniforms() {
         super.loadUniforms();
-        shader.loadUniform("brightness", brightness / 255.0);
+        loadUniform("brightness", brightness / 255.0);
     }
 
     public int getBrightness() {

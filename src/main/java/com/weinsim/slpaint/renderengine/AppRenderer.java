@@ -1,6 +1,7 @@
 package com.weinsim.slpaint.renderengine;
 
 import static com.weinsim.sutil.ui.UI.*;
+import static org.lwjgl.glfw.GLFW.*;
 
 import org.lwjglx.util.vector.Vector4f;
 
@@ -75,6 +76,14 @@ public class AppRenderer implements Cleanable {
 
     protected void renderUI() {
         uiMaster.resetMatrix();
+        if (MainApp.DEV_BUILD && app.isKeyPressed(GLFW_KEY_W)) {
+            SVector offset = new SVector(app.getMousePosition());
+            // SVector halfWindowSize = app.getWindowSize().scale(0.5);
+            // offset.sub(halfWindowSize).scale(1.5).add(halfWindowSize);
+            uiMaster.translate(offset);
+            uiMaster.scale(3);
+            uiMaster.translate(new SVector(offset).scale(-1));
+        }
 
         layer = 0;
         division = 0;
@@ -136,7 +145,7 @@ public class AppRenderer implements Cleanable {
         int debugOutline = App.getDebugOutline();
         if ((debugOutline == 1 && element.mouseAbove()) || debugOutline == 2) {
             uiMaster.stroke(new SVector(1, 0.7, 0.1));
-            uiMaster.strokeWeight(UISizes.STROKE_WEIGHT.get());
+            uiMaster.strokeWeight(UISizes.STROKE_WEIGHT.get1f());
             doOutline = true;
         } else if (element.doStrokeCheckerboard()) {
             Vector4f c1 = element.strokeCheckerboardColor1(),

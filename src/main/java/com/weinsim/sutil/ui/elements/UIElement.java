@@ -343,7 +343,7 @@ public abstract class UIElement {
         double sw = style.strokeWeight();
         if (isSelected()) {
             if (style.strokeColor() == null) {
-                sw = UISizes.STROKE_WEIGHT.get();
+                sw = UISizes.STROKE_WEIGHT.get1f();
             } else {
                 sw *= 2;
             }

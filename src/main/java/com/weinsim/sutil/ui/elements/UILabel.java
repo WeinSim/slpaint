@@ -14,57 +14,10 @@ public class UILabel extends UIContainer {
 
     private static final BooleanSupplier TRUE = () -> true;
 
-    protected final BooleanSupplier active;
+    protected BooleanSupplier active;
 
     protected Supplier<SVector> iconSize;
     protected DoubleSupplier textSize;
-
-    public UILabel() {
-        this(TRUE);
-    }
-
-    public UILabel(UIIcon icon) {
-        this(TRUE);
-        addIcon(icon);
-    }
-
-    public UILabel(UIIcon icon, BooleanSupplier active) {
-        this(active);
-        addIcon(icon);
-    }
-
-    public UILabel(UIIcon activeIcon, UIIcon inactiveIcon, BooleanSupplier active) {
-        this(active);
-        addTwoIcons(activeIcon, inactiveIcon, active);
-    }
-
-    public UILabel(String text) {
-        this(TRUE);
-        addText(text);
-    }
-
-    public UILabel(String text, BooleanSupplier active) {
-        this(active);
-        addText(text, active);
-    }
-
-    public UILabel(UIIcon icon, String text) {
-        this(TRUE);
-        addIcon(icon);
-        addText(text);
-    }
-
-    public UILabel(UIIcon icon, String text, BooleanSupplier active) {
-        this(active);
-        addIcon(icon);
-        addText(text, active);
-    }
-
-    public UILabel(UIIcon activeIcon, UIIcon inactiveIcon, String text, BooleanSupplier active) {
-        this(active);
-        addTwoIcons(activeIcon, inactiveIcon, active);
-        addText(text, active);
-    }
 
     private UILabel(BooleanSupplier active) {
         super(HORIZONTAL, CENTER);
@@ -73,65 +26,76 @@ public class UILabel extends UIContainer {
         outlineNormal = false;
         zeroMargin();
 
-        active = TRUE;
-        iconSize = UISizes.ICON::getWidthHeight;
+        iconSize = UISizes.ICON;
         textSize = UISizes.TEXT;
-
     }
 
-    private void addIcon(UIIcon icon) {
-        if (icon != null)
-            add(new UIImage(icon, this::getIconSize));
-        else
-            add(new UIEmpty(this::getIconSize));
+    private UILabel addIcon(String iconName) {
+        return addIcon(iconName, TRUE);
     }
 
-    private void addTwoIcons(UIIcon activeIcon, UIIcon inactiveIcon, BooleanSupplier active) {
-        add(new UIImage(activeIcon, this::getIconSize).setVisibilitySupplier(active));
-        add(new UIImage(inactiveIcon, this::getIconSize).setVisibilitySupplier(() -> !active.getAsBoolean()));
+    private UILabel addIcon(String iconName, BooleanSupplier visibilitySupplier) {
+        UIElement child = iconName != null
+                ? new UIImage(new UIIcon(iconName), this::getIconSize)
+                : new UIEmpty(this::getIconSize);
+        child.setVisibilitySupplier(visibilitySupplier);
+        add(child);
+        return this;
     }
 
-    private void addText(String text) {
+    private UILabel addTwoIcons(String activeIcon, String inactiveIcon, BooleanSupplier active) {
+        addIcon(activeIcon, active);
+        addIcon(inactiveIcon, () -> !active.getAsBoolean());
+        return this;
+    }
+
+    private UILabel addText(String text) {
         add(new UIText(text, this::getTextSize));
+        return this;
     }
 
-    private void addText(String text, BooleanSupplier active) {
+    private UILabel addText(String text, BooleanSupplier active) {
         UIText uiText = new UIText(text, this::getTextSize);
         uiText.setColor(SUtil.ifThenElse(active, UIColors.TEXT, UIColors.TEXT_INVALID));
         add(uiText);
+        return this;
+    }
+
+    public static UILabel empty() {
+        return new UILabel(TRUE);
     }
 
     public static UILabel icon(String iconName) {
-        return new UILabel(new UIIcon(iconName));
+        return new UILabel(TRUE).addIcon(iconName);
     }
 
     public static UILabel icon(String iconName, BooleanSupplier active) {
-        return new UILabel(new UIIcon(iconName), active);
+        return new UILabel(active).addIcon(iconName);
     }
 
     public static UILabel icons(String activeIconName, String inactiveIconName, BooleanSupplier active) {
-        return new UILabel(new UIIcon(activeIconName), new UIIcon(inactiveIconName), active);
+        return new UILabel(active).addTwoIcons(activeIconName, inactiveIconName, active);
     }
 
     public static UILabel text(String text) {
-        return new UILabel(text);
+        return new UILabel(TRUE).addText(text);
     }
 
     public static UILabel text(String text, BooleanSupplier active) {
-        return new UILabel(text);
+        return new UILabel(active).addText(text, active);
     }
 
     public static UILabel iconText(String iconName, String text) {
-        return new UILabel(new UIIcon(iconName), text);
+        return new UILabel(TRUE).addIcon(iconName).addText(text);
     }
 
     public static UILabel iconText(String iconName, String text, BooleanSupplier active) {
-        return new UILabel(new UIIcon(iconName), text, active);
+        return new UILabel(active).addIcon(iconName).addText(text, active);
     }
 
     public static UILabel iconsText(String activeIconName, String inactiveIconName, String text,
             BooleanSupplier active) {
-        return new UILabel(new UIIcon(activeIconName), new UIIcon(inactiveIconName), text, active);
+        return new UILabel(active).addTwoIcons(activeIconName, inactiveIconName, active).addText(text, active);
     }
 
     public void setSize(Supplier<SVector> iconSize, DoubleSupplier textSize) {
@@ -139,12 +103,14 @@ public class UILabel extends UIContainer {
         this.textSize = textSize;
     }
 
-    public void setIconSize(Supplier<SVector> iconSize) {
+    public UILabel setIconSize(Supplier<SVector> iconSize) {
         this.iconSize = iconSize;
+        return this;
     }
 
-    public void setTextSize(DoubleSupplier textSize) {
+    public UILabel setTextSize(DoubleSupplier textSize) {
         this.textSize = textSize;
+        return this;
     }
 
     private SVector getIconSize() {
@@ -155,8 +121,9 @@ public class UILabel extends UIContainer {
         return textSize.getAsDouble();
     }
 
-    public BooleanSupplier getActive() {
-        return active;
+    public UILabel setActive(BooleanSupplier active) {
+        this.active = active;
+        return this;
     }
 
     public boolean isActive() {

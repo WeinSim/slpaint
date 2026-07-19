@@ -4,14 +4,14 @@ package com.weinsim.slpaint.main.effects;
  * This "Effect" simply outputs the input color as its pixel color. It is used
  * for resizing images.
  */
-public class Resize extends Effect {
+public class Resize extends EffectInstance {
 
-    public Resize() {
-        super("resize");
+    Resize() {
     }
 
     @Override
-    public void init() {
+    public Effect getEffect() {
+        return Effect.RESIZE;
     }
 
 }

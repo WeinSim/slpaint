@@ -76,7 +76,7 @@ public class UIScale extends UIDragContainer {
     }
 
     private double getVisualWidth() {
-        return narrow ? UISizes.SCALE_NARROW.get() : UISizes.SCALE_WIDE.get();
+        return (narrow ? UISizes.SCALE_NARROW : UISizes.SCALE_WIDE).get1f();
     }
 
     /**
@@ -119,8 +119,8 @@ public class UIScale extends UIDragContainer {
                         return new SVector(getRelativeX(), getRelativeY()).mult(parent.getSize());
                     });
 
-            double len = 2 * UISizes.SCALE_SLIDER_LENGTH.get() + getVisualWidth();
-            double width = UISizes.SCALE_SLIDER_WIDTH.get();
+            double len = 2 * UISizes.SCALE_SLIDER_LENGTH.get1f() + getVisualWidth();
+            double width = UISizes.SCALE_SLIDER_WIDTH.get1f();
             if (orientation == VERTICAL) {
                 setFixedSize(new SVector(len, width));
             } else {
@@ -139,7 +139,7 @@ public class UIScale extends UIDragContainer {
 
         @Override
         public void setPreferredSize() {
-            double w = 2 * UISizes.SCALE_SLIDER_LENGTH.get() + getVisualWidth();
+            double w = 2 * UISizes.SCALE_SLIDER_LENGTH.get1f() + getVisualWidth();
 
             if (orientation == VERTICAL) {
                 size.set(w, 0);

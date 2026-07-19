@@ -1,7 +1,9 @@
 package com.weinsim.slpaint.main.effects;
 
 import java.util.List;
+import java.util.function.Supplier;
 
+import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.renderengine.Cleanable;
 import com.weinsim.slpaint.renderengine.RawModel;
 import com.weinsim.slpaint.renderengine.bufferobjects.FloatVBO;
@@ -9,39 +11,32 @@ import com.weinsim.slpaint.renderengine.shader.ShaderProgram;
 import com.weinsim.slpaint.renderengine.shader.ShaderType;
 import com.weinsim.sutil.math.SVector;
 
-public abstract class Effect implements Cleanable {
+public enum Effect implements Cleanable {
 
-    public static final BlackWhite BLACK_WHITE = new BlackWhite();
-    public static final Contrast CONTRAST = new Contrast();
-    public static final Brightness BRIGHTNESS = new Brightness();
-    public static final Resize RESIZE = new Resize();
+    BLACK_WHITE("Black / White", "blackwhite", BlackWhite::new),
+    BRIGHTNESS("Brightness", "brightness", Brightness::new),
+    CONTRAST("Contrast", "contrast", Contrast::new),
+    RESIZE("Resize", "resize", Resize::new);
 
-    private static final Effect[] INSTANCES = { BLACK_WHITE, CONTRAST, BRIGHTNESS, RESIZE };
-
-    protected ShaderProgram shader;
-
+    private ShaderProgram shader;
     public final String name;
+    private final String shaderName;
+    private final Supplier<EffectInstance> constructor;
 
-    public Effect(String name) {
+    private Effect(String name, String shaderName, Supplier<EffectInstance> instanceConstructor) {
         this.name = name;
+        this.shaderName = shaderName;
+        this.constructor = instanceConstructor;
         loadShader();
         putQuadData(shader.getRawModel());
-        init();
     }
 
     private void loadShader() {
-        shader = new ShaderProgram(name, ShaderType.EFFECT, List.of("position", "in_uv"));
+        shader = new ShaderProgram(shaderName, ShaderType.EFFECT, List.of("position", "in_uv"));
     }
 
-    /**
-     * If this effect stores some state (usually something that can be set by the
-     * user via the UI), this method should reset that state. It is automatically
-     * called from the constructor.
-     */
-    public abstract void init();
-
-    public void loadUniforms() {
-        shader.loadUniform("textureSampler", 0);
+    void loadUniform(String name, Object value) {
+        shader.loadUniform(name, value);
     }
 
     private static void putQuadData(RawModel model) {
@@ -69,6 +64,22 @@ public abstract class Effect implements Cleanable {
         model.finishVertexVBOs();
     }
 
+    public EffectInstance createInstance() {
+        EffectInstance instance = constructor.get();
+        if (MainApp.DEV_BUILD) {
+            // make sure that there is no mismatch between the constructor and
+            // EffectInstance#getEffect
+            Effect effect = instance.getEffect();
+            if (effect != this) {
+                String errorMessage = String.format(
+                        "Effect instance \"%s\" does not specify the right effect (expected: \"%s\", actual: \"%s\")",
+                        instance.getClass().getSimpleName(), name, effect.name);
+                throw new RuntimeException(errorMessage);
+            }
+        }
+        return instance;
+    }
+
     public ShaderProgram getShader() {
         return shader;
     }
@@ -79,7 +90,7 @@ public abstract class Effect implements Cleanable {
     }
 
     public static void reloadShaders() {
-        for (Effect effect : INSTANCES) {
+        for (Effect effect : values()) {
             effect.cleanUp();
             effect.loadShader();
         }
@@ -88,7 +99,7 @@ public abstract class Effect implements Cleanable {
     // // this is not yet being called from anywhere, but it doesn't really matter
     // // because effects should live for the entire duration of the program
     // public static void cleanUpEffects() {
-    // for (Effect effect : INSTANCES)
+    // for (Effect effect : values())
     // effect.cleanUp();
     // }
 

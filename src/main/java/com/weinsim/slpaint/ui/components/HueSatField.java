@@ -33,7 +33,7 @@ public class HueSatField extends UIDragContainer {
         noOutline();
 
         add(new Cursor(colorPicker));
-        setFixedSize(UISizes.HUE_SAT_FIELD.getWidthHeight());
+        setFixedSize(UISizes.HUE_SAT_FIELD.get2f());
 
         nextX = 0;
 
@@ -130,9 +130,9 @@ public class HueSatField extends UIDragContainer {
 
         @Override
         public void positionChildren() {
-            double w = UISizes.SCALE_SLIDER_WIDTH.get();
+            double w = UISizes.SCALE_SLIDER_WIDTH.get1f();
             final double a = w * CURSOR_WIDTH / 2;
-            double len = UISizes.SCALE_SLIDER_LENGTH.get();
+            double len = UISizes.SCALE_SLIDER_LENGTH.get1f();
             final double b = len * (CURSOR_LINE_LENGTH + CURSOR_CENTER_GAP / 2);
             final double c = len * CURSOR_CENTER_GAP / 2;
 
@@ -156,8 +156,8 @@ public class HueSatField extends UIDragContainer {
 
             setStyle(new UIStyle(UIColors.HIGHLIGHT, () -> null, UISizes.STROKE_WEIGHT));
 
-            double len = UISizes.SCALE_SLIDER_LENGTH.get() * CURSOR_LINE_LENGTH;
-            double w = UISizes.SCALE_SLIDER_WIDTH.get() * CURSOR_WIDTH;
+            double len = UISizes.SCALE_SLIDER_LENGTH.get1f() * CURSOR_LINE_LENGTH;
+            double w = UISizes.SCALE_SLIDER_WIDTH.get1f() * CURSOR_WIDTH;
 
             if (vertical) {
                 setFixedSize(new SVector(w, len));

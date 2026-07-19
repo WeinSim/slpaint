@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.lwjglx.util.vector.Vector4f;
 
@@ -15,6 +16,7 @@ import com.weinsim.slpaint.main.ColorArray;
 import com.weinsim.slpaint.main.ColorPicker;
 import com.weinsim.slpaint.main.Loader;
 import com.weinsim.slpaint.main.effects.Effect;
+import com.weinsim.slpaint.main.effects.EffectInstance;
 import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.main.image.ImageFormat;
 import com.weinsim.slpaint.main.image.ImageManager;
@@ -95,6 +97,8 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       can be set. Solution: add UIContainer.setMargin()?
  *   Change UIContainer defaults? .zeroMargin().noOutline() is used in a ton of
  *     places and should maybe be the default.
+ *   Separate top / bottom / left / right margins? (setup for UITabs is a bit of
+ *     a workaround at the moment)
  *   UITabs: make it a bit prettier
  *   Tool cursors
  *   Text
@@ -304,6 +308,8 @@ public final class MainApp extends App {
     private int colorSelection;
     private ColorArray customColorButtonArray;
 
+    private List<EffectInstance> previewEffects;
+
     private ImageCanvas canvas;
 
     /**
@@ -319,6 +325,7 @@ public final class MainApp extends App {
         colorSelection = PRIMARY_COLOR;
         selectedColorPicker = new ColorPicker(getSelectedColor());
         customColorButtonArray = new ColorArray(MainUI.NUM_COLOR_BUTTONS_PER_ROW);
+        previewEffects = new ArrayList<>();
 
         imageManager = initialFile == null ? new ImageManager(this) : new ImageManager(this, initialFile);
 
@@ -356,7 +363,7 @@ public final class MainApp extends App {
         window.setTitle(String.format("%s%s - SLPaint", hasUnsavedChanges ? "" + (char) 0x2022 + " " : "", filename));
 
         // update image texture
-        getImage().applyEffect(Effect.BLACK_WHITE, true);
+        // getImage().applyEffect(Effect.BLACK_WHITE, true);
         // technically this is unneccessary because applying the effect already syncs
         // the texture data
         getImage().sync();
@@ -529,14 +536,13 @@ public final class MainApp extends App {
         activeTool.cancel();
     }
 
-    public void applyEffect(Effect effect) {
+    public void applyEffect(EffectInstance effect) {
         long start = System.nanoTime();
         getImage().applyEffect(effect);
         long end = System.nanoTime();
         System.out.format("Effect \"%s\" took %.1fms\n",
                 effect.getClass().getSimpleName(),
                 (end - start) * 1e-6);
-        effect.init();
         imageManager.addSnapshot();
     }
 
@@ -750,6 +756,38 @@ public final class MainApp extends App {
         customColorButtonArray.addColor(color);
     }
 
+    public List<EffectInstance> getPreviewEffects() {
+        return previewEffects;
+    }
+
+    public void addPreviewEffect(Effect effect) {
+        previewEffects.add(effect.createInstance());
+    }
+
+    public void removePreviewEffect(EffectInstance effect) {
+        previewEffects.remove(effect);
+    }
+
+    public void movePreviewEffectUp(EffectInstance effect) {
+        for (int i = 0; i < previewEffects.size() - 1; i++) {
+            if (previewEffects.get(i) == effect) {
+                EffectInstance swap = previewEffects.set(i + 1, effect);
+                previewEffects.set(i, swap);
+                break;
+            }
+        }
+    }
+
+    public void movePreviewEffectDown(EffectInstance effect) {
+        for (int i = 1; i < previewEffects.size(); i++) {
+            if (previewEffects.get(i) == effect) {
+                EffectInstance swap = previewEffects.set(i - 1, effect);
+                previewEffects.set(i, swap);
+                break;
+            }
+        }
+    }
+
     public static boolean isTransparentSelection() {
         return transparentSelection.get();
     }
@@ -793,14 +831,6 @@ public final class MainApp extends App {
 
     public SVector getScreenPosition(SVector imagePos) {
         return canvas.getScreenPosition(imagePos);
-    }
-
-    public SVector getMousePosition() {
-        return mousePos;
-    }
-
-    public SVector getPrevMousePosition() {
-        return prevMousePos;
     }
 
     public ColorArray getCustomColorButtonArray() {

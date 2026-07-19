@@ -18,8 +18,6 @@ import com.weinsim.sutil.ui.elements.UIRoot;
 
 public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, ResizeApp {
 
-    private static final double FRAME_TIME_GAMMA = 0.02;
-
     /**
      * 0 = normal 1 = mouse above, 2 = always
      */
@@ -54,9 +52,8 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
     private int dialogType;
     private HashMap<Integer, App> childApps;
 
-    protected double avgFrameTime = -1;
-    protected double avgUpdateTime = -1;
-    protected int frameCount = 0;
+    protected SmoothValue avgFrameTime, avgUpdateTime;
+    protected int frameCount;
 
     public App(int width, int height, int windowMode, String title) {
         this(width, height, windowMode, true, false, title, null);
@@ -84,6 +81,10 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
             iconNames.add(String.format("logo/logo_%d.png", res));
         }
         window.setIcon(iconNames);
+
+        frameCount = 0;
+        avgFrameTime = new SmoothValue(1 / 60.0);
+        avgUpdateTime = new SmoothValue(0);
     }
 
     public final void loadUI() {
@@ -110,11 +111,7 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
 
     public final void update(double deltaT) {
         long updateStart = System.nanoTime();
-        if (avgFrameTime < 0) {
-            avgFrameTime = deltaT;
-        } else {
-            avgFrameTime = (1 - FRAME_TIME_GAMMA) * avgFrameTime + FRAME_TIME_GAMMA * deltaT;
-        }
+        avgFrameTime.approach(deltaT);
         frameCount++;
 
         if (ui == null) {
@@ -191,11 +188,7 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
         childUpdate(deltaT);
 
         double updateDuration = (System.nanoTime() - updateStart) * 1e-9;
-        if (avgUpdateTime < 0) {
-            avgUpdateTime = deltaT;
-        } else {
-            avgUpdateTime = (1 - FRAME_TIME_GAMMA) * avgUpdateTime + FRAME_TIME_GAMMA * updateDuration;
-        }
+        avgUpdateTime.approach(updateDuration);
     }
 
     protected void childUpdate(double deltaT) {
@@ -219,6 +212,18 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
 
     public int getModifierKeys() {
         return window.getModifierKeys();
+    }
+
+    public boolean isKeyPressed(int key) {
+        return window.isKeyPressed(key);
+    }
+
+    public SVector getMousePosition() {
+        return mousePos;
+    }
+
+    public SVector getPrevMousePosition() {
+        return prevMousePos;
     }
 
     public void requestFocus() {
@@ -334,11 +339,11 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
     }
 
     public double getFrameRate() {
-        return 1.0 / avgFrameTime;
+        return 1.0 / avgFrameTime.getValue();
     }
 
     public double getUpdateTime() {
-        return avgUpdateTime;
+        return avgUpdateTime.getValue();
     }
 
     public int getFrameCount() {
@@ -347,6 +352,45 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
 
     public void setDialogType(int dialogType) {
         this.dialogType = dialogType;
+    }
+
+    private static class SmoothValue {
+
+        private static final double DEFAULT_GAMMA = 7.0;
+
+        private double value;
+        private long lastApproach;
+
+        private double gamma;
+
+        public SmoothValue(double initialValue) {
+            this(initialValue, DEFAULT_GAMMA);
+        }
+
+        public SmoothValue(double initialValue, double gamma) {
+            this.gamma = gamma;
+            set(initialValue);
+        }
+
+        public void set(double newValue) {
+            this.value = newValue;
+            lastApproach = System.nanoTime();
+        }
+
+        public void approach(double newValue) {
+            long now = System.nanoTime();
+            value += (newValue - value) * Math.min(gamma * (now - lastApproach) * 1e-9, 1);
+            lastApproach = now;
+        }
+
+        public double getValue() {
+            return value;
+        }
+
+        public void setGamma(double gamma) {
+            this.gamma = gamma;
+        }
+
     }
 
 }

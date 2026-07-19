@@ -158,7 +158,7 @@ public class UITextInput extends UIContainer {
 
         @Override
         public void update() {
-            setFixedSize(new SVector(UISizes.STROKE_WEIGHT.get(), uiText.getTextSize()));
+            setFixedSize(new SVector(UISizes.STROKE_WEIGHT.get1f(), uiText.getTextSize()));
         }
     }
 

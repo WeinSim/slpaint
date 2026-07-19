@@ -305,8 +305,8 @@ public class ImageCanvas extends UIContainer {
                     () -> resizing,
                     UIColors.SELECTION_BORDER_1,
                     UIColors.SELECTION_BORDER_2,
-                    () -> UISizes.CHECKERBOARD.get());
-            style.setStrokeWeight(() -> 2 * UISizes.STROKE_WEIGHT.get());
+                    UISizes.CHECKERBOARD);
+            style.setStrokeWeight(() -> 2 * UISizes.STROKE_WEIGHT.get1f());
 
             addAnchor(Anchor.TOP_LEFT, this::getPos);
 

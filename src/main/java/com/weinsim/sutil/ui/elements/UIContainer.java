@@ -2,6 +2,7 @@ package com.weinsim.sutil.ui.elements;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.BooleanSupplier;
 
@@ -108,7 +109,7 @@ public class UIContainer extends UIElement {
         soloChildren = new ChildIterable() {
             @Override
             boolean iterateOver(UIElement child) {
-                return child.soloInputs();
+                return child.isVisible() && child.soloInputs();
             }
         };
 
@@ -129,7 +130,16 @@ public class UIContainer extends UIElement {
     // Adding / removing children
 
     public void add(UIElement child) {
+        add(children.size(), child);
+    }
+
+    public void add(int index, UIElement child) {
         if (addSeparators && !(child instanceof UIFloatContainer)) {
+            // TODO: this logic breaks if we specify an index different from
+            // children.size(). maybe get rid of it all together and instead add new
+            // separators on every update()?
+            // (actually this logic is completely broken? no separator shows up between the
+            // menu bar and the tool row)
             boolean containsNonFloatChildren = false;
             for (UIElement currentChild : children) {
                 if (!(currentChild instanceof UIFloatContainer)) {
@@ -160,18 +170,41 @@ public class UIContainer extends UIElement {
                 addActual(separator);
             }
         }
-
-        addActual(child);
+        addActual(index, child);
     }
 
     private final void addActual(UIElement child) {
         children.add(child);
+        child.parent = this;
+    }
 
+    private final void addActual(int index, UIElement child) {
+        children.add(index, child);
         child.parent = this;
     }
 
     public void remove(UIElement child) {
         children.remove(child);
+    }
+
+    /**
+     * Removes and returns all children of the specified type from this container's
+     * list of children.
+     * 
+     * @param <T>   the type of child element to remove
+     * @param clazz the type's class
+     * @return a list of all removed children
+     */
+    public <T extends UIElement> List<T> removeAll(Class<T> clazz) {
+        ArrayList<T> removed = new ArrayList<>();
+        for (int i = children.size() - 1; i >= 0; i--) {
+            UIElement child = children.get(i);
+            if (clazz.isInstance(child)) {
+                children.remove(i);
+                removed.add(clazz.cast(child));
+            }
+        }
+        return removed;
     }
 
     // Recursive methods
@@ -256,10 +289,10 @@ public class UIContainer extends UIElement {
         setSizeAccordingToBoundingBox();
 
         if (isHScroll() && hSizeType != SizeType.FIXED) {
-            size.x = 4 * UISizes.MARGIN.get();
+            size.x = 4 * UISizes.MARGIN.get1f();
         }
         if (isVScroll() && vSizeType != SizeType.FIXED) {
-            size.y = 4 * UISizes.MARGIN.get();
+            size.y = 4 * UISizes.MARGIN.get1f();
         }
 
         minSize.set(size);
@@ -544,7 +577,7 @@ public class UIContainer extends UIElement {
      * @return the space around the outside (left and right).
      */
     public final double getHMargin() {
-        return UISizes.MARGIN.get() * hMarginScale;
+        return UISizes.MARGIN.get1f() * hMarginScale;
     }
 
     /**
@@ -552,7 +585,7 @@ public class UIContainer extends UIElement {
      * @return the space around the outside (top and bottom).
      */
     public final double getVMargin() {
-        return UISizes.MARGIN.get() * vMarginScale;
+        return UISizes.MARGIN.get1f() * vMarginScale;
     }
 
     /**
@@ -560,7 +593,7 @@ public class UIContainer extends UIElement {
      * @return the space between the children.
      */
     public final double getPadding() {
-        return UISizes.PADDING.get() * paddingScale;
+        return UISizes.PADDING.get1f() * paddingScale;
     }
 
     public UIContainer setMinimalSize() {
@@ -876,7 +909,7 @@ public class UIContainer extends UIElement {
 
             setVisibilitySupplier(() -> scrollArea.showScrollbar(orientation));
 
-            double min = UISizes.SCROLLBAR.get();
+            double min = UISizes.SCROLLBAR.get1f();
             if (orientation == VERTICAL) {
                 setHFixedSize(min);
                 setVFillSize();
@@ -978,8 +1011,7 @@ public class UIContainer extends UIElement {
 
         @Override
         public void setMinSize() {
-            double min = UISizes.SCROLLBAR.get();
-            size.set(min, min);
+            size.set(UISizes.SCROLLBAR.get2f());
         }
 
         public void expandAsNeccessary() {

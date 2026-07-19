@@ -2,6 +2,7 @@ package com.weinsim.slpaint.ui;
 
 import static org.lwjgl.glfw.GLFW.*;
 
+import java.util.Random;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
@@ -10,20 +11,22 @@ import java.util.function.Supplier;
 import org.lwjglx.util.vector.Vector4f;
 
 import com.weinsim.slpaint.main.apps.MainApp;
-import com.weinsim.slpaint.main.effects.Brightness;
 import com.weinsim.slpaint.main.effects.Effect;
 import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.main.image.ImageFormat;
-import com.weinsim.slpaint.main.tools.*;
+import com.weinsim.slpaint.main.tools.DragTool;
+import com.weinsim.slpaint.main.tools.ImageTool;
+import com.weinsim.slpaint.main.tools.LineTool;
+import com.weinsim.slpaint.main.tools.PencilTool;
+import com.weinsim.slpaint.main.tools.SelectionTool;
 import com.weinsim.slpaint.renderengine.font.TextFont;
 import com.weinsim.slpaint.ui.components.ColorPickContainer;
 import com.weinsim.slpaint.ui.components.CustomColorContainer;
+import com.weinsim.slpaint.ui.components.EffectContainer;
 import com.weinsim.slpaint.ui.components.ImageCanvas;
 import com.weinsim.slpaint.ui.components.UIColorElement;
 import com.weinsim.sutil.SUtil;
-import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
-import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UISizes;
 import com.weinsim.sutil.ui.UIStyle;
 import com.weinsim.sutil.ui.elements.*;
@@ -67,18 +70,6 @@ public class MainUI extends AppUI<MainApp> {
 
         root.add(createMenuBar());
 
-        // UIContainer mainRow = new UIContainer(HORIZONTAL, TOP);
-        // mainRow.withSeparators(false).noOutline();
-        // mainRow.setFillSize();
-        // mainRow.add(createSidePanel());
-        // UIContainer mainArea = new UIContainer(VERTICAL, TOP);
-        // mainArea.withSeparators(false).noOutline();
-        // mainArea.setFillSize();
-        // mainArea.add(createToolRow());
-        // mainArea.add(new ImageCanvas(VERTICAL, RIGHT, TOP, app));
-        // mainRow.add(mainArea);
-        // root.add(mainRow);
-
         root.add(createToolRow());
         UIContainer mainRow = new UIContainer(HORIZONTAL, TOP);
         mainRow.withSeparators(false).noOutline();
@@ -117,7 +108,7 @@ public class MainUI extends AppUI<MainApp> {
         selectionMenu.addLabel("Cut", getKeyboardShortcut("cut"));
         selectionMenu.addLabel("Paste", getKeyboardShortcut("paste"));
         selectionMenu.addSeparator();
-        selectionMenu.addLabel("Crop image to selection", getKeyboardShortcut("crop_to_selection"));
+        selectionMenu.addLabel("Crop Image to Selection", getKeyboardShortcut("crop_to_selection"));
         selectionMenu.addSeparator();
         final SelectionTool selection = ImageTool.SELECTION;
         final BooleanSupplier selectionActive = () -> selection.getState() == SelectionTool.IDLE;
@@ -127,8 +118,8 @@ public class MainUI extends AppUI<MainApp> {
         UIFloatMenu viewMenu = menuBar.addMenu("View");
         viewMenu.addLabel("Zoom in", getKeyboardShortcut("zoom_in"));
         viewMenu.addLabel("Zoom out", getKeyboardShortcut("zoom_out"));
-        viewMenu.addLabel("Reset zoom", getKeyboardShortcut("reset_zoom"));
-        viewMenu.addLabel("Reset view", getKeyboardShortcut("reset_transform"));
+        viewMenu.addLabel("Reset Zoom", getKeyboardShortcut("reset_zoom"));
+        viewMenu.addLabel("Reset View", getKeyboardShortcut("reset_transform"));
 
         UIFloatMenu imageMenu = menuBar.addMenu("Image");
         imageMenu.addLabel(UILabel.iconText("resize", "Resize"), () -> app.showDialog(MainApp.RESIZE_DIALOG));
@@ -140,7 +131,7 @@ public class MainUI extends AppUI<MainApp> {
         if (MainApp.DEV_BUILD) {
             UIFloatMenu debugMenu = menuBar.addMenu("Debug");
             debugMenu.addLabel("Toggle element outline", getKeyboardShortcut("cycle_debug"));
-            debugMenu.addLabel("Reload shaders", getKeyboardShortcut("reload_shaders"));
+            debugMenu.addLabel("Reload Shaders", getKeyboardShortcut("reload_shaders"));
             debugMenu.addLabel("Reload UI", getKeyboardShortcut("reload_ui"));
         }
 
@@ -228,7 +219,7 @@ public class MainUI extends AppUI<MainApp> {
         sizeTools.add(sizeBottomRow);
         toolRow.add(sizeTools);
 
-        UIToggleList pencilTools = new UIToggleList("Apply transparency",
+        UIToggleList pencilTools = new UIToggleList("Apply Transparency",
                 ImageTool.PENCIL::isApplyTransparency,
                 ImageTool.PENCIL::setApplyTransparency);
         toolRow.add(pencilTools);
@@ -251,10 +242,10 @@ public class MainUI extends AppUI<MainApp> {
 
         UIToggleList selectionToggles = new UIToggleList();
         selectionToggles.setOrientation(HORIZONTAL).setPaddingScale(2.0);
-        selectionToggles.addToggle("Transparent selection",
+        selectionToggles.addToggle("Transparent Selection",
                 MainApp::isTransparentSelection,
                 MainApp::setTransparentSelection);
-        selectionToggles.addToggle("Lock aspect ratio",
+        selectionToggles.addToggle("Lock Aspect Ratio",
                 MainApp::isLockSelectionRatio,
                 MainApp::setLockSelectionRatio);
         selectionToolsTop.add(selectionToggles);
@@ -344,11 +335,11 @@ public class MainUI extends AppUI<MainApp> {
             Runnable rotateRight, Runnable rotateLeft, Runnable rotate180, Runnable flipHorizontal,
             Runnable flipVertical) {
 
-        rotateMenu.addLabel(UILabel.iconText("rotate_right", "Rotate 90° right", active), rotateRight);
-        rotateMenu.addLabel(UILabel.iconText("rotate_left", "Rotate 90° left", active), rotateLeft);
+        rotateMenu.addLabel(UILabel.iconText("rotate_right", "Rotate 90° Right", active), rotateRight);
+        rotateMenu.addLabel(UILabel.iconText("rotate_left", "Rotate 90° Left", active), rotateLeft);
         rotateMenu.addLabel(UILabel.iconText("rotate_180", "Rotate 180°", active), rotate180);
-        flipMenu.addLabel(UILabel.iconText("flip_horizontal", "Flip horizontally", active), flipHorizontal);
-        flipMenu.addLabel(UILabel.iconText("flip_vertical", "Flip vertically", active), flipVertical);
+        flipMenu.addLabel(UILabel.iconText("flip_horizontal", "Flip Horizontally", active), flipHorizontal);
+        flipMenu.addLabel(UILabel.iconText("flip_vertical", "Flip Vertically", active), flipVertical);
     }
 
     private UIContainer createIntPicker(IntSupplier sizeGetter, IntConsumer sizeSetter) {
@@ -371,6 +362,7 @@ public class MainUI extends AppUI<MainApp> {
         UITabs tabs = new UITabs();
         tabs.addTab("Colors", createColorPanel());
         tabs.addTab("Effects", createEffectsPanel());
+        tabs.selectTab("Effects");
         return tabs;
     }
 
@@ -443,93 +435,112 @@ public class MainUI extends AppUI<MainApp> {
     private UIContainer createEffectsPanel() {
         UIContainer panel = new UIContainer(VERTICAL, CENTER);
         panel.noOutline();
-        panel.withSeparators(true);
-        // effects.setMarginScale(2.0);
-        // effects.setPaddingScale(2.0);
-        // final String[] effectNames = { "Black / White", "Contrast" };
-        final Effect[] effects = {
-                Effect.BLACK_WHITE,
-                Effect.CONTRAST,
-                Effect.BRIGHTNESS
-        };
-        for (int i = 0; i < 3; i++) {
-            UIContainer row = new UIContainer(HORIZONTAL, CENTER);
-            row.zeroMargin().noOutline();
-            row.setHFillSize();
-            switch (i) {
-                case 0 -> {
-                    row.add(new UIText("Black / White"));
-                    row.add(new UIContainer(0, 0).setHFillSize().zeroMargin().noOutline());
-                }
-                case 1 -> {
-                    // a bit of jank logic for the contrast scale
-                    UIContainer left = new UIContainer(VERTICAL, LEFT);
-                    left.zeroMargin().noOutline();
-                    left.setHFillSize();
-                    left.add(new UIText("Contrast"));
-                    final double contrastMin = 0,
-                            contrastMax = 20;
-                    final double exponent = 2;
-                    left.add(new UIScale(HORIZONTAL,
-                            () -> Math.pow(
-                                    SUtil.map(Effect.CONTRAST.getMultiplier(), contrastMin, contrastMax, 0, 1),
-                                    1 / exponent),
-                            s -> Effect.CONTRAST.setMultiplier(
-                                    SUtil.map(Math.pow(s, exponent), 0, 1, contrastMin, contrastMax))));
-                    row.add(left);
-                    final double scale = 100;
-                    row.add(new UINumberInput(
-                            () -> (int) Math.round(Effect.CONTRAST.getMultiplier() * scale),
-                            m -> Effect.CONTRAST.setMultiplier(m / scale)));
-                    row.add(new UIText("%"));
-                }
-                case 2 -> {
-                    UIContainer left = new UIContainer(VERTICAL, LEFT);
-                    left.zeroMargin().noOutline();
-                    left.setHFillSize();
-                    left.add(new UIText("Brightness"));
-                    left.add(new UIScale(HORIZONTAL,
-                            () -> SUtil.map(Effect.BRIGHTNESS.getBrightness(),
-                                    Brightness.MIN_BRIGHTNESS, Brightness.MAX_BRIGHTNESS,
-                                    0, 1),
-                            s -> Effect.BRIGHTNESS.setBrightness(
-                                    (int) SUtil.map(s,
-                                            0, 1,
-                                            Brightness.MIN_BRIGHTNESS, Brightness.MAX_BRIGHTNESS))));
-                    row.add(left);
-                    row.add(new UINumberInput(
-                            () -> Math.round(Effect.BRIGHTNESS.getBrightness()),
-                            b -> Effect.BRIGHTNESS.setBrightness(b)));
-                }
-                default -> throw new RuntimeException(String.format("Missing Effect UI: %d", i));
-            }
-            final Effect effect = effects[i];
-            row.add(new UIButton("->", () -> app.applyEffect(effect)));
-            panel.add(row);
-        }
+        final Random r = new Random();
+        UIButton addNewEffect = new UIButton(
+                UILabel.iconText("plus", "Add Effect"),
+                () -> app.addPreviewEffect(Effect.values()[r.nextInt(Effect.values().length)]));
+        panel.add(addNewEffect);
+        // panel.add(new UISeparator());
+        panel.add(new EffectContainer(app));
         return panel;
     }
+
+    // private UIContainer createEffectsPanel() {
+    // UIContainer panel = new UIContainer(VERTICAL, CENTER);
+    // panel.noOutline();
+    // panel.withSeparators(true);
+    // // effects.setMarginScale(2.0);
+    // // effects.setPaddingScale(2.0);
+    // // final String[] effectNames = { "Black / White", "Contrast" };
+    // final Effect[] effects = {
+    // Effect.BLACK_WHITE,
+    // Effect.CONTRAST,
+    // Effect.BRIGHTNESS
+    // };
+    // for (int i = 0; i < 3; i++) {
+    // UIContainer row = new UIContainer(HORIZONTAL, CENTER);
+    // row.zeroMargin().noOutline();
+    // row.setHFillSize();
+    // switch (i) {
+    // case 0 -> {
+    // row.add(new UIText("Black / White"));
+    // row.add(new UIContainer(0, 0).setHFillSize().zeroMargin().noOutline());
+    // }
+    // case 1 -> {
+    // // a bit of jank logic for the contrast scale
+    // UIContainer left = new UIContainer(VERTICAL, LEFT);
+    // left.zeroMargin().noOutline();
+    // left.setHFillSize();
+    // left.add(new UIText("Contrast"));
+    // final double contrastMin = 0,
+    // contrastMax = 20;
+    // final double exponent = 2;
+    // left.add(new UIScale(HORIZONTAL,
+    // () -> Math.pow(
+    // SUtil.map(Effect.CONTRAST.getMultiplier(), contrastMin, contrastMax, 0, 1),
+    // 1 / exponent),
+    // s -> Effect.CONTRAST.setMultiplier(
+    // SUtil.map(Math.pow(s, exponent), 0, 1, contrastMin, contrastMax))));
+    // row.add(left);
+    // final double scale = 100;
+    // row.add(new UINumberInput(
+    // () -> (int) Math.round(Effect.CONTRAST.getMultiplier() * scale),
+    // m -> Effect.CONTRAST.setMultiplier(m / scale)));
+    // row.add(new UIText("%"));
+    // }
+    // case 2 -> {
+    // UIContainer left = new UIContainer(VERTICAL, LEFT);
+    // left.zeroMargin().noOutline();
+    // left.setHFillSize();
+    // left.add(new UIText("Brightness"));
+    // left.add(new UIScale(HORIZONTAL,
+    // () -> SUtil.map(Effect.BRIGHTNESS.getBrightness(),
+    // Brightness.MIN_BRIGHTNESS, Brightness.MAX_BRIGHTNESS,
+    // 0, 1),
+    // s -> Effect.BRIGHTNESS.setBrightness(
+    // (int) SUtil.map(s,
+    // 0, 1,
+    // Brightness.MIN_BRIGHTNESS, Brightness.MAX_BRIGHTNESS))));
+    // row.add(left);
+    // row.add(new UINumberInput(
+    // () -> Math.round(Effect.BRIGHTNESS.getBrightness()),
+    // b -> Effect.BRIGHTNESS.setBrightness(b)));
+    // }
+    // default -> throw new RuntimeException(String.format("Missing Effect UI: %d",
+    // i));
+    // }
+    // final Effect effect = effects[i];
+    // row.add(new UIButton("->", () -> app.applyEffect(effect)));
+    // panel.add(row);
+    // }
+    // return panel;
+    // }
 
     private UIContainer createDebugPanel() {
         UIContainer debugPanel = new UIContainer(VERTICAL, CENTER, TOP, VERTICAL);
         debugPanel.setVFillSize().noOutline();
 
-        debugPanel.add(new UILabel("DEBUG"));
+        debugPanel.add(UILabel.text("DEBUG"));
 
-        for (int i = 0; i < 2; i++) {
-            final int j = i;
-            UIImage image = new UIImage(
-                    // set PingPongFBO#textureIDs to public for this to work
-                    // () -> app.getImage().getFBO().textureIDs[j],
-                    () -> 0,
-                    new SVector(200, 200));
-            image.setStyle(
-                    new UIStyle(
-                            () -> null,
-                            UIColors.HIGHLIGHT,
-                            () -> app.getImage().getFBO().getActiveTexture() == j ? 2 : 0));
-            debugPanel.add(image);
-        }
+        // String[] directions = { "up", "down", "left", "right" };
+        // for (String direction : directions) {
+        // debugPanel.add(UILabel.icon(String.format("arrow_%s", direction)));
+        // }
+
+        // for (int i = 0; i < 2; i++) {
+        // final int j = i;
+        // UIImage image = new UIImage(
+        // // set PingPongFBO#textureIDs to public for this to work
+        // // () -> app.getImage().getFBO().textureIDs[j],
+        // () -> 0,
+        // new SVector(200, 200));
+        // image.setStyle(
+        // new UIStyle(
+        // () -> null,
+        // UIColors.HIGHLIGHT,
+        // () -> app.getImage().getFBO().getActiveTexture() == j ? 2 : 0));
+        // debugPanel.add(image);
+        // }
 
         // debugPanel.add(new UIText("Tools"));
         // for (ImageTool tool : ImageTool.INSTANCES) {
@@ -615,7 +626,7 @@ public class MainUI extends AppUI<MainApp> {
                     "%4.1f fps (%4.1f%%)",
                     app.getFrameRate(),
                     100.0 * app.getUpdateTime() * app.getFrameRate()));
-            addStatusBarLabel(statusBar, () -> String.format("Frame %5d", app.getFrameCount()));
+            addStatusBarLabel(statusBar, () -> String.format("frame %5d", app.getFrameCount()));
         }
 
         return statusBar;

@@ -38,7 +38,7 @@ public class UIModalDialog extends UIFloatContainer {
         content.add(topRow);
 
         UIContainer mainArea = new UIContainer(VERTICAL, CENTER);
-        mainArea.setMarginScale(UISizes.DIALOG_MARGIN.get() / UISizes.MARGIN.get());
+        mainArea.setMarginScale(UISizes.DIALOG_MARGIN.get1f() / UISizes.MARGIN.get1f());
         mainArea.setPaddingScale(0.5).setMinimalSize().noOutline();
         for (String line : message.split("\n")) {
             int alignment = LEFT;

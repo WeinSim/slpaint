@@ -40,7 +40,7 @@ public class UIRadioButtonList extends UIContainer {
             UILabel label;
             if (iconName == null) {
                 if (text == null)
-                    label = new UILabel();
+                    label = UILabel.empty();
                 else
                     label = UILabel.text(text);
             } else {
@@ -66,7 +66,7 @@ public class UIRadioButtonList extends UIContainer {
             style.setBackgroundColor(UIColors.BACKGROUND_2);
             style.setShape(UIShape.ELLIPSE);
 
-            setFixedSize(UISizes.RADIO.getWidthHeight());
+            setFixedSize(UISizes.RADIO.get2f());
 
             add(new RadioButtonInside(() -> stateSupplier.getAsInt() == index));
         }
@@ -83,7 +83,7 @@ public class UIRadioButtonList extends UIContainer {
 
         @Override
         public void setPreferredSize() {
-            size.set(UISizes.RADIO_INSIDE.getWidthHeight());
+            size.set(UISizes.RADIO_INSIDE.get2f());
         }
     }
 

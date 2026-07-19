@@ -13,6 +13,7 @@
             "request": "launch",
             "mainClass": "com.weinsim.slpaint.main.MainLoop",
             "projectName": "slpaint",
+            // "args": "src/main/resources/com/weinsim/slpaint/icons/eye_open.png",
             "vmArgs": "--enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
         }
     ]

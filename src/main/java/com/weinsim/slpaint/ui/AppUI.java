@@ -20,6 +20,7 @@ import com.weinsim.slpaint.renderengine.font.TextFont;
 import com.weinsim.slpaint.settings.BooleanSetting;
 import com.weinsim.slpaint.settings.ColorSetting;
 import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 
 public abstract class AppUI<T extends App> extends UI implements Cleanable {
@@ -55,6 +56,13 @@ public abstract class AppUI<T extends App> extends UI implements Cleanable {
         iconTextures = new ArrayList<>();
     }
 
+    // @Override
+    // public void update(SVector mousePos, boolean focus) {
+    // setUIScale(app.getWindowContentScale() * (app.isKeyPressed(GLFW_KEY_S) ? 3 :
+    // 1));
+    // super.update(mousePos, focus);
+    // }
+
     @Override
     protected void createKeyboardShortcuts() {
         if (MainApp.DEV_BUILD) {
@@ -80,7 +88,7 @@ public abstract class AppUI<T extends App> extends UI implements Cleanable {
     @Override
     protected int loadIconTextureID(String name) {
         String filename = String.format(ICON_BASE_PATH, name);
-        if (!Loader.exists(filename)) 
+        if (!Loader.exists(filename))
             filename = String.format(ICON_BASE_PATH, MISSING_ICON_NAME);
         Texture texture = null;
         try {

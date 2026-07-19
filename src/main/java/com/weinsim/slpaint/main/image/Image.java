@@ -15,6 +15,7 @@ import java.util.Arrays;
 import org.lwjgl.BufferUtils;
 
 import com.weinsim.slpaint.main.effects.Effect;
+import com.weinsim.slpaint.main.effects.EffectInstance;
 import com.weinsim.slpaint.renderengine.Cleanable;
 import com.weinsim.slpaint.renderengine.RawModel;
 import com.weinsim.slpaint.renderengine.bufferobjects.PingPongFBO;
@@ -226,7 +227,7 @@ public class Image implements Cleanable {
             return;
 
         setSize(newWidth, newHeight);
-        applyEffect(Effect.RESIZE);
+        applyEffect(Effect.RESIZE.createInstance());
     }
 
     private void setSize(int newWidth, int newHeight) {
@@ -539,11 +540,12 @@ public class Image implements Cleanable {
         setDirty(x1 - 1, y1 - 1);
     }
 
-    public void applyEffect(Effect effect) {
-        applyEffect(effect, false);
+    public void applyEffect(EffectInstance instance) {
+        applyEffect(instance, false);
     }
 
-    public void applyEffect(Effect effect, boolean preview) {
+    public void applyEffect(EffectInstance instance, boolean preview) {
+        Effect effect = instance.getEffect();
         // make sure the texture we read from (the active texture) has the right data
         syncOpenGLTexture();
         // if we only want a preview but that preview is already rendered to the
@@ -564,7 +566,7 @@ public class Image implements Cleanable {
         // glClearColor(0, 0, 0, 1);
         // glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_BLEND);
-        effect.loadUniforms();
+        instance.loadUniforms();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, fbo.getTextureID());
         // render

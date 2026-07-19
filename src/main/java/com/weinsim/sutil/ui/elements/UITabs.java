@@ -1,5 +1,6 @@
 package com.weinsim.sutil.ui.elements;
 
+import java.util.HashMap;
 import java.util.function.BooleanSupplier;
 
 import com.weinsim.sutil.ui.UIColors;
@@ -9,6 +10,7 @@ import com.weinsim.sutil.ui.UIStyle;
 public class UITabs extends UIContainer {
 
     private UIContainer selectedContent;
+    private HashMap<String, UIContainer> tabs;
 
     private final UIContainer titles;
     private final UIContainer mainArea;
@@ -16,13 +18,14 @@ public class UITabs extends UIContainer {
     public UITabs() {
         super(VERTICAL, LEFT);
         selectedContent = null;
+        tabs = new HashMap<>();
 
         noOutline();
         zeroMargin();
         zeroPadding();
         setMinimalSize();
 
-        add(new UIEmpty(UISizes.MARGIN::getWidthHeight));
+        add(new UIEmpty(UISizes.MARGIN));
 
         titles = new UIContainer(HORIZONTAL, BOTTOM);
         titles.noOutline();
@@ -45,16 +48,24 @@ public class UITabs extends UIContainer {
                 () -> UIColors.OUTLINE.get(),
                 () -> title.mouseAbove() ? 2.0 : 1.0));
         // title.label.setSize(
-        //         UISizes.ICON::getWidthHeight,
-        //         () -> selectedContent == content ? UISizes.TEXT.get() : UISizes.TEXT_SMALL.get());
+        // UISizes.ICON::getWidthHeight,
+        // () -> selectedContent == content ? UISizes.TEXT.get() :
+        // UISizes.TEXT_SMALL.get());
         BooleanSupplier active = () -> selectedContent == content;
         UIStyle.setSelectableButtonStyle(title, active);
         title.label.setTextSize(UISizes.TEXT_SMALL);
         titles.add(title);
         content.setVisibilitySupplier(active);
         mainArea.add(content);
+        tabs.put(name, content);
         if (selectedContent == null)
             selectedContent = content;
+    }
+
+    public void selectTab(String name) {
+        UIContainer tab = tabs.get(name);
+        if (tab != null)
+            selectedContent = tab;
     }
 
 }

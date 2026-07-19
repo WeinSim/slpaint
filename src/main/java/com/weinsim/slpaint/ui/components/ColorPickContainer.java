@@ -186,7 +186,7 @@ public class ColorPickContainer extends UIContainer {
         colorBox.setStyle(new UIStyle(() -> null, UIColors.HIGHLIGHT, () -> 2.0));
         colorBox.zeroMargin().zeroPadding().noOutline();
         Supplier<SVector> previewSize = () -> {
-            SVector size = UISizes.COLOR_PICKER_PREVIEW.getWidthHeight();
+            SVector size = UISizes.COLOR_PICKER_PREVIEW.get2f();
             if (addPreview) {
                 size.x /= 2;
             }

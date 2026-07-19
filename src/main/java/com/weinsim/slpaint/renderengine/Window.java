@@ -286,6 +286,10 @@ public class Window {
         return mods;
     }
 
+    public boolean isKeyPressed(int key) {
+        return glfwGetKey(windowHandle, key) == GLFW_PRESS;
+    }
+
     public SVector getMousePosition() {
         if (mousePos == null) {
             double[] x = { 0 };

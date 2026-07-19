@@ -48,8 +48,8 @@ public class UIToggleList extends UIContainer {
             this.stateSupplier = stateSupplier;
 
             noOutline();
-            double yDiff = UISizes.RADIO.get() - UISizes.RADIO_INSIDE.get();
-            double margin = UISizes.MARGIN.get();
+            double yDiff = UISizes.RADIO.get1f() - UISizes.RADIO_INSIDE.get1f();
+            double margin = UISizes.MARGIN.get1f();
             setMarginScale(yDiff / 2 / margin);
 
             style.setBackgroundColor(UIColors.BACKGROUND_2);
@@ -57,7 +57,7 @@ public class UIToggleList extends UIContainer {
 
             setHandCursor();
 
-            setFixedSize(new SVector(UISizes.TOGGLE_WIDTH.get(), UISizes.RADIO.get()));
+            setFixedSize(new SVector(UISizes.TOGGLE_WIDTH.get1f(), UISizes.RADIO.get1f()));
 
             add(new ToggleInside());
         }
@@ -76,7 +76,7 @@ public class UIToggleList extends UIContainer {
             style.setShape(UIShape.ELLIPSE);
             style.setBackgroundColor(UIColors.HIGHLIGHT);
 
-            size.set(UISizes.RADIO_INSIDE.getWidthHeight());
+            size.set(UISizes.RADIO_INSIDE.get2f());
         }
 
         @Override

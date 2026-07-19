@@ -47,9 +47,9 @@ public class DragKnob extends UIFloatContainer {
 
         style.setBackgroundColor(UIColors.SELECTION_BORDER_2);
         style.setStrokeColor(UIColors.SELECTION_BORDER_1);
-        style.setStrokeWeight(() -> UISizes.STROKE_WEIGHT.get() * 2.0);
+        style.setStrokeWeight(() -> UISizes.STROKE_WEIGHT.get1f() * 2.0);
 
-        setFixedSize(UISizes.SIZE_KNOB.getWidthHeight());
+        setFixedSize(UISizes.SIZE_KNOB.get2f());
 
         setVisibilitySupplier(visibilitySupplier);
         addLeftClickAction(this::startDrag);
