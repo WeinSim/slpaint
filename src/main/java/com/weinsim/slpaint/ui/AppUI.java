@@ -20,7 +20,6 @@ import com.weinsim.slpaint.renderengine.font.TextFont;
 import com.weinsim.slpaint.settings.BooleanSetting;
 import com.weinsim.slpaint.settings.ColorSetting;
 import com.weinsim.sutil.SUtil;
-import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 
 public abstract class AppUI<T extends App> extends UI implements Cleanable {

@@ -3,7 +3,6 @@ package com.weinsim.sutil.ui.elements;
 import java.util.HashMap;
 import java.util.function.BooleanSupplier;
 
-import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UISizes;
 import com.weinsim.sutil.ui.UIStyle;
 
@@ -23,7 +22,6 @@ public class UITabs extends UIContainer {
         noOutline();
         zeroMargin();
         zeroPadding();
-        setMinimalSize();
 
         add(new UIEmpty(UISizes.MARGIN));
 
@@ -43,16 +41,9 @@ public class UITabs extends UIContainer {
 
     public void addTab(String name, UIContainer content) {
         UIButton title = new UIButton(name, () -> selectedContent = content);
-        title.setStyle(new UIStyle(
-                () -> selectedContent == content ? UIColors.BACKGROUND_2.get() : UIColors.BACKGROUND.get(),
-                () -> UIColors.OUTLINE.get(),
-                () -> title.mouseAbove() ? 2.0 : 1.0));
-        // title.label.setSize(
-        // UISizes.ICON::getWidthHeight,
-        // () -> selectedContent == content ? UISizes.TEXT.get() :
-        // UISizes.TEXT_SMALL.get());
         BooleanSupplier active = () -> selectedContent == content;
         UIStyle.setSelectableButtonStyle(title, active);
+        // title.setMarginScale(0.5);
         title.label.setTextSize(UISizes.TEXT_SMALL);
         titles.add(title);
         content.setVisibilitySupplier(active);

@@ -168,6 +168,7 @@ public class UIContainer extends UIElement {
                 };
                 separator.setVisibilitySupplier(childVis);
                 addActual(separator);
+                index++;
             }
         }
         addActual(index, child);
@@ -856,12 +857,11 @@ public class UIContainer extends UIElement {
 
     private static class UIScrollbarContainerWrapper extends UIContainer {
 
-        UIContainer scrollArea;
-        UIScrollbarContainer scrollbarContainer;
+        final UIContainer scrollArea;
+        final UIScrollbarContainer scrollbarContainer;
 
         UIScrollbarContainerWrapper(int orientation, UIContainer container, UIContainer scrollArea) {
             super(1 - orientation, 0);
-
             this.scrollArea = scrollArea;
 
             noBackground().noOutline();
@@ -884,6 +884,7 @@ public class UIContainer extends UIElement {
             if (vSizeType == SizeType.FIXED) {
                 vSizeType = SizeType.MINIMAL;
             }
+            visibilitySupplier = scrollArea.visibilitySupplier;
         }
     }
 

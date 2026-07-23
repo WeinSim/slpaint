@@ -38,11 +38,13 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  * <pre>
  * TODO continue:
  * Effects
- *   Implement effects using shaders
- *     Effect previews
- *       Which effects to preview?
- *       Improve performance
- *   Effect order?? how to set in UI?
+ *   UI
+ *     Make effect previews selectable, make one global set of up / down
+ *       arrows instead of one for each effect
+ *     Buttons to enable / disable effects
+ *     Button to apply effects
+ *     Buttons to hide / pin bottom panel
+ *   Effect previews
  *
  * App:
  *   Keyboard shortcuts
@@ -89,69 +91,71 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *   (When parent app closes, children should also close)
  * 
  * UI:
- *   Combine user actions (keyboard, mouse). Combine with BooleanSupplier
- *     (active / possible)
- *   UISizes:
- *     There are multiple places where I want to set a larger margin but have
- *       to akwardly divide by the default margin because only a margin scale
- *       can be set. Solution: add UIContainer.setMargin()?
- *   Change UIContainer defaults? .zeroMargin().noOutline() is used in a ton of
- *     places and should maybe be the default.
- *   Separate top / bottom / left / right margins? (setup for UITabs is a bit of
- *     a workaround at the moment)
- *   UITabs: make it a bit prettier
- *   Tool cursors
- *   Text
- *     Text input
- *       Selection (with mouse / arrow keys / Ctrl+A)
- *         Copy / cut / paste (=> conflicting keyboard shortcuts with selection
- *           tool!)
- *         Shift + cursor movement
- *       Multi-line text input
- *         Would require a variable number of UITexts as children (which is
- *           currently not possible. Why?)
- *     Text wrapping
- *   Selection
- *     When nothing is currently selected, the dropdowns for rotating and
- *       flipping the selection should be made inactive.
- *     Add option to crop selection?
- *     Add precise pixel input for scaling / cropping selection like ResizeUI?
- *   Tool + undo inconsistencies:
- *     Starting a tool action (e.g. putting a tool in the IDLE state) and then
- *       pressing Ctrl+Z should cancel (not finish) the current tool.
- *       Currently it does nothing (except sometimes with selection).
- *   Color hex code input?
- *   Icons
- *     The current icons look kind of bad in light mode
- *       -> separate icons for light and dark mode?
- *     Create icons for:
- *       Basically everything in the menu bar (cut, copy, paste, zoom)
- *   The window icon does not work (Window.setIcon())
- *   On the first frame that the UI is rendered, the root has a black background
- *     and parts of the UI are not yet visible. This is visible when opening a
- *     child app.
- *   Ctrl + 0 can cause the image to appear completely outside of the canvas
- *     Reason: the point at the center of the canvas stays fixed. For a very
- *     zoomed out image, this is likely to be outside of the image.
- *   Mouse input: tapping the touchpad triggers a mouse press event but not
- *     mouse release event (=> logic that sets leftMousePressed and
- *     rightMousePressed based on mouse press / release events is flawed.)
- *   UIMouseButtonAction: the mods parameter in mousePressed() is not used
- *   Modal dialogs
- *     Convert other small dialogs into modal dialogs? (e.g. ResizeUI)
- *     Add options for custom button labels like in JOptionPane
- *       For what?
- *   Using Tab + Enter, multiple dropdowns can be opened simultaneously
- *   Layering inconsistency: the SizeKnobs' outline appears above the dropdowns
- *     of the top row (Rotate, Flip, font selection)
- *   Make side panel collapsable?
- *   About
- *     Make hyperlinks clickable? (=> underlined text!)
- *     Title "About" looks weird. It is a bit off-center because of the "X"
- *       button
- *   Add Alt + Letter navigation options for menu bar
- *     Would require underlined letters
- *   Add tooltips (on mouse hover)
+ *   UI in general:
+ *     Change UIContainer defaults? .zeroMargin().noOutline() is used in a ton
+ *         of places and should maybe be the default.
+ *     Separate top / bottom / left / right margins? (setup for UITabs is a bit
+ *       of a workaround at the moment)
+ *     Combine user actions (keyboard, mouse). Combine with BooleanSupplier
+ *       (active / possible)
+ *     UISizes:
+ *       There are multiple places where I want to set a larger margin but have
+ *         to akwardly divide by the default margin because only a margin scale
+ *         can be set. Solution: add UIContainer.setMargin()?
+ *     UITabs: make it a bit prettier
+ *     Text
+ *       Text input
+ *         Selection (with mouse / arrow keys / Ctrl+A)
+ *           Copy / cut / paste (=> conflicting keyboard shortcuts with
+ *             selection tool!)
+ *           Shift + cursor movement
+ *         Multi-line text input
+ *           Would require a variable number of UITexts as children (which is
+ *             currently not possible. Why?)
+ *       Text wrapping
+ *   SLPaint specific issues:
+ *     Mouse input: tapping the touchpad triggers a mouse press event but not
+ *       mouse release event (=> logic that sets leftMousePressed and
+ *       rightMousePressed based on mouse press / release events is flawed.)
+ *     UIMouseButtonAction: the mods parameter in mousePressed() is not used
+ *     On the first frame that the UI is rendered, the root has a black
+ *       background and parts of the UI are not yet visible. This is visible
+ *       when opening a child app.
+ *     Ctrl + 0 can cause the image to appear completely outside of the canvas
+ *       Reason: the point at the center of the canvas stays fixed. For a very
+ *       zoomed out image, this is likely to be outside of the image.
+ *     Modal dialogs
+ *       Convert other small dialogs into modal dialogs? (e.g. ResizeUI)
+ *       Add options for custom button labels like in JOptionPane
+ *         For what?
+ *     Selection
+ *       When nothing is currently selected, the dropdowns for rotating and
+ *         flipping the selection should be made inactive.
+ *       Add option to crop selection?
+ *       Add precise pixel input for scaling / cropping selection like ResizeUI?
+ *     Using Tab + Enter, multiple dropdowns can be opened simultaneously
+ *     Add Alt + Letter navigation options for menu bar
+ *       Would require underlined letters
+ *     Layering inconsistency: the SizeKnobs' outline appears above the
+ *       dropdowns of the top row (Rotate, Flip, font selection)
+ *     Icons
+ *       The current icons look kind of bad in light mode
+ *         -> separate icons for light and dark mode?
+ *       Create icons for:
+ *         Basically everything in the menu bar (cut, copy, paste, zoom)
+ *     Tool + undo inconsistencies:
+ *       Starting a tool action (e.g. putting a tool in the IDLE state) and then
+ *         pressing Ctrl+Z should cancel (not finish) the current tool.
+ *         Currently it does nothing (except sometimes with selection).
+ *     Color hex code input?
+ *     Make side panel collapsable?
+ *     Tool cursors
+ *     About
+ *       Make hyperlinks clickable? (=> underlined text!)
+ *       Title "About" looks weird. It is a bit off-center because of the "X"
+ *         button
+ *     Add tooltips (on mouse hover)
+ *     The window icon does not work (Window.setIcon())
  * 
  * Rendering:
  *   Improve UITextInput cursor visibility
@@ -766,6 +770,10 @@ public final class MainApp extends App {
 
     public void removePreviewEffect(EffectInstance effect) {
         previewEffects.remove(effect);
+    }
+
+    public void removeAllPreviewEffects() {
+        previewEffects.clear();
     }
 
     public void movePreviewEffectUp(EffectInstance effect) {

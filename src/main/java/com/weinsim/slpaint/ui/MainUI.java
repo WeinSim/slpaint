@@ -2,7 +2,6 @@ package com.weinsim.slpaint.ui;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-import java.util.Random;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
@@ -11,20 +10,11 @@ import java.util.function.Supplier;
 import org.lwjglx.util.vector.Vector4f;
 
 import com.weinsim.slpaint.main.apps.MainApp;
-import com.weinsim.slpaint.main.effects.Effect;
 import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.main.image.ImageFormat;
-import com.weinsim.slpaint.main.tools.DragTool;
-import com.weinsim.slpaint.main.tools.ImageTool;
-import com.weinsim.slpaint.main.tools.LineTool;
-import com.weinsim.slpaint.main.tools.PencilTool;
-import com.weinsim.slpaint.main.tools.SelectionTool;
+import com.weinsim.slpaint.main.tools.*;
 import com.weinsim.slpaint.renderengine.font.TextFont;
-import com.weinsim.slpaint.ui.components.ColorPickContainer;
-import com.weinsim.slpaint.ui.components.CustomColorContainer;
-import com.weinsim.slpaint.ui.components.EffectContainer;
-import com.weinsim.slpaint.ui.components.ImageCanvas;
-import com.weinsim.slpaint.ui.components.UIColorElement;
+import com.weinsim.slpaint.ui.components.*;
 import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UISizes;
@@ -48,6 +38,8 @@ public class MainUI extends AppUI<MainApp> {
         // general keyboard shortcuts
         UI.addKeyboardShortcut("new", GLFW_KEY_N, GLFW_MOD_CONTROL, true, app::newImage);
         UI.addKeyboardShortcut("open", GLFW_KEY_O, GLFW_MOD_CONTROL, true, app::openImage);
+        UI.addKeyboardShortcut("settings", GLFW_KEY_COMMA, GLFW_MOD_CONTROL, true,
+                () -> app.showDialog(MainApp.SETTINGS_DIALOG));
         UI.addKeyboardShortcut("save", GLFW_KEY_S, GLFW_MOD_CONTROL, true, app::saveImage);
         UI.addKeyboardShortcut("save_as", GLFW_KEY_S, GLFW_MOD_CONTROL | GLFW_MOD_SHIFT, true, app::saveImageAs);
         UI.addKeyboardShortcut("undo", GLFW_KEY_Z, GLFW_MOD_CONTROL, app::canUndo, app::undo);
@@ -93,7 +85,7 @@ public class MainUI extends AppUI<MainApp> {
         fileMenu.addLabel("Save", getKeyboardShortcut("save"));
         fileMenu.addLabel("Save As", getKeyboardShortcut("save_as"));
         fileMenu.addSeparator();
-        fileMenu.addLabel("Settings", () -> app.showDialog(MainApp.SETTINGS_DIALOG));
+        fileMenu.addLabel("Settings", getKeyboardShortcut("settings"));
         fileMenu.addSeparator();
         fileMenu.addLabel("Quit", app::requestClose);
 
@@ -360,8 +352,9 @@ public class MainUI extends AppUI<MainApp> {
 
     private UIContainer createSidePanel() {
         UITabs tabs = new UITabs();
+        tabs.setVFillSize();
         tabs.addTab("Colors", createColorPanel());
-        tabs.addTab("Effects", createEffectsPanel());
+        tabs.addTab("Effects", new EffectsPanel(app));
         tabs.selectTab("Effects");
         return tabs;
     }
@@ -430,19 +423,6 @@ public class MainUI extends AppUI<MainApp> {
                 .setHFillSize());
 
         return colorPanel.addScrollbars();
-    }
-
-    private UIContainer createEffectsPanel() {
-        UIContainer panel = new UIContainer(VERTICAL, CENTER);
-        panel.noOutline();
-        final Random r = new Random();
-        UIButton addNewEffect = new UIButton(
-                UILabel.iconText("plus", "Add Effect"),
-                () -> app.addPreviewEffect(Effect.values()[r.nextInt(Effect.values().length)]));
-        panel.add(addNewEffect);
-        // panel.add(new UISeparator());
-        panel.add(new EffectContainer(app));
-        return panel;
     }
 
     // private UIContainer createEffectsPanel() {
@@ -620,10 +600,10 @@ public class MainUI extends AppUI<MainApp> {
                     "%d UI elements",
                     countUIElements(UI.getRoot())));
             addStatusBarLabel(statusBar, () -> String.format(
-                    "%4.2f ms update",
+                    "%6.2f ms update",
                     app.getUpdateTime() / 1e-3));
             addStatusBarLabel(statusBar, () -> String.format(
-                    "%4.1f fps (%4.1f%%)",
+                    "%5.1f fps (%4.1f%%)",
                     app.getFrameRate(),
                     100.0 * app.getUpdateTime() * app.getFrameRate()));
             addStatusBarLabel(statusBar, () -> String.format("frame %5d", app.getFrameCount()));

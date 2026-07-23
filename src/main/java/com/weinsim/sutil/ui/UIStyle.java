@@ -29,9 +29,9 @@ public class UIStyle {
     private Supplier<UIShape> shape;
 
     public UIStyle(Supplier<Vector4f> backgroundColor, Supplier<Vector4f> strokeColor, DoubleSupplier strokeWeight) {
-        this.backgroundColor = backgroundColor;
-        this.strokeColor = strokeColor;
-        this.strokeWeight = strokeWeight;
+        setBackgroundColor(backgroundColor);
+        setStrokeColor(strokeColor);
+        setStrokeWeight(strokeWeight);
 
         shape = () -> UIShape.RECTANGLE;
 
@@ -39,17 +39,7 @@ public class UIStyle {
         setNoStrokeCheckerboard();
     }
 
-    public static <E extends UIElement> E setSelectableButtonStyle(E element, BooleanSupplier selectedSupplier) {
-        Supplier<Vector4f> backgroundColorSupplier = () -> selectedSupplier.getAsBoolean()
-                ? UIColors.BACKGROUND_2.get()
-                : null;
-        Supplier<Vector4f> outlineColorSupplier = () -> element.mouseAbove()
-                ? UIColors.OUTLINE.get()
-                : null;
-        DoubleSupplier strokeWeightSupplier = UISizes.STROKE_WEIGHT;
-        element.setStyle(new UIStyle(backgroundColorSupplier, outlineColorSupplier, strokeWeightSupplier));
-        return element;
-    }
+    // getters
 
     public Vector4f backgroundColor() {
         return backgroundColor.get();
@@ -99,72 +89,108 @@ public class UIStyle {
         return shape.get();
     }
 
-    public void setBackgroundColor(Vector4f backgroundColor) {
+    // setters
+
+    public UIStyle setBackgroundColor(Vector4f backgroundColor) {
         setBackgroundColor(() -> backgroundColor);
+        return this;
     }
 
-    public void setBackgroundColor(Supplier<Vector4f> backgroundColor) {
-        this.backgroundColor = backgroundColor;
+    public UIStyle setBackgroundColor(Supplier<Vector4f> backgroundColor) {
+        this.backgroundColor = backgroundColor != null
+                ? backgroundColor
+                : () -> new Vector4f();
+        return this;
     }
 
-    public void setBackgroundCheckerboard(Vector4f color1, Vector4f color2, double size) {
+    public UIStyle setBackgroundCheckerboard(Vector4f color1, Vector4f color2, double size) {
         setBackgroundCheckerboard(() -> color1, () -> color2, () -> size);
+        return this;
     }
 
-    public void setBackgroundCheckerboard(Supplier<Vector4f> color1, Supplier<Vector4f> color2, DoubleSupplier size) {
+    public UIStyle setBackgroundCheckerboard(Supplier<Vector4f> color1, Supplier<Vector4f> color2, DoubleSupplier size) {
         setBackgroundCheckerboard(() -> true, color1, color2, size);
+        return this;
     }
 
-    public void setBackgroundCheckerboard(BooleanSupplier active, Supplier<Vector4f> color1, Supplier<Vector4f> color2,
+    public UIStyle setBackgroundCheckerboard(BooleanSupplier active, Supplier<Vector4f> color1, Supplier<Vector4f> color2,
             DoubleSupplier size) {
 
         backgroundCheckerboard = new CheckerboardInfo(active, color1, color2, size);
+        return this;
     }
 
-    public void setNoBackgroundCheckerboard() {
+    public UIStyle setNoBackgroundCheckerboard() {
         setBackgroundCheckerboard(() -> false, () -> new Vector4f(), () -> new Vector4f(), () -> 1.0);
+        return this;
     }
 
-    public void setStrokeCheckerboard(Vector4f color1, Vector4f color2, double size) {
+    public UIStyle setStrokeCheckerboard(Vector4f color1, Vector4f color2, double size) {
         setStrokeCheckerboard(() -> color1, () -> color2, () -> size);
+        return this;
     }
 
-    public void setStrokeCheckerboard(Supplier<Vector4f> color1, Supplier<Vector4f> color2, DoubleSupplier size) {
+    public UIStyle setStrokeCheckerboard(Supplier<Vector4f> color1, Supplier<Vector4f> color2, DoubleSupplier size) {
         setStrokeCheckerboard(() -> true, color1, color2, size);
+        return this;
     }
 
-    public void setStrokeCheckerboard(BooleanSupplier active, Supplier<Vector4f> color1, Supplier<Vector4f> color2,
+    public UIStyle setStrokeCheckerboard(BooleanSupplier active, Supplier<Vector4f> color1, Supplier<Vector4f> color2,
             DoubleSupplier size) {
 
         strokeCheckerboard = new CheckerboardInfo(active, color1, color2, size);
+        return this;
     }
 
-    public void setNoStrokeCheckerboard() {
+    public UIStyle setNoStrokeCheckerboard() {
         setStrokeCheckerboard(() -> false, () -> new Vector4f(), () -> new Vector4f(), () -> 1.0);
+        return this;
     }
 
-    public void setStrokeColor(Vector4f strokeColor) {
+    public UIStyle setStrokeColor(Vector4f strokeColor) {
         setStrokeColor(() -> strokeColor);
+        return this;
     }
 
-    public void setStrokeColor(Supplier<Vector4f> strokeColor) {
-        this.strokeColor = strokeColor;
+    public UIStyle setStrokeColor(Supplier<Vector4f> strokeColor) {
+        this.strokeColor = strokeColor != null
+                ? strokeColor
+                : () -> new Vector4f();
+        return this;
     }
 
-    public void setStrokeWeight(double strokeWeight) {
+    public UIStyle setStrokeWeight(double strokeWeight) {
         setStrokeWeight(() -> strokeWeight);
+        return this;
     }
 
-    public void setStrokeWeight(DoubleSupplier strokeWeight) {
-        this.strokeWeight = strokeWeight;
+    public UIStyle setStrokeWeight(DoubleSupplier strokeWeight) {
+        this.strokeWeight = strokeWeight != null
+                ? strokeWeight
+                : () -> 0.0;
+        return this;
     }
 
-    public void setShape(UIShape shape) {
+    public UIStyle setShape(UIShape shape) {
         setShape(() -> shape);
+        return this;
     }
 
-    public void setShape(Supplier<UIShape> shape) {
+    public UIStyle setShape(Supplier<UIShape> shape) {
         this.shape = shape;
+        return this;
+    }
+
+    public static <E extends UIElement> E setSelectableButtonStyle(E element, BooleanSupplier selectedSupplier) {
+        Supplier<Vector4f> backgroundColorSupplier = () -> selectedSupplier.getAsBoolean()
+                ? UIColors.BACKGROUND_2.get()
+                : null;
+        Supplier<Vector4f> outlineColorSupplier = () -> element.mouseAbove()
+                ? UIColors.OUTLINE.get()
+                : null;
+        DoubleSupplier strokeWeightSupplier = UISizes.STROKE_WEIGHT;
+        element.setStyle(new UIStyle(backgroundColorSupplier, outlineColorSupplier, strokeWeightSupplier));
+        return element;
     }
 
     private record CheckerboardInfo(BooleanSupplier active, Supplier<Vector4f> color1, Supplier<Vector4f> color2,

@@ -98,9 +98,15 @@ public class UILabel extends UIContainer {
         return new UILabel(active).addTwoIcons(activeIconName, inactiveIconName, active).addText(text, active);
     }
 
-    public void setSize(Supplier<SVector> iconSize, DoubleSupplier textSize) {
+    public <T extends Supplier<SVector> & DoubleSupplier> UILabel setSize(T iconTextSize) {
+        setSize(iconTextSize, iconTextSize);
+        return this;
+    }
+
+    public UILabel setSize(Supplier<SVector> iconSize, DoubleSupplier textSize) {
         this.iconSize = iconSize;
         this.textSize = textSize;
+        return this;
     }
 
     public UILabel setIconSize(Supplier<SVector> iconSize) {
@@ -110,6 +116,11 @@ public class UILabel extends UIContainer {
 
     public UILabel setTextSize(DoubleSupplier textSize) {
         this.textSize = textSize;
+        return this;
+    }
+
+    public UILabel small() {
+        setSize(UISizes.ICON_SMALL, UISizes.TEXT_SMALL);
         return this;
     }
 
