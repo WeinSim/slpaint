@@ -113,6 +113,12 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *           Would require a variable number of UITexts as children (which is
  *             currently not possible. Why?)
  *       Text wrapping
+ *     Scrolling: instead of wrapping the actual container inside of a 
+ *       UIScrollBarContainerWrapper, maybe just add the scrollbar as a floating
+ *       child (and perhaps adjust size of container slightly when it's active).
+ *       Something similar to how VSCode handles scrollbars.
+ *       => reduces issues like visibilitySupplier madness and makes overall UI
+ *       structure simpler / more intuitive
  *   SLPaint specific issues:
  *     Mouse input: tapping the touchpad triggers a mouse press event but not
  *       mouse release event (=> logic that sets leftMousePressed and
@@ -340,6 +346,10 @@ public final class MainApp extends App {
 
         // load UI
         loadUI();
+
+        addPreviewEffect(Effect.CONTRAST);
+        addPreviewEffect(Effect.BLACK_WHITE);
+        addPreviewEffect(Effect.BRIGHTNESS);
     }
 
     @Override

@@ -187,7 +187,7 @@ public class UIFloatMenu extends UIFloatContainer {
     public void addSeparator() {
         UIContainer container = new UIContainer(VERTICAL, 0);
         container.setVMarginScale(1.0).setHMarginScale(0.0).setHFillSize().noOutline();
-        container.add(new UISeparator());
+        container.addSeparator();
         add(container);
     }
 

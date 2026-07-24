@@ -140,7 +140,7 @@ public class MainUI extends AppUI<MainApp> {
         UIContainer fileButtons = addToolRowSection(toolRow, "File");
         fileButtons.add(new UIButton(UILabel.icons("undo", "undo_inactive", app::canUndo), app::undo));
         fileButtons.add(new UIButton(UILabel.icons("redo", "redo_inactive", app::canRedo), app::redo));
-        fileButtons.add(new UISeparator());
+        fileButtons.addSeparator();
         fileButtons.add(new UIButton(UILabel.icon("new"), app::newImage));
         fileButtons.add(new UIButton(UILabel.icon("open"), app::openImage));
         fileButtons.add(new UIButton(UILabel.icon("save"), app::saveImage));

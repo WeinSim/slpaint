@@ -23,10 +23,13 @@ public class EffectsPanel extends UIContainer {
 
     private boolean bottomPanelVisible;
 
+    private InstanceContainer selectedInstance;
+
     public EffectsPanel(MainApp app) {
         super(VERTICAL, CENTER);
         this.app = app;
         bottomPanelVisible = false;
+        selectedInstance = null;
 
         noOutline();
         setVFillSize();
@@ -35,18 +38,20 @@ public class EffectsPanel extends UIContainer {
         UIContainer top = new UIContainer(VERTICAL, LEFT);
         top.zeroMargin().noOutline();
         top.setFillSize();
+        top.addLeftClickAction(() -> selectedInstance = null);
         UIContainer buttonRow = new UIContainer(HORIZONTAL, LEFT, CENTER);
         buttonRow.zeroMargin().noOutline();
         buttonRow.setHFillSize();
         buttonRow.add(new UIText("Active Effects", UISizes.TEXT_SMALL));
         buttonRow.add(new UIContainer(0, 0).setHFillSize().zeroMargin().noOutline());
         // buttonRow.add(new UIButton(
-        //         UILabel.icon("plus").small(),
-        //         // UILabel.iconText("plus", "Add Effect"),
-        //         this::showBottomPanel));
+        // UILabel.icon("plus").small(),
+        // // UILabel.iconText("plus", "Add Effect"),
+        // this::showBottomPanel));
         buttonRow.add(new UIButton(
                 UILabel.icon("close").small(),
-                () -> app.removeAllPreviewEffects()));
+                () -> app.removeAllPreviewEffects())
+                .setVisibilitySupplier(() -> !app.getPreviewEffects().isEmpty()));
         top.add(buttonRow);
         top.add(new ActiveEffectsContainer().addScrollbars());
         top.add(new UIButton(
@@ -94,8 +99,8 @@ public class EffectsPanel extends UIContainer {
         public ActiveEffectsContainer() {
             super(VERTICAL, CENTER, TOP, VERTICAL);
             setHFillSize();
-            setMarginScale(2.0);
-            setPaddingScale(2.0);
+            // setMarginScale(2.0);
+            // setPaddingScale(2.0);
 
             add(new UIText("No Effects Selected", UISizes.TEXT_SMALL)
                     .setColor(UIColors.TEXT_INVALID)
@@ -139,23 +144,22 @@ public class EffectsPanel extends UIContainer {
         public InstanceContainer(EffectInstance effect) {
             super(CENTER, HORIZONTAL);
             this.effect = effect;
-            noOutline();
             setHFillSize();
             zeroMargin();
-            // zeroPadding();
-            // setMarginScale(0.5);
-            // setPaddingScale(0.5);
+            // noOutline();
+            UIStyle.setSelectableButtonStyle(this, () -> selectedInstance == this);
+            addLeftClickAction(() -> selectedInstance = this);
 
-            add(createButtonContainer(
-                    new UILabel[] {
-                            UILabel.icon("arrow_up"),
-                            UILabel.icon("arrow_down")
-                    },
-                    new Runnable[] {
-                            () -> app.movePreviewEffectUp(effect),
-                            () -> app.movePreviewEffectDown(effect)
-                    }));
-            add(new UIText(() -> effect.getEffect().name));
+            // add(createButtonContainer(
+            // new UILabel[] {
+            // UILabel.icon("arrow_up"),
+            // UILabel.icon("arrow_down")
+            // },
+            // new Runnable[] {
+            // () -> app.movePreviewEffectUp(effect),
+            // () -> app.movePreviewEffectDown(effect)
+            // }));
+            add(UILabel.text(effect.getEffect().name).setMarginScale(1.0));
             add(new UIContainer(0, 0).setHFillSize().zeroMargin().noOutline());
             add(createButtonContainer(
                     new UILabel[] {
@@ -168,15 +172,14 @@ public class EffectsPanel extends UIContainer {
                     }));
         }
 
+        // TODO: inline this
         private UIContainer createButtonContainer(UILabel[] labels, Runnable[] actions) {
             UIContainer buttons = new UIContainer(HORIZONTAL, CENTER);
-            buttons.zeroMargin().zeroPadding().noOutline();
+            // buttons.zeroMargin().zeroPadding().noOutline();
+            buttons.zeroMargin().noOutline();
             for (int i = 0; i < labels.length; i++) {
-                buttons.add(new UIButton(
-                        // labels[i].setIconSize(UISizes.ICON_SMALL),
-                        labels[i].setActive(() -> true),
-                        actions[i])
-                        .setMarginScale(1.0));
+                labels[i].setActive(() -> true);
+                buttons.add(new UIButton(labels[i], actions[i]));
             }
             return buttons;
         }

@@ -18,13 +18,7 @@ import com.weinsim.slpaint.ui.components.CustomColorContainer;
 import com.weinsim.slpaint.ui.components.UIColorElement;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UISizes;
-import com.weinsim.sutil.ui.elements.UIButton;
-import com.weinsim.sutil.ui.elements.UIContainer;
-import com.weinsim.sutil.ui.elements.UIContextMenu;
-import com.weinsim.sutil.ui.elements.UIDropdown;
-import com.weinsim.sutil.ui.elements.UIFloatMenu;
-import com.weinsim.sutil.ui.elements.UISeparator;
-import com.weinsim.sutil.ui.elements.UIText;
+import com.weinsim.sutil.ui.elements.*;
 
 public class SettingsUI extends AppUI<SettingsApp> {
 
@@ -136,7 +130,7 @@ public class SettingsUI extends AppUI<SettingsApp> {
         defaultColors.add(new UIText("Default Colors", UIText.SMALL));
         allColorsContainer.add(defaultColors);
 
-        allColorsContainer.add(new UISeparator());
+        allColorsContainer.addSeparator();
 
         UIContainer customColors = new UIContainer(VERTICAL, CENTER);
         customColors.zeroMargin().noOutline();

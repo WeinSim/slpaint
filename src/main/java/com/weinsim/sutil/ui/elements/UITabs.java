@@ -30,7 +30,7 @@ public class UITabs extends UIContainer {
         titles.setVMarginScale(0);
         add(titles);
 
-        add(new UISeparator());
+        addSeparator();
 
         mainArea = new UIContainer(VERTICAL, LEFT);
         mainArea.zeroMargin().noOutline();

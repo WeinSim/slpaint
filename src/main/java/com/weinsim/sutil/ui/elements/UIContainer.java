@@ -133,6 +133,10 @@ public class UIContainer extends UIElement {
         add(children.size(), child);
     }
 
+    public void addSeparator() {
+        add(new UISeparator());
+    }
+
     public void add(int index, UIElement child) {
         if (addSeparators && !(child instanceof UIFloatContainer)) {
             // TODO: this logic breaks if we specify an index different from
@@ -855,6 +859,31 @@ public class UIContainer extends UIElement {
                 : isHScroll() && areaOvershoot.x > EPSILON;
     }
 
+    private static class UISeparator extends UIContainer {
+
+        UISeparator() {
+            super(VERTICAL, LEFT);
+
+            style.setStrokeColor(UIColors.SEPARATOR);
+            zeroMargin();
+            zeroPadding();
+        }
+
+        @Override
+        public void update() {
+            super.update();
+
+            if (parent.getOrientation() == VERTICAL) {
+                setHFillSize();
+                setVMinimalSize();
+            } else {
+                setHMinimalSize();
+                setVFillSize();
+            }
+        }
+
+    }
+
     private static class UIScrollbarContainerWrapper extends UIContainer {
 
         final UIContainer scrollArea;
@@ -886,6 +915,13 @@ public class UIContainer extends UIElement {
             }
             visibilitySupplier = scrollArea.visibilitySupplier;
         }
+
+        @Override
+        public UIElement setVisibilitySupplier(BooleanSupplier visibilitySupplier) {
+            scrollArea.setVisibilitySupplier(visibilitySupplier);
+            return this;
+        }
+
     }
 
     private static class UIScrollbarContainer extends UIDragContainer {
@@ -981,6 +1017,7 @@ public class UIContainer extends UIElement {
                 scrollArea.setRelativeScrollY(y);
             }
         }
+
     }
 
     private static class UIScrollbar extends UIFloatContainer {
@@ -1024,6 +1061,7 @@ public class UIContainer extends UIElement {
                 size.x = Math.max(size.x, scrollArea.getWidthFraction() * parent.size.x);
             }
         }
+
     }
 
     // Child list
@@ -1063,8 +1101,10 @@ public class UIContainer extends UIElement {
                     }
                     throw new NoSuchElementException();
                 }
+
             };
         }
+
     }
 
 }
