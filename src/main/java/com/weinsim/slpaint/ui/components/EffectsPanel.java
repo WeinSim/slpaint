@@ -148,6 +148,7 @@ public class EffectsPanel extends UIContainer {
             zeroMargin();
             // noOutline();
             UIStyle.setSelectableButtonStyle(this, () -> selectedInstance == this);
+            selectable = true;
             addLeftClickAction(() -> selectedInstance = this);
 
             // add(createButtonContainer(
@@ -161,27 +162,12 @@ public class EffectsPanel extends UIContainer {
             // }));
             add(UILabel.text(effect.getEffect().name).setMarginScale(1.0));
             add(new UIContainer(0, 0).setHFillSize().zeroMargin().noOutline());
-            add(createButtonContainer(
-                    new UILabel[] {
-                            UILabel.icons("eye_open", "eye_closed", effect::isVisible),
-                            UILabel.icon("trash_can")
-                    },
-                    new Runnable[] {
-                            () -> effect.toggleVisibility(),
-                            () -> app.removePreviewEffect(effect)
-                    }));
-        }
-
-        // TODO: inline this
-        private UIContainer createButtonContainer(UILabel[] labels, Runnable[] actions) {
-            UIContainer buttons = new UIContainer(HORIZONTAL, CENTER);
-            // buttons.zeroMargin().zeroPadding().noOutline();
-            buttons.zeroMargin().noOutline();
-            for (int i = 0; i < labels.length; i++) {
-                labels[i].setActive(() -> true);
-                buttons.add(new UIButton(labels[i], actions[i]));
-            }
-            return buttons;
+            add(new UIButton(
+                    UILabel.icons("eye_open", "eye_closed", effect::isVisible).setActive(() -> true),
+                    () -> effect.toggleVisibility()));
+            add(new UIButton(
+                    UILabel.icon("trash_can"),
+                    () -> app.removePreviewEffect(effect)));
         }
 
     }

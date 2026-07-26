@@ -246,19 +246,16 @@ public class Window {
         }
     }
 
-    public float[] getWindowContentScale() {
+    public double getWindowContentScale() {
         float[] xScale = new float[1],
                 yScale = new float[1];
-
         // Note: the return value of this method does not change if the system's UI
         // scale is changed while the app is running (on linux mint: System Settings >
         // Font Selection > Text Scaling Factor).
         glfwGetWindowContentScale(windowHandle, xScale, yScale);
-
         // System.out.format("GLFW window content scale: x = %.1f, y = %.1f\n",
         // xScale[0], yScale[0]);
-
-        return new float[] { xScale[0], yScale[0] };
+        return Math.sqrt(xScale[0] * yScale[0]);
     }
 
     public int getNativeHandleType() {

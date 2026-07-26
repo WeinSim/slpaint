@@ -214,6 +214,7 @@ public class MainUI extends AppUI<MainApp> {
         UIToggleList pencilTools = new UIToggleList("Apply Transparency",
                 ImageTool.PENCIL::isApplyTransparency,
                 ImageTool.PENCIL::setApplyTransparency);
+        pencilTools.setVisibilitySupplier(() -> app.getActiveTool() == ImageTool.PENCIL);
         toolRow.add(pencilTools);
 
         UIContainer selectionTools = new UIContainer(VERTICAL, CENTER);

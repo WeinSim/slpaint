@@ -50,17 +50,10 @@ public abstract class AppUI<T extends App> extends UI implements Cleanable {
 
     public AppUI(T app) {
         this.app = app;
-        super(app.getWindowContentScale(), app.getWindowSize());
+        super(app.getUIScale(), app.getWindowSize());
 
         iconTextures = new ArrayList<>();
     }
-
-    // @Override
-    // public void update(SVector mousePos, boolean focus) {
-    // setUIScale(app.getWindowContentScale() * (app.isKeyPressed(GLFW_KEY_S) ? 3 :
-    // 1));
-    // super.update(mousePos, focus);
-    // }
 
     @Override
     protected void createKeyboardShortcuts() {

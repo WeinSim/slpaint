@@ -69,6 +69,7 @@ public class SettingsUI extends AppUI<SettingsApp> {
                 fonts,
                 TextFont::getCurrentFontName,
                 s -> app.queueEvent(() -> TextFont.setCurrentFontName(s))));
+        // TODO continue: add dropdown to set App.uiScale
 
         if (MainApp.DEV_BUILD) {
             UIContextMenu contextMenu = new UIContextMenu(mainContainer, false);

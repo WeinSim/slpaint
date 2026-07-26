@@ -39,12 +39,12 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  * TODO continue:
  * Effects
  *   UI
- *     Make effect previews selectable, make one global set of up / down
- *       arrows instead of one for each effect
- *     Buttons to enable / disable effects
- *     Button to apply effects
+ *     Make one global set of up / down arrows instead of one for each effect
+ *     Buttons to enable / disable all effects
  *     Buttons to hide / pin bottom panel
+ *     Button to apply effects
  *   Effect previews
+ *   Applying effects
  *
  * App:
  *   Keyboard shortcuts
@@ -374,7 +374,7 @@ public final class MainApp extends App {
             filename = "[Unnamed]";
             hasUnsavedChanges = false;
         }
-        window.setTitle(String.format("%s%s - SLPaint", hasUnsavedChanges ? "" + (char) 0x2022 + " " : "", filename));
+        setTitle(String.format("%s%s - SLPaint", hasUnsavedChanges ? "" + (char) 0x2022 + " " : "", filename));
 
         // update image texture
         // getImage().applyEffect(Effect.BLACK_WHITE, true);

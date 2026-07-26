@@ -7,10 +7,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import com.weinsim.slpaint.main.MainLoop;
-import com.weinsim.slpaint.settings.BooleanSetting;
 import com.weinsim.slpaint.renderengine.AppRenderer;
 import com.weinsim.slpaint.renderengine.Window;
 import com.weinsim.slpaint.renderengine.font.TextFont;
+import com.weinsim.slpaint.settings.BooleanSetting;
 import com.weinsim.slpaint.ui.AppUI;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
@@ -22,10 +22,11 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
      * 0 = normal 1 = mouse above, 2 = always
      */
     private static int debugOutline = 0;
+    private static double uiScale;
     private static BooleanSetting circularHueSatField = new BooleanSetting("hueSatCircle");
     private static BooleanSetting hslColorSpace = new BooleanSetting("hslColorSpace");
 
-    protected Window window;
+    private Window window;
 
     protected boolean[] mouseButtons;
     protected SVector mousePos, prevMousePos;
@@ -64,10 +65,10 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
 
         this.parent = parent;
         this.adjustSizeOnInit = adjustSizeOnInit;
-
         MainLoop.addApp(this);
 
         window = new Window(width, height, windowMode, resizable, title);
+        uiScale = window.getWindowContentScale();
         childApps = new HashMap<>();
         eventQueue = new LinkedList<>();
 
@@ -181,6 +182,7 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
         int[] displaySize = window.getDisplaySize();
         ui.setRootSize(displaySize[0], displaySize[1]);
 
+        ui.setUIScale(getUIScale());
         ui.update(mousePos, focus);
 
         window.setCursor(ui.getCursorShape());
@@ -234,9 +236,16 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
         return window.getDisplaySize();
     }
 
-    public double getWindowContentScale() {
-        float[] scale = window.getWindowContentScale();
-        return Math.sqrt(scale[0] * scale[1]);
+    public double getUIScale() {
+        return uiScale;
+    }
+
+    public static void setUIScale(double uiScale) {
+        App.uiScale = uiScale;
+    }
+
+    public void setTitle(String title) {
+        window.setTitle(title);
     }
 
     public int getNativeHandleType() {
