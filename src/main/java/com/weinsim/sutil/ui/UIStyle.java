@@ -183,7 +183,7 @@ public class UIStyle {
 
     public static <E extends UIElement> E setSelectableButtonStyle(E element, BooleanSupplier selectedSupplier) {
         Supplier<Vector4f> backgroundColorSupplier = () -> selectedSupplier.getAsBoolean()
-                ? UIColors.BACKGROUND_2.get()
+                ? UIColors.BACKGROUND_SELECTED.get()
                 : null;
         Supplier<Vector4f> outlineColorSupplier = () -> element.mouseAbove()
                 ? UIColors.OUTLINE.get()

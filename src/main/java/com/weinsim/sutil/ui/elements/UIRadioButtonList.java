@@ -63,7 +63,7 @@ public class UIRadioButtonList extends UIContainer {
             noOutline();
             zeroMargin();
 
-            style.setBackgroundColor(UIColors.BACKGROUND_2);
+            style.setBackgroundColor(UIColors.BACKGROUND_SELECTED);
             style.setShape(UIShape.ELLIPSE);
 
             setFixedSize(UISizes.RADIO.get2f());

@@ -52,7 +52,7 @@ public class UIToggleList extends UIContainer {
             double margin = UISizes.MARGIN.get1f();
             setMarginScale(yDiff / 2 / margin);
 
-            style.setBackgroundColor(UIColors.BACKGROUND_2);
+            style.setBackgroundColor(UIColors.BACKGROUND_SELECTED);
             style.setShape(UIShape.ROUND_RECTANGLE);
 
             setHandCursor();

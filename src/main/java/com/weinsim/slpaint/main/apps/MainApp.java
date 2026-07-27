@@ -39,7 +39,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  * TODO continue:
  * Effects
  *   UI
- *     Make one global set of up / down arrows instead of one for each effect
  *     Buttons to enable / disable all effects
  *     Buttons to hide / pin bottom panel
  *     Button to apply effects
@@ -144,7 +143,16 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       Would require underlined letters
  *     Layering inconsistency: the SizeKnobs' outline appears above the
  *       dropdowns of the top row (Rotate, Flip, font selection)
+ *     Effects UI
+ *       Make multiple effect instances selectable using Shift / Ctrl clicks?
+ *         Make that kind of selectable list a predefined sutil.ui asset?
+ *       An effect should not be selected when the eye / trash can icons are
+ *         clicked. => add option in UI to only run a click action if the mouse
+ *         is not above any children (or have the mouse click be "used up" by 
+ *         children click action, similar to scroll?)
  *     Icons
+ *       Automatically render invalid white icons as grey?
+ *         -> would require changes in rendering API
  *       The current icons look kind of bad in light mode
  *         -> separate icons for light and dark mode?
  *       Create icons for:

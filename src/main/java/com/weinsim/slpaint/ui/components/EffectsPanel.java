@@ -5,17 +5,14 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 import com.weinsim.slpaint.main.apps.MainApp;
-import com.weinsim.slpaint.main.effects.Effect;
-import com.weinsim.slpaint.main.effects.EffectInstance;
+import com.weinsim.slpaint.main.effects.*;
+import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UIShape;
 import com.weinsim.sutil.ui.UISizes;
 import com.weinsim.sutil.ui.UIStyle;
-import com.weinsim.sutil.ui.elements.UIButton;
-import com.weinsim.sutil.ui.elements.UIContainer;
-import com.weinsim.sutil.ui.elements.UILabel;
-import com.weinsim.sutil.ui.elements.UIText;
+import com.weinsim.sutil.ui.elements.*;
 
 public class EffectsPanel extends UIContainer {
 
@@ -23,36 +20,28 @@ public class EffectsPanel extends UIContainer {
 
     private boolean bottomPanelVisible;
 
-    private InstanceContainer selectedInstance;
-
     public EffectsPanel(MainApp app) {
         super(VERTICAL, CENTER);
         this.app = app;
         bottomPanelVisible = false;
-        selectedInstance = null;
 
         noOutline();
         setVFillSize();
         withSeparators(true);
 
-        UIContainer top = new UIContainer(VERTICAL, LEFT);
+        UIContainer top = new UIContainer(VERTICAL, CENTER);
         top.zeroMargin().noOutline();
         top.setFillSize();
-        top.addLeftClickAction(() -> selectedInstance = null);
-        UIContainer buttonRow = new UIContainer(HORIZONTAL, LEFT, CENTER);
-        buttonRow.zeroMargin().noOutline();
-        buttonRow.setHFillSize();
-        buttonRow.add(new UIText("Active Effects", UISizes.TEXT_SMALL));
-        buttonRow.add(new UIContainer(0, 0).setHFillSize().zeroMargin().noOutline());
-        // buttonRow.add(new UIButton(
-        // UILabel.icon("plus").small(),
-        // // UILabel.iconText("plus", "Add Effect"),
-        // this::showBottomPanel));
-        buttonRow.add(new UIButton(
+        UIContainer buttonsTop = new UIContainer(HORIZONTAL, CENTER);
+        buttonsTop.zeroMargin().noOutline();
+        buttonsTop.setHFillSize();
+        buttonsTop.add(new UIText("Active Effects", UISizes.TEXT_SMALL));
+        buttonsTop.add(new UIContainer(0, 0).setHFillSize().zeroMargin().noOutline());
+        buttonsTop.add(new UIButton(
                 UILabel.icon("close").small(),
                 () -> app.removeAllPreviewEffects())
                 .setVisibilitySupplier(() -> !app.getPreviewEffects().isEmpty()));
-        top.add(buttonRow);
+        top.add(buttonsTop);
         top.add(new ActiveEffectsContainer().addScrollbars());
         top.add(new UIButton(
                 UILabel.iconText("plus", "Add Effect"),
@@ -99,8 +88,6 @@ public class EffectsPanel extends UIContainer {
         public ActiveEffectsContainer() {
             super(VERTICAL, CENTER, TOP, VERTICAL);
             setHFillSize();
-            // setMarginScale(2.0);
-            // setPaddingScale(2.0);
 
             add(new UIText("No Effects Selected", UISizes.TEXT_SMALL)
                     .setColor(UIColors.TEXT_INVALID)
@@ -127,7 +114,9 @@ public class EffectsPanel extends UIContainer {
                     add(0, new InstanceContainer(effect));
                 }
             }
-            setAlignment(previewEmpty() ? CENTER : TOP);
+            boolean previewEmpty = previewEmpty();
+            setAlignment(previewEmpty ? CENTER : TOP);
+            setMarginScale(previewEmpty ? 3 : 1);
             super.update();
         }
 
@@ -142,32 +131,95 @@ public class EffectsPanel extends UIContainer {
         final EffectInstance effect;
 
         public InstanceContainer(EffectInstance effect) {
-            super(CENTER, HORIZONTAL);
+            super(VERTICAL, CENTER);
             this.effect = effect;
+
             setHFillSize();
             zeroMargin();
-            // noOutline();
-            UIStyle.setSelectableButtonStyle(this, () -> selectedInstance == this);
-            selectable = true;
-            addLeftClickAction(() -> selectedInstance = this);
+            zeroPadding();
+            setStyle(new UIStyle(UIColors.BACKGROUND_2, null, null));
 
-            // add(createButtonContainer(
-            // new UILabel[] {
-            // UILabel.icon("arrow_up"),
-            // UILabel.icon("arrow_down")
-            // },
-            // new Runnable[] {
-            // () -> app.movePreviewEffectUp(effect),
-            // () -> app.movePreviewEffectDown(effect)
-            // }));
-            add(UILabel.text(effect.getEffect().name).setMarginScale(1.0));
-            add(new UIContainer(0, 0).setHFillSize().zeroMargin().noOutline());
-            add(new UIButton(
+            UIContainer topRow = new UIContainer(HORIZONTAL, CENTER);
+            topRow.zeroMargin().noOutline();
+            topRow.setHFillSize();
+            topRow.add(UILabel.text(effect.getEffect().name).setMarginScale(1.0));
+            topRow.add(new UIContainer(0, 0).setHFillSize().zeroMargin().noOutline());
+            UILabel[] labels = {
+                    UILabel.icon("arrow_up"),
+                    UILabel.icon("arrow_down"),
                     UILabel.icons("eye_open", "eye_closed", effect::isVisible).setActive(() -> true),
-                    () -> effect.toggleVisibility()));
-            add(new UIButton(
-                    UILabel.icon("trash_can"),
-                    () -> app.removePreviewEffect(effect)));
+                    UILabel.icon("trash_can")
+            };
+            Runnable[] actions = {
+                    () -> app.movePreviewEffectUp(effect),
+                    () -> app.movePreviewEffectDown(effect),
+                    () -> effect.toggleVisibility(),
+                    () -> app.removePreviewEffect(effect)
+            };
+            UIContainer buttons = new UIContainer(HORIZONTAL, CENTER);
+            buttons.zeroMargin().noOutline();
+            buttons.zeroPadding();
+            for (int i = 0; i < actions.length; i++)
+                buttons.add(new UIButton(labels[i].small(), actions[i]));
+            topRow.add(buttons);
+            // topRow.add(new UIButton(
+            // UILabel.icon("arrow_up"),
+            // () -> app.movePreviewEffectUp(effect)));
+            // topRow.add(new UIButton(
+            // UILabel.icon("arrow_down"),
+            // () -> app.movePreviewEffectDown(effect)));
+            // topRow.add(new UIButton(
+            // UILabel.icons("eye_open", "eye_closed", effect::isVisible).setActive(() ->
+            // true),
+            // () -> effect.toggleVisibility()));
+            // topRow.add(new UIButton(
+            // UILabel.icon("trash_can"),
+            // () -> app.removePreviewEffect(effect)));
+            add(topRow);
+            UIContainer bottomRow = new UIContainer(HORIZONTAL, CENTER);
+            // bottomRow.zeroMargin().noOutline();
+            bottomRow.noOutline();
+            bottomRow.setHFillSize();
+            switch (effect) {
+                case Contrast contrast -> {
+                    // a bit of jank logic for the contrast scale
+                    final double contrastMin = 0,
+                            contrastMax = 20;
+                    final double exponent = 2;
+                    bottomRow.add(new UIScale(HORIZONTAL,
+                            () -> Math.pow(
+                                    SUtil.map(contrast.getMultiplier(), contrastMin, contrastMax, 0, 1),
+                                    1 / exponent),
+                            s -> contrast.setMultiplier(
+                                    SUtil.map(Math.pow(s, exponent), 0, 1, contrastMin, contrastMax))));
+                    final double scale = 100;
+                    bottomRow.add(new UINumberInput(
+                            () -> (int) Math.round(contrast.getMultiplier() * scale),
+                            m -> contrast.setMultiplier(m / scale)));
+                    bottomRow.add(new UIText("%"));
+                    add(bottomRow);
+                }
+                case Brightness brightness -> {
+                    bottomRow.add(new UIScale(HORIZONTAL,
+                            () -> SUtil.map(brightness.getBrightness(),
+                                    Brightness.MIN_BRIGHTNESS, Brightness.MAX_BRIGHTNESS,
+                                    0, 1),
+                            s -> brightness.setBrightness(
+                                    (int) SUtil.map(s,
+                                            0, 1,
+                                            Brightness.MIN_BRIGHTNESS, Brightness.MAX_BRIGHTNESS))));
+                    bottomRow.add(new UINumberInput(
+                            () -> Math.round(brightness.getBrightness()),
+                            b -> brightness.setBrightness(b)));
+                    add(bottomRow);
+                }
+                case Resize _,BlackWhite _ -> {
+                }
+                default -> {
+                    String name = effect.getEffect().name();
+                    add(new UIText(String.format("[unable to load UI for %s]", name)));
+                }
+            }
         }
 
     }
@@ -175,7 +227,7 @@ public class EffectsPanel extends UIContainer {
     private static class CountContainer extends UIContainer {
 
         public CountContainer(LongSupplier counter) {
-            this(counter, 1000);
+            this(counter, 999);
         }
 
         public CountContainer(LongSupplier counter, long max) {
@@ -186,7 +238,7 @@ public class EffectsPanel extends UIContainer {
             setVisibilitySupplier(() -> counter.getAsLong() != 0);
             Supplier<String> textSupplier = () -> {
                 long count = counter.getAsLong();
-                return count < 1000 ? Long.toString(count) : "999+";
+                return count < max ? Long.toString(count) : String.format("%d+", max);
             };
             add(new UIText(textSupplier).setColor(UIColors.TEXT_INVALID));
         }
