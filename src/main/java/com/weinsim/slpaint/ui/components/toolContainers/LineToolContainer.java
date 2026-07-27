@@ -55,8 +55,8 @@ public final class LineToolContainer extends ToolContainer<LineTool> {
     }
 
     @Override
-    public void update() {
-        super.update();
+    public void handleEvents() {
+        super.handleEvents();
 
         Image image = app.getImage();
         int width = image.getWidth(),

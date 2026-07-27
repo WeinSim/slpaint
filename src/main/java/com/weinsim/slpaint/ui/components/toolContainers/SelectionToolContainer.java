@@ -23,12 +23,6 @@ public final class SelectionToolContainer extends DragToolContainer<SelectionToo
             setVisibilitySupplier(() -> ImageTool.SELECTION.getSelection() != null);
         }
 
-        // @Override
-        // public void update() {
-        // super.update();
-        // setTextureID(ImageTool.SELECTION.getSelection().textureID);
-        // }
-
         @Override
         public void setPreferredSize() {
             int width = ImageTool.SELECTION.getWidth(),

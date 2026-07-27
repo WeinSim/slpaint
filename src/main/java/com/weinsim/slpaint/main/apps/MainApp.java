@@ -36,7 +36,10 @@ import com.weinsim.sutil.ui.elements.UITextInput;
 
 /**
  * <pre>
- * TODO continue:
+ * TODO:
+ * UI
+ *   Separate top / bottom / left / right margins
+ *   Make .zeroMargin().noOutline() the default
  * Effects
  *   UI
  *     Buttons to enable / disable all effects
@@ -91,10 +94,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  * 
  * UI:
  *   UI in general:
- *     Change UIContainer defaults? .zeroMargin().noOutline() is used in a ton
- *         of places and should maybe be the default.
- *     Separate top / bottom / left / right margins? (setup for UITabs is a bit
- *       of a workaround at the moment)
  *     Combine user actions (keyboard, mouse). Combine with BooleanSupplier
  *       (active / possible)
  *     UISizes:

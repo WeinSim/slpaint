@@ -222,12 +222,12 @@ public class UIFloatMenu extends UIFloatContainer {
         }
 
         @Override
-        public void update() {
-            super.update();
-
+        public void handleEvents() {
+            super.handleEvents();
             if (mouseAbove())
                 expandedLabel = this;
         }
+
     }
 
 }

@@ -60,12 +60,12 @@ public class UIMenuBar extends UIContainer {
         }
 
         @Override
-        public void update() {
-            super.update();
-
+        public void handleEvents() {
+            super.handleEvents();
             if (mouseAbove && expandedMenu != null)
                 expandedMenu = this;
         }
+
     }
 
 }

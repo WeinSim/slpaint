@@ -67,8 +67,8 @@ public abstract sealed class DragToolContainer<T extends DragTool> extends ToolC
     }
 
     @Override
-    public void update() {
-        super.update();
+    public void handleEvents() {
+        super.handleEvents();
 
         switch (tool.getState()) {
             case DragTool.INITIAL_DRAG -> {
@@ -106,7 +106,11 @@ public abstract sealed class DragToolContainer<T extends DragTool> extends ToolC
                 UI.setDragging();
             }
         }
+    }
 
+    @Override
+    public void update() {
+        super.update();
         double zoom = app.getImageZoom();
         setFixedSize(new SVector(tool.getWidth(), tool.getHeight()).scale(zoom));
     }

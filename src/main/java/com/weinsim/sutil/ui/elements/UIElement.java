@@ -118,6 +118,24 @@ public abstract class UIElement {
         return SUtil.pointInsideRect(mouse, position, size);
     }
 
+    /**
+     * General-purpose method that can be overridden by subclasses. This method can
+     * react to user input and change the underlying state of the application. In
+     * order to react to the application state, use {@code update()}.
+     * 
+     * @see UIElement#update()
+     */
+    public void handleEvents() {
+    }
+
+    /**
+     * General-purpose method that can be overridden by subclasses. This method can
+     * react to the application state and adjust internal UI parameters accordingly.
+     * This method should <i>not</i> change the application state. Use
+     * {@code handleEventy()} if this is what you want to do.
+     * 
+     * @see UIElement#handleEvents()
+     */
     public void update() {
     }
 

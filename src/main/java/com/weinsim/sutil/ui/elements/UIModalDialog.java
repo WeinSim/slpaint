@@ -103,9 +103,7 @@ public class UIModalDialog extends UIFloatContainer {
     @Override
     public void update() {
         super.update();
-
         setFixedSize(UI.getRootSize());
-
         relativeLayer = UI.MODAL_DIALOG_LAYER - parent.relativeLayer;
     }
 

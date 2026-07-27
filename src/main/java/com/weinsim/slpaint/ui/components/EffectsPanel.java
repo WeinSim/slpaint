@@ -95,7 +95,9 @@ public class EffectsPanel extends UIContainer {
         }
 
         @Override
-        public void update() {
+        public void createChildren() {
+            super.createChildren();
+
             // make sure that the actual effects are synced with this container's children
             List<InstanceContainer> containers = removeAll(InstanceContainer.class);
             for (EffectInstance effect : app.getPreviewEffects()) {
@@ -108,16 +110,15 @@ public class EffectsPanel extends UIContainer {
                 }
                 if (container != null) {
                     // container already existed. place it into the list
-                    add(0, container);
+                    addFirst(container);
                     containers.remove(container);
                 } else {
-                    add(0, new InstanceContainer(effect));
+                    addFirst(new InstanceContainer(effect));
                 }
             }
             boolean previewEmpty = previewEmpty();
             setAlignment(previewEmpty ? CENTER : TOP);
             setMarginScale(previewEmpty ? 3 : 1);
-            super.update();
         }
 
         private boolean previewEmpty() {
@@ -245,8 +246,8 @@ public class EffectsPanel extends UIContainer {
 
         @Override
         public void update() {
-            setFixedSize(new SVector(1, 1).scale(UISizes.TEXT.get1f() * 1.5));
             super.update();
+            setFixedSize(new SVector(1, 1).scale(UISizes.TEXT.get1f() * 1.5));
         }
 
     }

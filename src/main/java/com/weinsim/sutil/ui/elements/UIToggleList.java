@@ -65,9 +65,9 @@ public class UIToggleList extends UIContainer {
         @Override
         public void update() {
             super.update();
-
             setAlignment(stateSupplier.getAsBoolean() ? RIGHT : LEFT, CENTER);
         }
+
     }
 
     private static class ToggleInside extends UIElement {
@@ -82,6 +82,7 @@ public class UIToggleList extends UIContainer {
         @Override
         public void setPreferredSize() {
         }
+
     }
 
 }

@@ -64,7 +64,7 @@ public class UIContainer extends UIElement {
     protected double hMarginScale = 1, vMarginScale = 1;
     protected double paddingScale = 1;
 
-    protected boolean addSeparators = false;
+    protected boolean automaticSeparators = false;
 
     public UIContainer(int orientation, int alignment) {
         this(orientation, alignment, alignment, NONE);
@@ -129,58 +129,20 @@ public class UIContainer extends UIElement {
 
     // Adding / removing children
 
-    public void add(UIElement child) {
-        add(children.size(), child);
-    }
-
     public void addSeparator() {
         add(new UISeparator());
     }
 
-    public void add(int index, UIElement child) {
-        if (addSeparators && !(child instanceof UIFloatContainer)) {
-            // TODO: this logic breaks if we specify an index different from
-            // children.size(). maybe get rid of it all together and instead add new
-            // separators on every update()?
-            // (actually this logic is completely broken? no separator shows up between the
-            // menu bar and the tool row)
-            boolean containsNonFloatChildren = false;
-            for (UIElement currentChild : children) {
-                if (!(currentChild instanceof UIFloatContainer)) {
-                    containsNonFloatChildren = true;
-                    break;
-                }
-            }
-            if (containsNonFloatChildren) {
-                UISeparator separator = new UISeparator();
-                BooleanSupplier childVis = () -> {
-                    if (!child.visibilitySupplier.getAsBoolean())
-                        return false;
-
-                    // The separator should not be visible if the corresponding child is the first
-                    // visible element. Thus, we need to find another visible non-separator element
-                    // in the list of children that comes before it.
-                    // Note that this implementation depends on the fact that the updateVisibility()
-                    // method goes through all the children in order.
-
-                    for (UIElement e : getChildren()) {
-                        if (!(e instanceof UISeparator) && e != child)
-                            return true;
-                    }
-
-                    return false;
-                };
-                separator.setVisibilitySupplier(childVis);
-                addActual(separator);
-                index++;
-            }
-        }
-        addActual(index, child);
+    public void add(UIElement child) {
+        addActual(child, false);
     }
 
-    private final void addActual(UIElement child) {
-        children.add(child);
-        child.parent = this;
+    public void addFirst(UIElement child) {
+        addActual(child, true);
+    }
+
+    private final void addActual(UIElement child, boolean first) {
+        addActual(first ? 0 : children.size(), child);
     }
 
     private final void addActual(int index, UIElement child) {
@@ -215,14 +177,44 @@ public class UIContainer extends UIElement {
     // Recursive methods
 
     @Override
+    public void handleEvents() {
+        super.handleEvents();
+        for (UIElement child : getChildren()) {
+            child.handleEvents();
+        }
+    }
+
+    @Override
     public void updateVisibility() {
         super.updateVisibility();
         if (!isVisible())
             return;
 
-        for (UIElement child : children) {
+        createChildren();
+        if (automaticSeparators)
+            removeAll(UISeparator.class);
+        boolean addSeparators = false;
+        for (int i = 0; i < children.size(); i++) {
+            UIElement child = children.get(i);
             child.updateVisibility();
+            if (child.isVisible()
+                    && !(child instanceof UIFloatContainer)
+                    && !(child instanceof UISeparator)) {
+                if (automaticSeparators && addSeparators)
+                    // increment i by one because the element we just processed has moved one
+                    // position to the right
+                    addActual(i++, new UISeparator());
+                addSeparators = true;
+            }
         }
+    }
+
+    /**
+     * This method can overridden by subclasses of {@code UIContainer} to add or
+     * remove children on every UI update cycle, analogous to children having a
+     * visibility supplier.
+     */
+    protected void createChildren() {
     }
 
     @Override
@@ -259,7 +251,6 @@ public class UIContainer extends UIElement {
     @Override
     public void update() {
         super.update();
-
         for (UIElement child : getChildren()) {
             child.update();
         }
@@ -774,7 +765,7 @@ public class UIContainer extends UIElement {
      * @return {@code this}
      */
     public UIContainer withSeparators(boolean spaciousLayout) {
-        addSeparators = true;
+        automaticSeparators = true;
 
         if (spaciousLayout) {
             setMarginScale(2.0);

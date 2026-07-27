@@ -107,10 +107,28 @@ public abstract class UI {
 
     protected abstract void init();
 
+    /**
+     * The order of UI operations should be the following:
+     * <ul>
+     * <li>UI or background processes change state
+     * <li>UI reacts to state: which elements exist / are visible, which ones have
+     * {@code mouseAbove} set, where are they and how big are they?
+     * <li>UI is rendered in this state
+     * <li>Repeat
+     * </ul>
+     * This means that an element's {@code update} method must not change the state
+     * 
+     * @param mousePos
+     * @param focus
+     */
     public void update(SVector mousePos, boolean focus) {
+        // state changes:
         while (!eventQueue.isEmpty())
             eventQueue.removeFirst().run();
+        root.handleEvents();
 
+        // ui reacts to state:
+        dragging = false;
         root.updateVisibility();
 
         // This could potentially cause some weird behavior if the selected element's
@@ -121,12 +139,7 @@ public abstract class UI {
 
         root.updateMousePosition(mousePos);
         root.updateMouseAbove(!dragging);
-
-        // The dragging variable lags one frame behind (because it is being used before
-        // it is being set)
-        dragging = false;
         root.update();
-
         root.updateSize();
     }
 

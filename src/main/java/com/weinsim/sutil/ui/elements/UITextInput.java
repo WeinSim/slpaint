@@ -106,15 +106,14 @@ public class UITextInput extends UIContainer {
         });
     }
 
+    protected boolean isValidChar(char c) {
+        return (c >= 32 && c <= 126) || (c >= 160 && c < 255) || (c == '\n' && multiline);
+    }
+
     @Override
     public void update() {
         super.update();
-
         boundCursorPosition();
-    }
-
-    protected boolean isValidChar(char c) {
-        return (c >= 32 && c <= 126) || (c >= 160 && c < 255) || (c == '\n' && multiline);
     }
 
     private void boundCursorPosition() {

@@ -71,8 +71,8 @@ public class DragKnob extends UIFloatContainer {
     }
 
     @Override
-    public void update() {
-        super.update();
+    public void handleEvents() {
+        super.handleEvents();
 
         if (dragging) {
             SVector mouseDelta = app.getMouseImagePosVec().sub(dragStartMouse);

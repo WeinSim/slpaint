@@ -26,8 +26,8 @@ public final class PencilToolContainer extends ToolContainer<PencilTool> {
     }
 
     @Override
-    public void update() {
-        super.update();
+    public void handleEvents() {
+        super.handleEvents();
 
         int state = tool.getState();
         if (state != PencilTool.NONE) {

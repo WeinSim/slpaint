@@ -98,8 +98,8 @@ public class ImageCanvas extends UIContainer {
     }
 
     @Override
-    public void update() {
-        super.update();
+    public void handleEvents() {
+        super.handleEvents();
 
         // stop dragging image
         if (draggingImage) {
@@ -109,7 +109,6 @@ public class ImageCanvas extends UIContainer {
                 draggingImage = false;
             }
         }
-
         // dragging image
         if (draggingImage) {
             SVector mouseMovement = new SVector(app.getMousePosition()).sub(app.getPrevMousePosition());
