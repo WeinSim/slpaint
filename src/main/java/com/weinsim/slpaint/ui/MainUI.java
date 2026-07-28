@@ -17,6 +17,7 @@ import com.weinsim.slpaint.renderengine.font.TextFont;
 import com.weinsim.slpaint.ui.components.*;
 import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UISizes;
 import com.weinsim.sutil.ui.UIStyle;
 import com.weinsim.sutil.ui.elements.*;
@@ -48,6 +49,10 @@ public class MainUI extends AppUI<MainApp> {
         UI.addKeyboardShortcut("zoom_in", GLFW_KEY_KP_ADD, GLFW_MOD_CONTROL, app::canZoomIn, app::zoomIn);
         UI.addKeyboardShortcut("zoom_out", GLFW_KEY_KP_SUBTRACT, GLFW_MOD_CONTROL, app::canZoomOut, app::zoomOut);
         UI.addKeyboardShortcut("reset_zoom", GLFW_KEY_0, GLFW_MOD_CONTROL, true, app::resetZoom);
+        UI.addKeyboardShortcut("show_colors", GLFW_KEY_C, GLFW_MOD_CONTROL | GLFW_MOD_SHIFT, true,
+                () -> app.getSidePanel().selectTab("Colors"));
+        UI.addKeyboardShortcut("show_effects", GLFW_KEY_E, GLFW_MOD_CONTROL | GLFW_MOD_SHIFT, true,
+                () -> app.getSidePanel().selectTab("Effects"));
 
         // all tool shortcuts
         for (ImageTool tool : ImageTool.INSTANCES) {
@@ -68,7 +73,11 @@ public class MainUI extends AppUI<MainApp> {
         mainRow.setFillSize();
         mainRow.add(createSidePanel());
         mainRow.add(new ImageCanvas(VERTICAL, RIGHT, TOP, app));
-        // mainRow.add(createDebugPanel());
+        if (MainApp.DEV_BUILD)
+            mainRow.add(new UIButton(
+                    UILabel.icons("expand_right", "expand_left", MainApp::isShowDebugPanel).alwaysActive(),
+                    () -> MainApp.setShowDebugPanel(!MainApp.isShowDebugPanel())));
+        mainRow.add(createDebugPanel());
         root.add(mainRow);
 
         UIContainer statusBar = createStatusBar();
@@ -111,6 +120,9 @@ public class MainUI extends AppUI<MainApp> {
         viewMenu.addLabel("Zoom out", getKeyboardShortcut("zoom_out"));
         viewMenu.addLabel("Reset Zoom", getKeyboardShortcut("reset_zoom"));
         viewMenu.addLabel("Reset View", getKeyboardShortcut("reset_transform"));
+        viewMenu.addSeparator();
+        viewMenu.addLabel("Show Color Panel", getKeyboardShortcut("show_colors"));
+        viewMenu.addLabel("Show Effects Panel", getKeyboardShortcut("show_effects"));
 
         UIFloatMenu imageMenu = menuBar.addMenu("Image");
         imageMenu.addLabel(UILabel.iconText("resize", "Resize"), () -> app.showDialog(MainApp.RESIZE_DIALOG));
@@ -343,7 +355,7 @@ public class MainUI extends AppUI<MainApp> {
         tabs.setVFillSize();
         tabs.addTab("Colors", createColorPanel());
         tabs.addTab("Effects", new EffectsPanel(app));
-        tabs.selectTab("Effects");
+        app.setSidePanel(tabs);
         return tabs;
     }
 
@@ -414,7 +426,8 @@ public class MainUI extends AppUI<MainApp> {
 
     private UIContainer createDebugPanel() {
         UIContainer debugPanel = new UIContainer(VERTICAL, CENTER, TOP, VERTICAL);
-        debugPanel.setVFillSize();
+        debugPanel.setVisibilitySupplier(MainApp::isShowDebugPanel);
+        debugPanel.withMargin().setVFillSize();
 
         debugPanel.add(UILabel.text("DEBUG"));
 
@@ -423,32 +436,20 @@ public class MainUI extends AppUI<MainApp> {
         // debugPanel.add(UILabel.icon(String.format("arrow_%s", direction)));
         // }
 
-        // for (int i = 0; i < 2; i++) {
-        // final int j = i;
-        // UIImage image = new UIImage(
-        // // set PingPongFBO#textureIDs to public for this to work
-        // // () -> app.getImage().getFBO().textureIDs[j],
-        // () -> 0,
-        // new SVector(200, 200));
-        // image.setStyle(
-        // new UIStyle(
-        // () -> null,
-        // UIColors.HIGHLIGHT,
-        // () -> app.getImage().getFBO().getActiveTexture() == j ? 2 : 0));
-        // debugPanel.add(image);
-        // }
+        debugPanel.add(createImagePreview("Image", app::getImage));
+        debugPanel.add(createImagePreview("Preview Image", app::getPreviewImage));
 
-        // debugPanel.add(new UIText("Tools"));
-        // for (ImageTool tool : ImageTool.INSTANCES) {
-        // debugPanel.add(new UIText(() -> String.format(" %s: state = %d",
-        // tool.getName(), tool.getState())));
-        // }
-        // debugPanel.add(new UIText(() -> String.format("Active tool: %s",
-        // app.getActiveTool().getName())));
-        // debugPanel.add(new UIText(() -> String.format(" State: %d",
-        // app.getActiveTool().getState())));
-        // debugPanel.add(new UIText(() -> String.format("TextTool.text: \"%s\"",
-        // ImageTool.TEXT.getText())));
+        debugPanel.add(new UIText("Tools"));
+        for (ImageTool tool : ImageTool.INSTANCES) {
+            debugPanel.add(new UIText(() -> String.format(" %s: state = %d",
+                    tool.getName(), tool.getState())));
+        }
+        debugPanel.add(new UIText(() -> String.format("Active tool: %s",
+                app.getActiveTool().getName())));
+        debugPanel.add(new UIText(() -> String.format(" State: %d",
+                app.getActiveTool().getState())));
+        debugPanel.add(new UIText(() -> String.format("TextTool.text: \"%s\"",
+                ImageTool.TEXT.getText())));
         // debugPanel.add(new UIText(() -> String.format("TextTool.font: \"%s\"",
         // ImageTool.TEXT.getFont())));
 
@@ -459,10 +460,31 @@ public class MainUI extends AppUI<MainApp> {
         // debugPanel.add(new UIText(line, UISizes.TEXT_SMALL));
         // }
 
-        // debugPanel.add(new UITextInput(this::getDebugString, this::setDebugString,
-        // true));
+        debugPanel.add(new UITextInput(this::getDebugString, this::setDebugString, true));
 
         return debugPanel.addScrollbars();
+    }
+
+    private UIContainer createImagePreview(String name, Supplier<Image> imageSupplier) {
+        UIContainer preview = new UIContainer(HORIZONTAL, CENTER);
+        preview.setHFillSize();
+        preview.add(UILabel.text(name));
+        preview.addFill();
+        for (int i = 0; i < 2; i++) {
+            final int j = i;
+            UIImage image = new UIImage(
+                    // set PingPongFBO#textureIDs to public for this to work
+                    // () -> imageSupplier.get().getFBO().textureIDs[j],
+                    () -> 0,
+                    () -> UISizes.BIG_COLOR_BUTTON.get2f().scale(2));
+            image.setStyle(
+                    new UIStyle(
+                            () -> null,
+                            UIColors.HIGHLIGHT,
+                            () -> imageSupplier.get().getFBO().getActiveTexture() == j ? 2 : 0));
+            preview.add(image);
+        }
+        return preview;
     }
 
     private UIContainer createStatusBar() {

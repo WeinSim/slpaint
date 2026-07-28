@@ -4,17 +4,8 @@ import static org.lwjgl.glfw.GLFW.*;
 
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.image.Image;
-import com.weinsim.slpaint.main.tools.ImageTool;
-import com.weinsim.slpaint.main.tools.LineTool;
-import com.weinsim.slpaint.main.tools.PencilTool;
-import com.weinsim.slpaint.main.tools.Resizable;
-import com.weinsim.slpaint.main.tools.SelectionTool;
-import com.weinsim.slpaint.main.tools.TextTool;
-import com.weinsim.slpaint.ui.components.toolContainers.LineToolContainer;
-import com.weinsim.slpaint.ui.components.toolContainers.PencilToolContainer;
-import com.weinsim.slpaint.ui.components.toolContainers.SelectionToolContainer;
-import com.weinsim.slpaint.ui.components.toolContainers.TextToolContainer;
-import com.weinsim.slpaint.ui.components.toolContainers.ToolContainer;
+import com.weinsim.slpaint.main.tools.*;
+import com.weinsim.slpaint.ui.components.toolContainers.*;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UIColors;
@@ -270,8 +261,7 @@ public class ImageCanvas extends UIContainer {
         private class ImageContainerChild extends UIImage {
 
             ImageContainerChild() {
-                super(() -> app.getImage().getPreviewTextureID(), new SVector());
-
+                super(() -> app.getPreviewImage().getTextureID(), new SVector());
                 style.setBackgroundCheckerboard(UIColors.TRANSPARENCY_1, UIColors.TRANSPARENCY_2, UISizes.CHECKERBOARD);
             }
 

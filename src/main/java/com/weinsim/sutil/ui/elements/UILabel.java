@@ -118,6 +118,11 @@ public class UILabel extends UIContainer {
         return this;
     }
 
+    public UILabel big() {
+        setSize(UISizes.ICON, UISizes.TEXT);
+        return this;
+    }
+
     public UILabel small() {
         setSize(UISizes.ICON_SMALL, UISizes.TEXT_SMALL);
         return this;
@@ -129,6 +134,10 @@ public class UILabel extends UIContainer {
 
     private double getTextSize() {
         return textSize.getAsDouble();
+    }
+
+    public UILabel alwaysActive() {
+        return setActive(TRUE);
     }
 
     public UILabel setActive(BooleanSupplier active) {

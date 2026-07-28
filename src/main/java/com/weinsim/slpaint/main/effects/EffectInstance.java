@@ -26,6 +26,14 @@ public abstract class EffectInstance {
         this.visible = visible;
     }
 
+    public void show() {
+        setVisible(true);
+    }
+
+    public void hide() {
+        setVisible(false);
+    }
+
     public boolean isVisible() {
         return visible;
     }

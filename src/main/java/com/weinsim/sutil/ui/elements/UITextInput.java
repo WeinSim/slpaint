@@ -143,6 +143,7 @@ public class UITextInput extends UIContainer {
 
         public Cursor() {
             super(0, 0);
+            withOutline();
 
             addAnchor(Anchor.TOP_LEFT, () -> {
                 SVector pos = new SVector(uiText.getPosition());

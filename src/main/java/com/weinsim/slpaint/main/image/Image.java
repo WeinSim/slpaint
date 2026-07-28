@@ -38,10 +38,6 @@ public class Image implements Cleanable {
 
     private final PingPongFBO fbo;
 
-    // TODO: we are not yet considering effect parameters (e.g. the brightness
-    // value)
-    private Effect currentPreviewEffect;
-
     private int syncStatus;
 
     private int dirtyMinX;
@@ -52,6 +48,10 @@ public class Image implements Cleanable {
     public Image(BufferedImage image) {
         fbo = new PingPongFBO();
         setBufferedImage(image);
+    }
+
+    public Image(int width, int height) {
+        this(new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB));
     }
 
     public void setBufferedImage(BufferedImage image) {
@@ -93,9 +93,9 @@ public class Image implements Cleanable {
      */
     public void sync() {
         if (syncStatus == PIXEL_ARRAY_DIRTY)
-            updateOpenGLTexture(true);
+            syncOpenGLTexture();
         else if (syncStatus == OPENGL_DIRTY)
-            updatePixelArray();
+            syncPixelArray();
     }
 
     public void syncPixelArray() {
@@ -106,6 +106,8 @@ public class Image implements Cleanable {
     public void syncOpenGLTexture() {
         if (syncStatus == PIXEL_ARRAY_DIRTY)
             updateOpenGLTexture(true);
+        if (syncStatus == OPENGL_DIRTY)
+            generateMipmaps();
     }
 
     public void markOpenGLTextureDirty() {
@@ -113,7 +115,6 @@ public class Image implements Cleanable {
             System.err.println(
                     "Image sync error: openGL texture marked as dirty while pixel array was also dirty");
         syncStatus = OPENGL_DIRTY;
-        currentPreviewEffect = null;
     }
 
     private void setDirty(int x, int y) {
@@ -136,7 +137,15 @@ public class Image implements Cleanable {
         syncStatus = PIXEL_ARRAY_DIRTY;
     }
 
+    private void generateMipmaps() {
+        glBindTexture(GL_TEXTURE_2D, fbo.getTextureID());
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+
     private void updateOpenGLTexture(boolean subArea) {
+        if (syncStatus == OPENGL_DIRTY)
+            System.err.println(
+                    "Image sync error: openGL texture overwritten with pixel buffer while it was dirty");
         IntBuffer buffer = BufferUtils.createIntBuffer(width * height);
         buffer.put(pixelArray);
         buffer.flip();
@@ -162,12 +171,14 @@ public class Image implements Cleanable {
                     GL_UNSIGNED_INT_8_8_8_8_REV, buffer);
         }
 
-        glGenerateMipmap(GL_TEXTURE_2D);
-        currentPreviewEffect = null;
+        generateMipmaps();
         syncStatus = CLEAN;
     }
 
     private void updatePixelArray() {
+        if (syncStatus == PIXEL_ARRAY_DIRTY)
+            System.err.println(
+                    "Image sync error: pixel array overwritten with openGL texture data while it was dirty");
         if (bufferedImage.getWidth() != width || bufferedImage.getHeight() != height) {
             // TODO: this part is copied from above
             bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -175,7 +186,7 @@ public class Image implements Cleanable {
         }
         glBindTexture(GL_TEXTURE_2D, fbo.getTextureID());
         glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, pixelArray);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        generateMipmaps();
         glBindTexture(GL_TEXTURE_2D, 0);
         syncStatus = CLEAN;
     }
@@ -217,7 +228,6 @@ public class Image implements Cleanable {
     public void setSizeAndClear(int newWidth, int newHeight, int backgroundColor) {
         BufferedImage image = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
         int[] imagePixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-        // System.arraycopy(pixels, 0, imagePixels, 0, pixels.length);
         Arrays.fill(imagePixels, backgroundColor);
         setBufferedImage(image);
     }
@@ -541,17 +551,13 @@ public class Image implements Cleanable {
     }
 
     public void applyEffect(EffectInstance instance) {
-        applyEffect(instance, false);
+        applyEffect(instance, this);
     }
 
-    public void applyEffect(EffectInstance instance, boolean preview) {
+    public void applyEffect(EffectInstance instance, Image source) {
         Effect effect = instance.getEffect();
         // make sure the texture we read from (the active texture) has the right data
-        syncOpenGLTexture();
-        // if we only want a preview but that preview is already rendered to the
-        // inactive texture, we don't need to do anything
-        if (preview && currentPreviewEffect == effect)
-            return;
+        source.syncOpenGLTexture();
         // initialize drawing to the inactive texture
         // fbo.initInactiveTexture(width, height);
         fbo.setTextureSize(false, width, height);
@@ -568,7 +574,7 @@ public class Image implements Cleanable {
         glDisable(GL_BLEND);
         instance.loadUniforms();
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, fbo.getTextureID());
+        glBindTexture(GL_TEXTURE_2D, source.fbo.getTextureID());
         // render
         glDrawArrays(GL_TRIANGLE_STRIP, 0, quad.vertexCount());
         // clean up
@@ -576,17 +582,8 @@ public class Image implements Cleanable {
         quad.unbind();
         shader.stop();
         fbo.unbind();
-        // mark inactive texture either as active or as a valid preview
-        if (preview) {
-            currentPreviewEffect = effect;
-            glBindTexture(GL_TEXTURE_2D, fbo.getInactiveTextureID());
-            glGenerateMipmap(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, 0);
-        } else {
-            currentPreviewEffect = null;
-            fbo.swapTextures();
-            markOpenGLTextureDirty();
-        }
+        fbo.swapTextures();
+        markOpenGLTextureDirty();
     }
 
     public void bindFramebuffer() {
@@ -639,10 +636,6 @@ public class Image implements Cleanable {
 
     public int getTextureID() {
         return fbo.getTextureID();
-    }
-
-    public int getPreviewTextureID() {
-        return currentPreviewEffect != null ? fbo.getInactiveTextureID() : fbo.getTextureID();
     }
 
     /**

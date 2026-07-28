@@ -50,7 +50,7 @@ public class ResizeUI extends AppUI<ResizeApp> {
         root.add(resizeMode);
 
         UIContainer inner = new UIContainer(VERTICAL, CENTER);
-        inner.withMargin().setHFillSize();
+        inner.withMargin().setHFillSize().withOutline();
 
         UIContainer inputMode = new UIContainer(HORIZONTAL, CENTER);
         inputMode.withMargin().setHFillSize();

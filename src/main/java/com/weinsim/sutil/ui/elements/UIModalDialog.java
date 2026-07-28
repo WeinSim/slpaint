@@ -18,28 +18,26 @@ public class UIModalDialog extends UIFloatContainer {
         super(VERTICAL, CENTER);
 
         this.fututre = future;
+        withMargin();
 
         soloInputs = true;
         addKeyPressAction(GLFW_KEY_ESCAPE, 0, false, this::cancel);
 
         style.setBackgroundColor(new Vector4f(0.0f, 0.0f, 0.0f, 0.5f));
-        outlineNormal = false;
 
         UIContainer content = new UIContainer(VERTICAL, CENTER);
-        content.zeroPadding().withBackground();
-
+        content.zeroPadding().withBackground().withOutline();
         UIContainer topRow = new UIContainer(HORIZONTAL, RIGHT, CENTER);
-        topRow.setHFillSize();
+        topRow.setHFillSize().withOutline();
         UIContainer titleContainer = new UIContainer(VERTICAL, CENTER);
         titleContainer.setHFillSize();
         titleContainer.add(new UIText(title));
         topRow.add(titleContainer);
         topRow.add(new UIButton(UILabel.icon("close"), () -> finish(UI.CLOSED_OPTION)));
         content.add(topRow);
-
         UIContainer mainArea = new UIContainer(VERTICAL, CENTER);
         mainArea.setMarginScale(UISizes.DIALOG_MARGIN.get1f() / UISizes.MARGIN.get1f());
-        mainArea.setPaddingScale(0.5).setMinimalSize();
+        mainArea.setPaddingScale(0.5).setMinimalSize().noOutline();
         for (String line : message.split("\n")) {
             int alignment = LEFT;
             DoubleSupplier textSize = UIText.NORMAL;
@@ -64,9 +62,9 @@ public class UIModalDialog extends UIFloatContainer {
             mainArea.add(textContainer);
         }
         content.add(mainArea);
-
         UIContainer bottomRow = new UIContainer(HORIZONTAL, RIGHT, CENTER);
-        bottomRow.setHFillSize();
+        bottomRow.withMargin().setHFillSize();
+
         String[] buttonLabels;
         int[] returnCodes;
         switch (dialogType) {

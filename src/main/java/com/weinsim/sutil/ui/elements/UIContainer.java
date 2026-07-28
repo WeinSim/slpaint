@@ -891,7 +891,6 @@ public class UIContainer extends UIElement {
 
         UISeparator() {
             super(VERTICAL, LEFT);
-
             style.setStrokeColor(UIColors.SEPARATOR);
             zeroPadding();
         }

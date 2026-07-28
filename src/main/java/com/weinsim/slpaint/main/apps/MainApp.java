@@ -32,18 +32,14 @@ import com.weinsim.slpaint.ui.components.ImageCanvas;
 import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.elements.UITabs;
 import com.weinsim.sutil.ui.elements.UITextInput;
 
 /**
  * <pre>
  * TODO:
  * Effects
- *   UI
- *     Buttons to enable / disable all effects
- *     Buttons to hide / pin bottom panel
- *     Button to apply effects
- *   Effect previews
- *   Applying effects
+ *   Effects treat transparent pixels as opaque
  *
  * App:
  *   Keyboard shortcuts
@@ -125,6 +121,9 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *     Ctrl + 0 can cause the image to appear completely outside of the canvas
  *       Reason: the point at the center of the canvas stays fixed. For a very
  *       zoomed out image, this is likely to be outside of the image.
+ *     Effects UI
+ *       Make "Add effect" and "Apply effects" butttons better
+ *         They should not look as similar and should maybe stand out more
  *     Modal dialogs
  *       Convert other small dialogs into modal dialogs? (e.g. ResizeUI)
  *       Add options for custom button labels like in JOptionPane
@@ -156,6 +155,7 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *         Currently it does nothing (except sometimes with selection).
  *     Color hex code input?
  *     Make side panel collapsable?
+ *     Make debug panel collapsable (but always existent)?
  *     Tool cursors
  *     About
  *       Make hyperlinks clickable? (=> underlined text!)
@@ -290,10 +290,17 @@ public final class MainApp extends App {
 
     private static BooleanSetting transparentSelection = new BooleanSetting("transparentSelection");
     private static BooleanSetting lockSelectionRatio = new BooleanSetting("lockSelectionRatio");
-
     private static ColorArraySetting customUIBaseColors = new ColorArraySetting("customUIColors");
+    private static BooleanSetting showDebugPanel = new BooleanSetting("showDebugPanel");
 
     private final ImageManager imageManager;
+
+    private Image previewImage;
+    /**
+     * This field indicates whether there are any preview effects that are not
+     * invisible.
+     */
+    private boolean hasActiveEffects;
 
     // this is needed for prompting the user for unsaved changes when closing the
     // window
@@ -322,6 +329,7 @@ public final class MainApp extends App {
     private List<EffectInstance> previewEffects;
 
     private ImageCanvas canvas;
+    private UITabs sidePanel;
 
     /**
      * 
@@ -339,6 +347,8 @@ public final class MainApp extends App {
         previewEffects = new ArrayList<>();
 
         imageManager = initialFile == null ? new ImageManager(this) : new ImageManager(this, initialFile);
+        Image image = getImage();
+        previewImage = new Image(image.getWidth(), image.getHeight());
 
         setActiveTool(ImageTool.PENCIL);
         prevTool = ImageTool.PENCIL;
@@ -347,10 +357,6 @@ public final class MainApp extends App {
 
         // load UI
         loadUI();
-
-        addPreviewEffect(Effect.CONTRAST);
-        addPreviewEffect(Effect.BLACK_WHITE);
-        addPreviewEffect(Effect.BRIGHTNESS);
     }
 
     @Override
@@ -377,11 +383,24 @@ public final class MainApp extends App {
         }
         setTitle(String.format("%s%s - SLPaint", hasUnsavedChanges ? "" + (char) 0x2022 + " " : "", filename));
 
-        // update image texture
-        // getImage().applyEffect(Effect.BLACK_WHITE, true);
-        // technically this is unneccessary because applying the effect already syncs
-        // the texture data
-        getImage().sync();
+        // update preview image
+        hasActiveEffects = false;
+        Image image = getImage();
+        int width = image.getWidth(),
+                height = image.getHeight();
+        if (previewImage.getWidth() != width || previewImage.getHeight() != height)
+            previewImage = new Image(width, height);
+        for (int i = previewEffects.size() - 1; i >= 0; i--) {
+            EffectInstance effect = previewEffects.get(i);
+            if (!effect.isVisible())
+                continue;
+            if (!hasActiveEffects)
+                previewImage.applyEffect(effect, image);
+            else
+                previewImage.applyEffect(effect);
+            hasActiveEffects = true;
+        }
+        previewImage.syncOpenGLTexture();
     }
 
     @Override
@@ -551,16 +570,6 @@ public final class MainApp extends App {
         activeTool.cancel();
     }
 
-    public void applyEffect(EffectInstance effect) {
-        long start = System.nanoTime();
-        getImage().applyEffect(effect);
-        long end = System.nanoTime();
-        System.out.format("Effect \"%s\" took %.1fms\n",
-                effect.getClass().getSimpleName(),
-                (end - start) * 1e-6);
-        imageManager.addSnapshot();
-    }
-
     public void undo() {
         cancelActiveTool();
         imageManager.undo();
@@ -615,6 +624,10 @@ public final class MainApp extends App {
 
     public Image getImage() {
         return imageManager.getImage();
+    }
+
+    public Image getPreviewImage() {
+        return hasActiveEffects ? previewImage : getImage();
     }
 
     public long getFilesize() {
@@ -683,6 +696,14 @@ public final class MainApp extends App {
 
     public ImageCanvas getCanvas() {
         return canvas;
+    }
+
+    public void setSidePanel(UITabs sidePanel) {
+        this.sidePanel = sidePanel;
+    }
+
+    public UITabs getSidePanel() {
+        return sidePanel;
     }
 
     public UITextInput getTextToolInput() {
@@ -779,6 +800,19 @@ public final class MainApp extends App {
         previewEffects.add(effect.createInstance());
     }
 
+    public void applyAllPreviewEffects() {
+        if (previewEffects.isEmpty())
+            return;
+        for (int i = previewEffects.size() - 1; i >= 0; i--) {
+            EffectInstance effect = previewEffects.get(i);
+            if (!effect.isVisible())
+                continue;
+            getImage().applyEffect(effect);
+            previewEffects.remove(i);
+        }
+        imageManager.addSnapshot();
+    }
+
     public void removePreviewEffect(EffectInstance effect) {
         previewEffects.remove(effect);
     }
@@ -807,6 +841,14 @@ public final class MainApp extends App {
         }
     }
 
+    public void showAllPreviewEffects() {
+        previewEffects.forEach(EffectInstance::show);
+    }
+
+    public void hideAllPreviewEffects() {
+        previewEffects.forEach(EffectInstance::hide);
+    }
+
     public static boolean isTransparentSelection() {
         return transparentSelection.get();
     }
@@ -821,6 +863,14 @@ public final class MainApp extends App {
 
     public static void setLockSelectionRatio(boolean lockSelectionRatio) {
         MainApp.lockSelectionRatio.set(lockSelectionRatio);
+    }
+
+    public static boolean isShowDebugPanel() {
+        return showDebugPanel.get();
+    }
+
+    public static void setShowDebugPanel(boolean showDebugPanel) {
+        MainApp.showDebugPanel.set(showDebugPanel);
     }
 
     public static boolean isAskUnsavedChanges() {
