@@ -125,10 +125,10 @@ public abstract class UI {
         // state changes:
         while (!eventQueue.isEmpty())
             eventQueue.removeFirst().run();
+        dragging = false;
         root.handleEvents();
 
         // ui reacts to state:
-        dragging = false;
         root.updateVisibility();
 
         // This could potentially cause some weird behavior if the selected element's
@@ -137,10 +137,10 @@ public abstract class UI {
         if (selectedElement != null && !selectedElement.isVisible())
             select(null);
 
-        root.updateMousePosition(mousePos);
-        root.updateMouseAbove(!dragging);
         root.update();
         root.updateSize();
+        root.updateMousePosition(mousePos);
+        root.updateMouseAbove(!dragging);
     }
 
     public void mousePressed(int mouseButton, int mods) {

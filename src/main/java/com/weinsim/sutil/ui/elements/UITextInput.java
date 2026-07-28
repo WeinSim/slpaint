@@ -34,8 +34,7 @@ public class UITextInput extends UIContainer {
         this.valueUpdater = valueUpdater;
         this.multiline = multiline;
 
-        hMarginScale = 0.5;
-        vMarginScale = 0.5;
+        setMarginScale(0.5);
         outlineNormal = true;
 
         setHFillSize();

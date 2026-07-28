@@ -23,11 +23,9 @@ public class UITabs extends UIContainer {
         zeroMargin();
         zeroPadding();
 
-        add(new UIEmpty(UISizes.MARGIN));
-
         titles = new UIContainer(HORIZONTAL, BOTTOM);
         titles.noOutline();
-        titles.setVMarginScale(0);
+        titles.setBottomMarginScale(0);
         add(titles);
 
         addSeparator();

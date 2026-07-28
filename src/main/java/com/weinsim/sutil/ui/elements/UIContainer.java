@@ -61,7 +61,10 @@ public class UIContainer extends UIElement {
 
     protected SVector minSize;
 
-    protected double hMarginScale = 1, vMarginScale = 1;
+    protected double topMarginScale = 1,
+            bottomMarginScale = 1,
+            leftMarginScale = 1,
+            rightMarginScale = 1;
     protected double paddingScale = 1;
 
     protected boolean automaticSeparators = false;
@@ -308,9 +311,7 @@ public class UIContainer extends UIElement {
             return;
         }
 
-        double hMargin = getHMargin(), vMargin = getVMargin();
-        double padding = getPadding();
-        SVector boundingBox = getChildrenBoundingBox(hMargin, vMargin, padding);
+        SVector boundingBox = getChildrenBoundingBox();
 
         if (hSizeType != SizeType.FIXED) {
             size.x = boundingBox.x;
@@ -333,10 +334,7 @@ public class UIContainer extends UIElement {
     }
 
     private void adjustAlongAxis() {
-        double hMargin = getHMargin(),
-                vMargin = getVMargin();
-        double padding = getPadding();
-        SVector boundingBox = getChildrenBoundingBox(hMargin, vMargin, padding);
+        SVector boundingBox = getChildrenBoundingBox();
         double remainingSize = orientation == VERTICAL ? size.y - boundingBox.y : size.x - boundingBox.x;
 
         ArrayList<UIContainer> hvChildren = new ArrayList<>();
@@ -445,14 +443,14 @@ public class UIContainer extends UIElement {
     protected double getAvailableSpaceAcrossAxis() {
         boolean isScroll = orientation == VERTICAL ? isVScroll() : isHScroll();
         if (isScroll) {
-            SVector boundingBox = getChildrenBoundingBox(getHMargin(), getVMargin(), getPadding());
+            SVector boundingBox = getChildrenBoundingBox();
             return orientation == VERTICAL
-                    ? Math.max(size.x, boundingBox.x) - 2 * getHMargin()
-                    : Math.max(size.y, boundingBox.y) - 2 * getVMargin();
+                    ? Math.max(size.x, boundingBox.x) - getHMargins()
+                    : Math.max(size.y, boundingBox.y) - getVMargins();
         } else {
             return orientation == VERTICAL
-                    ? size.x - 2 * getHMargin()
-                    : size.y - 2 * getVMargin();
+                    ? size.x - getHMargins()
+                    : size.y - getVMargins();
         }
     }
 
@@ -498,9 +496,12 @@ public class UIContainer extends UIElement {
     }
 
     public void positionChildren() {
-        double hMargin = getHMargin(), vMargin = getVMargin();
+        double topMargin = getTopMargin(),
+                bottomMargin = getBottomMargin(),
+                leftMargin = getLeftMargin(),
+                rightMargin = getRightMargin();
         double padding = getPadding();
-        SVector boundingBox = getChildrenBoundingBox(hMargin, vMargin, padding);
+        SVector boundingBox = getChildrenBoundingBox();
 
         areaOvershoot = new SVector(
                 Math.max(0, boundingBox.x - size.x),
@@ -518,11 +519,11 @@ public class UIContainer extends UIElement {
                 SVector childSize = child.getSize();
 
                 childPos.x = orientation == VERTICAL
-                        ? hMargin + (size.x - 2 * hMargin - childSize.x) * hAlignment / 2.0
-                        : hMargin + runningTotal + (size.x - boundingBox.x) * hAlignment / 2.0;
+                        ? leftMargin + (size.x - (leftMargin + rightMargin) - childSize.x) * hAlignment / 2.0
+                        : leftMargin + runningTotal + (size.x - boundingBox.x) * hAlignment / 2.0;
                 childPos.y = orientation == VERTICAL
-                        ? vMargin + runningTotal + (size.y - boundingBox.y) * vAlignment / 2.0
-                        : vMargin + (size.y - 2 * vMargin - childSize.y) * vAlignment / 2.0;
+                        ? topMargin + runningTotal + (size.y - boundingBox.y) * vAlignment / 2.0
+                        : topMargin + (size.y - (topMargin + bottomMargin) - childSize.y) * vAlignment / 2.0;
 
                 runningTotal += orientation == VERTICAL ? childSize.y : childSize.x;
                 runningTotal += padding;
@@ -534,14 +535,18 @@ public class UIContainer extends UIElement {
         }
     }
 
-    protected SVector getChildrenBoundingBox(double hMargin, double vMargin, double padding) {
+    protected SVector getChildrenBoundingBox() {
+        double topMargin = getTopMargin(),
+                bottomMargin = getBottomMargin(),
+                leftMargin = getLeftMargin(),
+                rightMargin = getRightMargin();
+        double padding = getPadding();
         double sum = 0;
         double max = 0;
         int numNonFloatChildren = 0;
         for (UIElement child : getChildren()) {
-            if (child instanceof UIFloatContainer) {
+            if (child instanceof UIFloatContainer)
                 continue;
-            }
             SVector childSize = child.getSize();
             if (orientation == VERTICAL) {
                 max = Math.max(max, childSize.x);
@@ -550,45 +555,47 @@ public class UIContainer extends UIElement {
                 max = Math.max(max, childSize.y);
                 sum += childSize.x;
             }
-
             numNonFloatChildren++;
         }
-
         sum += Math.max(0, (numNonFloatChildren - 1)) * padding;
         SVector ret = switch (orientation) {
             case VERTICAL -> new SVector(max, sum);
             case HORIZONTAL -> new SVector(sum, max);
             default -> null;
         };
-        ret.x += 2 * hMargin;
-        ret.y += 2 * vMargin;
+        ret.x += leftMargin + rightMargin;
+        ret.y += topMargin + bottomMargin;
 
         return ret;
     }
 
     // Getters / setters
 
-    /**
-     * 
-     * @return the space around the outside (left and right).
-     */
-    public final double getHMargin() {
-        return UISizes.MARGIN.get1f() * hMarginScale;
+    private double getHMargins() {
+        return UISizes.MARGIN.get1f() * (leftMarginScale + rightMarginScale);
     }
 
-    /**
-     * 
-     * @return the space around the outside (top and bottom).
-     */
-    public final double getVMargin() {
-        return UISizes.MARGIN.get1f() * vMarginScale;
+    private double getVMargins() {
+        return UISizes.MARGIN.get1f() * (topMarginScale + bottomMarginScale);
     }
 
-    /**
-     * 
-     * @return the space between the children.
-     */
-    public final double getPadding() {
+    private double getTopMargin() {
+        return UISizes.MARGIN.get1f() * topMarginScale;
+    }
+
+    private double getBottomMargin() {
+        return UISizes.MARGIN.get1f() * bottomMarginScale;
+    }
+
+    private double getLeftMargin() {
+        return UISizes.MARGIN.get1f() * leftMarginScale;
+    }
+
+    private double getRightMargin() {
+        return UISizes.MARGIN.get1f() * rightMarginScale;
+    }
+
+    private double getPadding() {
         return UISizes.PADDING.get1f() * paddingScale;
     }
 
@@ -678,19 +685,39 @@ public class UIContainer extends UIElement {
     }
 
     public UIContainer setMarginScale(double marginScale) {
-        hMarginScale = marginScale;
-        vMarginScale = marginScale;
+        topMarginScale = marginScale;
+        bottomMarginScale = marginScale;
+        leftMarginScale = marginScale;
+        rightMarginScale = marginScale;
         return this;
     }
 
     public UIContainer setHMarginScale(double hMarginScale) {
-        this.hMarginScale = hMarginScale;
+        leftMarginScale = hMarginScale;
+        rightMarginScale = hMarginScale;
         return this;
     }
 
     public UIContainer setVMarginScale(double vMarginScale) {
-        this.vMarginScale = vMarginScale;
+        topMarginScale = vMarginScale;
+        bottomMarginScale = vMarginScale;
         return this;
+    }
+
+    public void setTopMarginScale(double topMarginScale) {
+        this.topMarginScale = topMarginScale;
+    }
+
+    public void setBottomMarginScale(double bottomMarginScale) {
+        this.bottomMarginScale = bottomMarginScale;
+    }
+
+    public void setLeftMarginScale(double leftMarginScale) {
+        this.leftMarginScale = leftMarginScale;
+    }
+
+    public void setRightMarginScale(double rightMarginScale) {
+        this.rightMarginScale = rightMarginScale;
     }
 
     public UIContainer setPaddingScale(double paddingScale) {

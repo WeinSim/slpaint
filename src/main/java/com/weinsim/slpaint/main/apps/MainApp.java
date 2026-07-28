@@ -38,7 +38,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  * <pre>
  * TODO:
  * UI
- *   Separate top / bottom / left / right margins
  *   Make .zeroMargin().noOutline() the default
  * Effects
  *   UI
