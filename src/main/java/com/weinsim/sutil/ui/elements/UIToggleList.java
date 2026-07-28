@@ -18,14 +18,11 @@ public class UIToggleList extends UIContainer {
 
     public UIToggleList() {
         super(VERTICAL, 0);
-
-        zeroMargin();
-        noOutline();
     }
 
     public void addToggle(String label, BooleanSupplier supplier, Consumer<Boolean> consumer) {
         UIContainer container = new UIContainer(HORIZONTAL, CENTER);
-        container.setHFillSize().zeroMargin().noOutline();
+        container.setHFillSize();
 
         container.addLeftClickAction(() -> consumer.accept(!supplier.getAsBoolean()));
         // container.addKeyPressAction(GLFW.GLFW_KEY_SPACE, 0, true, clickAction);
@@ -33,7 +30,7 @@ public class UIToggleList extends UIContainer {
         container.setSelectable(true);
 
         container.add(new UIText(label));
-        container.add(new UIContainer(0, 0).setVMarginScale(0).setHFillSize().noOutline());
+        container.addFill(true);
         container.add(new UIToggle(supplier));
 
         add(container);
@@ -47,7 +44,6 @@ public class UIToggleList extends UIContainer {
             super(HORIZONTAL, LEFT);
             this.stateSupplier = stateSupplier;
 
-            noOutline();
             double yDiff = UISizes.RADIO.get1f() - UISizes.RADIO_INSIDE.get1f();
             double margin = UISizes.MARGIN.get1f();
             setMarginScale(yDiff / 2 / margin);

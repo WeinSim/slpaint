@@ -36,9 +36,7 @@ public class ColorPickContainer extends UIContainer {
         super(orientation, orientation == VERTICAL ? CENTER : TOP);
         this.colorPicker = colorPicker;
 
-        zeroMargin().noOutline();
-
-        paddingScale = 2;
+        setPaddingScale(2.0);
 
         UIContainer row1 = createRow1();
         UIContainer row2 = addAlpha ? createRow2() : null;
@@ -54,7 +52,7 @@ public class ColorPickContainer extends UIContainer {
             add(row4);
         } else {
             UIContainer right = new UIContainer(VERTICAL, CENTER);
-            right.zeroMargin().setPaddingScale(2.0).noOutline();
+            right.setPaddingScale(2.0);
             if (addAlpha) {
                 right.add(row2);
             }
@@ -67,7 +65,6 @@ public class ColorPickContainer extends UIContainer {
     private UIContainer createRow1() {
         UIContainer row1 = new UIContainer(HORIZONTAL, TOP);
         row1.setPaddingScale(2);
-        row1.zeroMargin().noOutline();
         HueSatField hueSatField = new HueSatField(colorPicker);
         row1.add(hueSatField);
         UIScale lightnessScale = new LightnessScale(VERTICAL, colorPicker);
@@ -77,7 +74,6 @@ public class ColorPickContainer extends UIContainer {
 
     private UIContainer createRow2() {
         UIContainer row2 = new UIContainer(HORIZONTAL, CENTER);
-        row2.zeroMargin().noOutline();
         row2.setHFillSize();
 
         row2.add(new UIText("Alpha:"));
@@ -94,15 +90,12 @@ public class ColorPickContainer extends UIContainer {
 
     private UIContainer createRow3(boolean addPreview) {
         UIContainer row3 = new UIContainer(HORIZONTAL, CENTER);
-        row3.zeroMargin().noOutline();
         row3.setHFillSize();
 
         UIContainer hslInput = new UIContainer(VERTICAL, RIGHT);
-        hslInput.zeroMargin().noOutline();
         hslInput.setVisibilitySupplier(App::isHSLColorSpace);
         for (int i = 0; i < HSL_NAMES.length; i++) {
             UIContainer colorRow = new UIContainer(HORIZONTAL, CENTER);
-            colorRow.zeroMargin().noOutline();
             colorRow.add(new UIText(HSL_NAMES[i] + ":"));
             IntSupplier getter = switch (i) {
                 case 0 -> () -> (int) colorPicker.getHue();
@@ -123,11 +116,9 @@ public class ColorPickContainer extends UIContainer {
         row3.add(hslInput);
 
         UIContainer hsvInput = new UIContainer(VERTICAL, RIGHT);
-        hsvInput.zeroMargin().noOutline();
         hsvInput.setVisibilitySupplier(() -> !MainApp.isHSLColorSpace());
         for (int i = 0; i < HSV_NAMES.length; i++) {
             UIContainer colorRow = new UIContainer(HORIZONTAL, CENTER);
-            colorRow.zeroMargin().noOutline();
             colorRow.add(new UIText(HSV_NAMES[i] + ":"));
             IntSupplier getter = switch (i) {
                 case 0 -> () -> (int) colorPicker.getHue();
@@ -148,10 +139,8 @@ public class ColorPickContainer extends UIContainer {
         row3.add(hsvInput);
 
         UIContainer rgbInput = new UIContainer(VERTICAL, RIGHT);
-        rgbInput.zeroMargin().noOutline();
         for (int i = 0; i < RGB_NAMES.length; i++) {
             UIContainer colorRow = new UIContainer(HORIZONTAL, CENTER);
-            colorRow.zeroMargin().noOutline();
             colorRow.add(new UIText(RGB_NAMES[i] + ":"));
             IntSupplier getter = switch (i) {
                 case 0 -> () -> SUtil.red(colorPicker.getRGB());
@@ -175,16 +164,12 @@ public class ColorPickContainer extends UIContainer {
         }
         row3.add(rgbInput);
 
-        UIContainer gap = new UIContainer(0, 0);
-        gap.zeroMargin().noOutline();
-        gap.setHFillSize();
-        row3.add(gap);
+        row3.addFill(false);
 
         UIContainer colorPreview = new UIContainer(VERTICAL, CENTER);
-        colorPreview.zeroMargin().noOutline();
         UIContainer colorBox = new UIContainer(HORIZONTAL, 0);
         colorBox.setStyle(new UIStyle(() -> null, UIColors.HIGHLIGHT, () -> 2.0));
-        colorBox.zeroMargin().zeroPadding().noOutline();
+        colorBox.zeroPadding();
         Supplier<SVector> previewSize = () -> {
             SVector size = UISizes.COLOR_PICKER_PREVIEW.get2f();
             if (addPreview) {

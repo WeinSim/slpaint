@@ -28,9 +28,7 @@ public final class TextToolContainer extends DragToolContainer<TextTool> {
         TextInput() {
             super(ImageTool.TEXT::getText, ImageTool.TEXT::setText);
 
-            zeroMargin();
             setFillSize();
-            noOutline();
 
             hAlignment = LEFT;
             vAlignment = TOP;

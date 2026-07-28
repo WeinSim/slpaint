@@ -20,13 +20,10 @@ public class UIRadioButtonList extends UIContainer {
 
         super(orientation, orientation == UI.VERTICAL ? UI.LEFT : UI.CENTER);
 
-        noOutline();
-        zeroMargin();
         setPaddingScale(2.0);
 
         for (int i = 0; i < options.length; i++) {
             UIContainer row = new UIContainer(UI.HORIZONTAL, UI.CENTER);
-            row.zeroMargin().noOutline();
 
             final int j = i;
             row.addLeftClickAction(() -> stateConsumer.accept(j));
@@ -59,9 +56,6 @@ public class UIRadioButtonList extends UIContainer {
 
         UIRadioButton(int index, IntSupplier stateSupplier) {
             super(UI.VERTICAL, UI.CENTER);
-
-            noOutline();
-            zeroMargin();
 
             style.setBackgroundColor(UIColors.BACKGROUND_SELECTED);
             style.setShape(UIShape.ELLIPSE);

@@ -64,7 +64,7 @@ public class MainUI extends AppUI<MainApp> {
 
         root.add(createToolRow());
         UIContainer mainRow = new UIContainer(HORIZONTAL, TOP);
-        mainRow.withSeparators(false).noOutline();
+        mainRow.withSeparators(false);
         mainRow.setFillSize();
         mainRow.add(createSidePanel());
         mainRow.add(new ImageCanvas(VERTICAL, RIGHT, TOP, app));
@@ -72,7 +72,6 @@ public class MainUI extends AppUI<MainApp> {
         root.add(mainRow);
 
         UIContainer statusBar = createStatusBar();
-
         root.add(statusBar);
     }
 
@@ -135,7 +134,7 @@ public class MainUI extends AppUI<MainApp> {
 
     private UIContainer createToolRow() {
         UIContainer toolRow = new UIContainer(HORIZONTAL, LEFT, CENTER, HORIZONTAL);
-        toolRow.withSeparators(true).setHFillSize().setHAlignment(LEFT).withBackground().noOutline();
+        toolRow.withSeparators(true).setHFillSize().setHAlignment(LEFT).withBackground();
 
         UIContainer fileButtons = addToolRowSection(toolRow, "File");
         fileButtons.add(new UIButton(UILabel.icons("undo", "undo_inactive", app::canUndo), app::undo));
@@ -161,7 +160,6 @@ public class MainUI extends AppUI<MainApp> {
         for (int i = 0; i < ImageTool.INSTANCES.length; i++) {
             if (i % toolsPerRow == 0) {
                 currentToolRow = new UIContainer(HORIZONTAL, CENTER);
-                currentToolRow.zeroMargin().noOutline();
             }
             ImageTool tool = ImageTool.INSTANCES[i];
             String iconName = String.format("%s_tool", tool.getName().toLowerCase());
@@ -175,7 +173,6 @@ public class MainUI extends AppUI<MainApp> {
 
         // Used for pencil size and line size
         UIContainer sizeTools = new UIContainer(VERTICAL, CENTER);
-        sizeTools.zeroMargin().noOutline();
         sizeTools.setVisibilitySupplier(() -> switch (app.getActiveTool()) {
             case PencilTool _,LineTool _ -> true;
             default -> false;
@@ -203,9 +200,8 @@ public class MainUI extends AppUI<MainApp> {
         sizeTools.add(sizeScale);
 
         UIContainer sizeBottomRow = new UIContainer(HORIZONTAL, CENTER);
-        sizeBottomRow.zeroMargin().noOutline();
         sizeBottomRow.add(new UIText("Size:", UIText.SMALL));
-        sizeBottomRow.add(new UIContainer(0, 0).setHFillSize().noOutline());
+        sizeBottomRow.addFill(true);
         sizeBottomRow.add(createIntPicker(sizeSupplier, sizeConsumer));
 
         sizeTools.add(sizeBottomRow);
@@ -218,15 +214,14 @@ public class MainUI extends AppUI<MainApp> {
         toolRow.add(pencilTools);
 
         UIContainer selectionTools = new UIContainer(VERTICAL, CENTER);
-        selectionTools.zeroMargin().setPaddingScale(2.0).noOutline();
+        selectionTools.setPaddingScale(2.0);
         selectionTools.setVisibilitySupplier(() -> app.getActiveTool() == ImageTool.SELECTION);
         UIContainer selectionToolsTop = new UIContainer(HORIZONTAL, CENTER);
-        selectionToolsTop.zeroMargin().setPaddingScale(2.0).noOutline();
+        selectionToolsTop.setPaddingScale(2.0);
 
         final SelectionTool selection = ImageTool.SELECTION;
         final BooleanSupplier selectionActive = () -> selection.getState() == SelectionTool.IDLE;
         UIContainer selectionButtons = new UIContainer(HORIZONTAL, LEFT);
-        selectionButtons.zeroMargin().noOutline();
         UIDropdown[] selectionRotateFlipDropdowns = createRotateFlipDropdowns(selectionActive, selection::rotateRight,
                 selection::rotateLeft, selection::rotate180, selection::flipHorizontal, selection::flipVertical);
         selectionButtons.add(selectionRotateFlipDropdowns[0]);
@@ -248,20 +243,19 @@ public class MainUI extends AppUI<MainApp> {
         toolRow.add(selectionTools);
 
         UIContainer textTools = new UIContainer(HORIZONTAL, CENTER);
-        textTools.zeroMargin().setVFillSize().noOutline();
+        textTools.setVFillSize();
         textTools.setVisibilitySupplier(() -> app.getActiveTool() == ImageTool.TEXT);
         textTools.setPaddingScale(2);
 
         UIContainer textSizeContainer = new UIContainer(VERTICAL, CENTER);
-        textSizeContainer.zeroMargin().setPaddingScale(2).setVFillSize().noOutline();
+        textSizeContainer.setPaddingScale(2).setVFillSize();
         textSizeContainer.add(createIntPicker(ImageTool.TEXT::getSize, ImageTool.TEXT::setSize));
         textSizeContainer.add(new UIText("Size", UISizes.TEXT_SMALL));
         textTools.add(textSizeContainer);
 
         UIContainer textFontContainer = new UIContainer(VERTICAL, CENTER);
-        textFontContainer.zeroMargin().setPaddingScale(2).setVFillSize().noOutline();
+        textFontContainer.setPaddingScale(2).setVFillSize();
         UIContainer textFontRow1 = new UIContainer(HORIZONTAL, CENTER);
-        textFontRow1.zeroMargin().noOutline();
         // textFontRow1.add(new UIDropdown(
         // TextTool.FONT_NAMES,
         // () -> 0,
@@ -283,20 +277,13 @@ public class MainUI extends AppUI<MainApp> {
 
     private UIContainer addToolRowSection(UIContainer toolRow, String name, BooleanSupplier visibilitySupplier) {
         UIContainer options = new UIContainer(VERTICAL, CENTER);
-        options.zeroMargin().noOutline();
         options.setVFillSize();
         options.setPaddingScale(2);
-        // options.zeroPadding();
         if (visibilitySupplier != null)
             options.setVisibilitySupplier(visibilitySupplier);
 
         UIContainer optionButtons = new UIContainer(HORIZONTAL, CENTER);
-        optionButtons.zeroMargin().noOutline();
         options.add(optionButtons);
-
-        // UIContainer fill = new UIContainer(0, 0);
-        // fill.setVFillSize().zeroMargin().noOutline();
-        // options.add(fill);
 
         options.add(new UIText(name, UIText.SMALL));
 
@@ -337,7 +324,7 @@ public class MainUI extends AppUI<MainApp> {
 
     private UIContainer createIntPicker(IntSupplier sizeGetter, IntConsumer sizeSetter) {
         UIContainer container = new UIContainer(HORIZONTAL, CENTER);
-        container.zeroMargin().zeroPadding().noOutline();
+        container.zeroPadding();
         UIButton minusButton = new UIButton("-", () -> sizeSetter.accept(sizeGetter.getAsInt() - 1));
         minusButton.setCursorShape(() -> minusButton.mouseAbove() ? GLFW_POINTING_HAND_CURSOR : null);
         container.add(minusButton);
@@ -362,14 +349,13 @@ public class MainUI extends AppUI<MainApp> {
 
     private UIContainer createColorPanel() {
         UIContainer colorPanel = new UIContainer(VERTICAL, CENTER, TOP, VERTICAL);
-        colorPanel.withSeparators(true).setVFillSize().withBackground().noOutline();
+        colorPanel.withSeparators(true).setVFillSize().withBackground();
 
         UIContainer primSecColorContainer = new UIContainer(HORIZONTAL, TOP);
-        primSecColorContainer.zeroMargin().setPaddingScale(1.0).noOutline();
         for (int i = 0; i < 2; i++) {
             final int index = i;
             UIContainer colorContainer = new UIContainer(VERTICAL, CENTER);
-            // colorContainer.zeroMargin();
+            colorContainer.withMargin();
             UIStyle.setSelectableButtonStyle(colorContainer, () -> app.getColorSelection() == index);
             colorContainer.setSelectable(true);
             Supplier<Vector4f> cg = i == 0
@@ -377,7 +363,7 @@ public class MainUI extends AppUI<MainApp> {
                     : () -> MainApp.toVector4f(app.getSecondaryColor());
             colorContainer.add(new UIColorElement(cg, UISizes.BIG_COLOR_BUTTON));
             UIContainer textContainer = new UIContainer(VERTICAL, CENTER);
-            textContainer.zeroMargin().zeroPadding().noOutline();
+            textContainer.zeroPadding();
             textContainer.add(new UIText(i == 0 ? "Primary" : "Secondary", UISizes.TEXT_SMALL));
             textContainer.add(new UIText("Color", UISizes.TEXT_SMALL));
             colorContainer.add(textContainer);
@@ -388,12 +374,12 @@ public class MainUI extends AppUI<MainApp> {
 
         final double colorPaddingScale = 1.0;
         UIContainer allColors = new UIContainer(VERTICAL, LEFT);
-        allColors.zeroMargin().setPaddingScale(colorPaddingScale).noOutline();
+        allColors.setPaddingScale(colorPaddingScale);
         UIContainer currentRow = null;
         for (int i = 0; i < MainApp.DEFAULT_COLORS.length; i++) {
             if (currentRow == null) {
                 currentRow = new UIContainer(HORIZONTAL, CENTER);
-                currentRow.zeroMargin().setPaddingScale(colorPaddingScale).noOutline();
+                currentRow.setPaddingScale(colorPaddingScale);
             }
 
             final int colorInt = MainApp.DEFAULT_COLORS[i];
@@ -411,7 +397,7 @@ public class MainUI extends AppUI<MainApp> {
         CustomColorContainer ccc = new CustomColorContainer(HORIZONTAL,
                 app.getCustomColorButtonArray(),
                 c -> app.selectColor(MainApp.toInt(c)));
-        ccc.zeroMargin().setPaddingScale(colorPaddingScale).noOutline();
+        ccc.setPaddingScale(colorPaddingScale);
         allColors.add(ccc);
         colorPanel.add(allColors);
 
@@ -428,7 +414,7 @@ public class MainUI extends AppUI<MainApp> {
 
     private UIContainer createDebugPanel() {
         UIContainer debugPanel = new UIContainer(VERTICAL, CENTER, TOP, VERTICAL);
-        debugPanel.setVFillSize().noOutline();
+        debugPanel.setVFillSize();
 
         debugPanel.add(UILabel.text("DEBUG"));
 
@@ -481,7 +467,7 @@ public class MainUI extends AppUI<MainApp> {
 
     private UIContainer createStatusBar() {
         UIContainer statusBar = new UIContainer(HORIZONTAL, LEFT, CENTER);
-        statusBar.withSeparators(false).withBackground().noOutline();
+        statusBar.withSeparators(false).withBackground();
         statusBar.setHFillSize();
         addStatusBarLabel(statusBar, () -> {
             String ret = "Format: ";
@@ -525,7 +511,7 @@ public class MainUI extends AppUI<MainApp> {
         });
 
         if (MainApp.DEV_BUILD) {
-            statusBar.add(new UIContainer(0, 0).setHFillSize().noOutline());
+            statusBar.addFill(false);
             addStatusBarLabel(statusBar, () -> String.format(
                     "%d UI elements",
                     countUIElements(UI.getRoot())));
@@ -544,7 +530,7 @@ public class MainUI extends AppUI<MainApp> {
 
     private UIContainer addStatusBarLabel(UIContainer statusBar, Supplier<String> textSupplier) {
         UIContainer container = new UIContainer(HORIZONTAL, CENTER);
-        container.noOutline();
+        container.withMargin();
         container.add(new UIText(textSupplier, UISizes.TEXT_SMALL));
         statusBar.add(container);
         return container;

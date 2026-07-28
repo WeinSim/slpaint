@@ -17,7 +17,6 @@ public sealed class ToolContainer<T extends ImageTool> extends UIFloatContainer
         this.tool = tool;
         this.app = app;
 
-        noOutline();
         noBackground();
 
         setVisibilitySupplier(() -> app.getActiveTool() == tool && (tool.getState() & getVisibleStates()) != 0);

@@ -6,16 +6,15 @@ import com.weinsim.slpaint.main.ColorPicker;
 import com.weinsim.slpaint.renderengine.Window;
 import com.weinsim.slpaint.ui.AppUI;
 import com.weinsim.slpaint.ui.SettingsUI;
+import com.weinsim.sutil.ui.UISizes;
 
 public final class SettingsApp extends App {
 
     private ColorPicker colorPicker;
 
     public SettingsApp(MainApp mainApp) {
-        super(900, 650, Window.NORMAL, true, false, "Settings", mainApp);
-
+        super(UISizes.SETTINGS_APP, Window.NORMAL, true, false, "Settings", mainApp);
         colorPicker = AppUI.getBaseColorPicker();
-
         loadUI();
     }
 

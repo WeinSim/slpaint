@@ -13,6 +13,8 @@ public class UIButton extends UIContainer {
         super(HORIZONTAL, CENTER);
         this.label = label;
 
+        withMargin();
+
         outlineNormal = false;
         backgroundHighlight = true;
         selectable = true;

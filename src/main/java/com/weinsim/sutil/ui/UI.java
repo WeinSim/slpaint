@@ -94,7 +94,7 @@ public abstract class UI {
         this.uiScale = uiScale;
 
         root = new UIRoot(VERTICAL, LEFT);
-        root.zeroMargin().zeroPadding().noOutline().withBackground();
+        root.zeroPadding().withBackground();
         root.setFixedSize(initialRootSize);
         rootSize = new SVector(initialRootSize);
 

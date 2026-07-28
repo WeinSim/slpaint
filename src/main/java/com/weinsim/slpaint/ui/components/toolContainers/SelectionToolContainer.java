@@ -10,9 +10,6 @@ public final class SelectionToolContainer extends DragToolContainer<SelectionToo
 
     public SelectionToolContainer(MainApp app) {
         super(ImageTool.SELECTION, app);
-
-        zeroMargin();
-
         add(new SelectionImage());
     }
 

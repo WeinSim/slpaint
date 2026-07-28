@@ -24,7 +24,6 @@ public final class LineToolContainer extends ToolContainer<LineTool> {
 
         addAnchor(Anchor.TOP_LEFT, () -> app.getCanvas().getImageTranslation());
 
-        zeroMargin();
         relativeLayer = 2;
 
         add(new ImageDisplay());

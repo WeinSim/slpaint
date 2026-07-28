@@ -61,11 +61,11 @@ public class UIContainer extends UIElement {
 
     protected SVector minSize;
 
-    protected double topMarginScale = 1,
-            bottomMarginScale = 1,
-            leftMarginScale = 1,
-            rightMarginScale = 1;
-    protected double paddingScale = 1;
+    private double topMarginScale = 0,
+            bottomMarginScale = 0,
+            leftMarginScale = 0,
+            rightMarginScale = 0;
+    private double paddingScale = 1;
 
     protected boolean automaticSeparators = false;
 
@@ -81,8 +81,6 @@ public class UIContainer extends UIElement {
         super();
 
         this.scrollMode = scrollMode;
-
-        outlineNormal = true;
 
         setOrientation(orientation);
         setHAlignment(hAlignment);
@@ -134,6 +132,14 @@ public class UIContainer extends UIElement {
 
     public void addSeparator() {
         add(new UISeparator());
+    }
+
+    public void addFill() {
+        addFill(true);
+    }
+
+    public void addFill(boolean margin) {
+        add(new UIFill(true));
     }
 
     public void add(UIElement child) {
@@ -704,20 +710,24 @@ public class UIContainer extends UIElement {
         return this;
     }
 
-    public void setTopMarginScale(double topMarginScale) {
+    public UIContainer setTopMarginScale(double topMarginScale) {
         this.topMarginScale = topMarginScale;
+        return this;
     }
 
-    public void setBottomMarginScale(double bottomMarginScale) {
+    public UIContainer setBottomMarginScale(double bottomMarginScale) {
         this.bottomMarginScale = bottomMarginScale;
+        return this;
     }
 
-    public void setLeftMarginScale(double leftMarginScale) {
+    public UIContainer setLeftMarginScale(double leftMarginScale) {
         this.leftMarginScale = leftMarginScale;
+        return this;
     }
 
-    public void setRightMarginScale(double rightMarginScale) {
+    public UIContainer setRightMarginScale(double rightMarginScale) {
         this.rightMarginScale = rightMarginScale;
+        return this;
     }
 
     public UIContainer setPaddingScale(double paddingScale) {
@@ -725,22 +735,22 @@ public class UIContainer extends UIElement {
         return this;
     }
 
-    /**
-     * Removes space around the outside.
-     * 
-     * @param zeroMargin
-     */
+    public UIContainer withMargin() {
+        setMarginScale(1.0);
+        return this;
+    }
+
     public UIContainer zeroMargin() {
         setHMarginScale(0);
         setVMarginScale(0);
         return this;
     }
 
-    /**
-     * Removes space between children.
-     * 
-     * @return
-     */
+    public UIContainer withPadding() {
+        setPaddingScale(1.0);
+        return this;
+    }
+
     public UIContainer zeroPadding() {
         setPaddingScale(0);
         return this;
@@ -883,7 +893,6 @@ public class UIContainer extends UIElement {
             super(VERTICAL, LEFT);
 
             style.setStrokeColor(UIColors.SEPARATOR);
-            zeroMargin();
             zeroPadding();
         }
 
@@ -902,6 +911,34 @@ public class UIContainer extends UIElement {
 
     }
 
+    private static class UIFill extends UIContainer {
+
+        private final boolean margin;
+
+        UIFill(boolean margin) {
+            super(0, 0);
+            this.margin = margin;
+        }
+
+        @Override
+        public void update() {
+            super.update();
+
+            if (parent.getOrientation() == VERTICAL) {
+                setHMinimalSize();
+                setVFillSize();
+                setHMarginScale(0.0);
+                setVMarginScale(margin ? 1.0 : 0.0);
+            } else {
+                setHFillSize();
+                setVMinimalSize();
+                setHMarginScale(margin ? 1.0 : 0.0);
+                setVMarginScale(0.0);
+            }
+        }
+
+    }
+
     private static class UIScrollbarContainerWrapper extends UIContainer {
 
         final UIContainer scrollArea;
@@ -911,8 +948,8 @@ public class UIContainer extends UIElement {
             super(1 - orientation, 0);
             this.scrollArea = scrollArea;
 
-            noBackground().noOutline();
-            zeroMargin().zeroPadding();
+            noBackground();
+            zeroPadding();
 
             add(container);
             scrollbarContainer = new UIScrollbarContainer(scrollArea, orientation);
@@ -960,7 +997,6 @@ public class UIContainer extends UIElement {
             style.setStrokeColor(scrollArea::strokeColor);
             style.setStrokeWeight(scrollArea::strokeWeight);
             withBackground();
-            zeroMargin();
 
             setVisibilitySupplier(() -> scrollArea.showScrollbar(orientation));
 
@@ -1048,13 +1084,13 @@ public class UIContainer extends UIElement {
             this.scrollArea = scrollArea;
             this.scrollbarContainer = scrollbarContainer;
 
-            UIStyle style = new UIStyle(
+            withMargin();
+
+            setStyle(new UIStyle(
                     () -> mouseAbove || scrollbarContainer.isDragging()
                             ? UIColors.OUTLINE.get()
                             : UIColors.SCROLLBAR_HIGHLIGHT.get(),
-                    () -> null, () -> 0.0);
-
-            setStyle(style);
+                    null, null));
 
             addAnchor(Anchor.TOP_LEFT, this::getPos);
         }

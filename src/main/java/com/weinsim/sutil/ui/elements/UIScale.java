@@ -27,9 +27,6 @@ public class UIScale extends UIDragContainer {
         this.narrow = narrow;
 
         setAlignment(CENTER);
-
-        noOutline();
-        zeroMargin();
         zeroPadding();
 
         if (orientation == VERTICAL) {
@@ -86,12 +83,7 @@ public class UIScale extends UIDragContainer {
 
         public Visuals(int orientation) {
             super(orientation, 0);
-
             style.setBackgroundColor(UIColors.OUTLINE);
-
-            noOutline();
-            zeroMargin();
-
             double s = getVisualWidth();
             if (orientation == VERTICAL) {
                 setHFixedSize(s);

@@ -52,7 +52,7 @@ public class UIFloatMenu extends UIFloatContainer {
         this.closeAction = closeAction;
         this.textSizeUpdater = textSizeUpdater;
 
-        zeroMargin();
+        withOutline();
         zeroPadding();
 
         relativeLayer = 1;
@@ -61,7 +61,7 @@ public class UIFloatMenu extends UIFloatContainer {
 
         if (scroll) {
             UIContainer scrollArea = new UIContainer(VERTICAL, LEFT, TOP, UI.VERTICAL);
-            scrollArea.setVFixedSize(400).zeroMargin().zeroPadding();
+            scrollArea.setVFixedSize(400).zeroPadding();
             contents = scrollArea;
             add(scrollArea.addScrollbars(), true);
         } else {
@@ -186,7 +186,7 @@ public class UIFloatMenu extends UIFloatContainer {
 
     public void addSeparator() {
         UIContainer container = new UIContainer(VERTICAL, 0);
-        container.setVMarginScale(1.0).setHMarginScale(0.0).setHFillSize().noOutline();
+        container.setVMarginScale(1.0).setHFillSize();
         container.addSeparator();
         add(container);
     }
@@ -205,13 +205,13 @@ public class UIFloatMenu extends UIFloatContainer {
         CMLabel(UILabel label, String rightText, UIIcon rightIcon) {
             super(HORIZONTAL, LEFT, CENTER);
 
-            noOutline();
             setHFillSize();
+            withMargin();
 
             label.setSize(UISizes.ICON_SMALL, UISizes.TEXT_SMALL);
             add(label);
 
-            add(new UIContainer(0, 0).setVMarginScale(0).setHFillSize().noOutline());
+            addFill(true);
             if (rightText != null)
                 add(new UIText(rightText, textSizeUpdater).setColor(UIColors.TEXT_INVALID));
 

@@ -30,8 +30,6 @@ public class HueSatField extends UIDragContainer {
     public HueSatField(ColorPicker colorPicker) {
         this.colorPicker = colorPicker;
 
-        noOutline();
-
         add(new Cursor(colorPicker));
         setFixedSize(UISizes.HUE_SAT_FIELD.get2f());
 
@@ -116,8 +114,6 @@ public class HueSatField extends UIDragContainer {
 
         public Cursor(ColorPicker colorPicker) {
             super(0, 0);
-
-            noOutline();
 
             addAnchor(Anchor.CENTER_CENTER, () -> new SVector(getRelativeX(), getRelativeY()).mult(parent.getSize()));
 

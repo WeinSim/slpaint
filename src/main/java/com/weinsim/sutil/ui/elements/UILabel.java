@@ -24,7 +24,6 @@ public class UILabel extends UIContainer {
         this.active = active;
 
         outlineNormal = false;
-        zeroMargin();
 
         iconSize = UISizes.ICON;
         textSize = UISizes.TEXT;

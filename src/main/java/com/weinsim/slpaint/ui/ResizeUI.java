@@ -50,10 +50,10 @@ public class ResizeUI extends AppUI<ResizeApp> {
         root.add(resizeMode);
 
         UIContainer inner = new UIContainer(VERTICAL, CENTER);
-        inner.setHFillSize();
+        inner.withMargin().setHFillSize();
 
         UIContainer inputMode = new UIContainer(HORIZONTAL, CENTER);
-        inputMode.setHFillSize().noOutline();
+        inputMode.withMargin().setHFillSize();
         inputMode.add(new UIText("By:"));
         UIContainer radioButtons = new UIRadioButtonList(
                 HORIZONTAL,
@@ -65,10 +65,10 @@ public class ResizeUI extends AppUI<ResizeApp> {
 
         for (int i = 0; i < 2; i++) {
             UIContainer row = new UIContainer(HORIZONTAL, CENTER);
-            row.setHFillSize().zeroMargin().noOutline();
+            row.setHFillSize();
 
             row.add(new UIText(i == 0 ? "Width:" : "Height:"));
-            row.add(new UIContainer(0, 0).setHFillSize().noOutline());
+            row.addFill(false);
             IntSupplier pixelGetter = i == 0 ? app::getWidthPixels : app::getHeightPixels,
                     percentageGetter = i == 0 ? app::getWidthPercentage : app::getHeightPercentage;
             IntConsumer pixelSetter = i == 0 ? app::setWidthPixels : app::setHeightPixels,
@@ -94,7 +94,7 @@ public class ResizeUI extends AppUI<ResizeApp> {
         root.add(inner);
 
         UIContainer buttonRow = new UIContainer(HORIZONTAL, RIGHT, CENTER);
-        buttonRow.setHFillSize().zeroMargin().noOutline();
+        buttonRow.setHFillSize();
 
         buttonRow.add(new UIButton("OK", app::done));
         buttonRow.add(new UIButton("Cancel", app::requestClose));

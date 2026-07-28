@@ -11,7 +11,6 @@ public class UIMenuBar extends UIContainer {
     public UIMenuBar() {
         super(UI.HORIZONTAL, UI.LEFT, UI.CENTER);
 
-        noOutline();
         setMarginScale(0.5);
         setPaddingScale(0.5);
         setHFillSize();
@@ -39,8 +38,8 @@ public class UIMenuBar extends UIContainer {
             this.menu = new UIFloatMenu(() -> expandedMenu == this, () -> expandedMenu = null);
             menu.addAnchor(Anchor.TOP_LEFT, Anchor.BOTTOM_LEFT);
 
-            noOutline();
             setHMarginScale(1.5);
+            setVMarginScale(1.0);
 
             style.setBackgroundColor(
                     () -> (mouseAbove || expandedMenu == this)

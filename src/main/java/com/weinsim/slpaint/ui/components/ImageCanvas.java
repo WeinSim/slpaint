@@ -45,9 +45,7 @@ public class ImageCanvas extends UIContainer {
         this.app = app;
         app.setCanvas(this);
 
-        noOutline();
         setFillSize();
-        zeroMargin();
 
         setCursorShape(() -> draggingImage ? GLFW_POINTING_HAND_CURSOR : null);
 
@@ -261,12 +259,8 @@ public class ImageCanvas extends UIContainer {
         ImageDisplay() {
             super(0, 0);
 
-            noOutline();
             noBackground();
-            zeroMargin();
-
             addAnchor(Anchor.TOP_LEFT, ImageCanvas.this::getImageTranslation);
-
             add(new ImageContainerChild());
         }
 
@@ -296,10 +290,7 @@ public class ImageCanvas extends UIContainer {
         ImageResize() {
             super(0, 0);
 
-            noOutline();
             noBackground();
-            zeroMargin();
-
             style.setStrokeCheckerboard(
                     () -> resizing,
                     UIColors.SELECTION_BORDER_1,

@@ -5,6 +5,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.function.Supplier;
 
 import com.weinsim.slpaint.main.MainLoop;
 import com.weinsim.slpaint.renderengine.AppRenderer;
@@ -56,8 +57,19 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
     protected SmoothValue avgFrameTime, avgUpdateTime;
     protected int frameCount;
 
+    public App(Supplier<SVector> size, int windowMode, String title) {
+        SVector wh = size.get();
+        this((int) wh.x, (int) wh.y, windowMode, title);
+    }
+
     public App(int width, int height, int windowMode, String title) {
         this(width, height, windowMode, true, false, title, null);
+    }
+
+    public App(Supplier<SVector> size, int windowMode, boolean resizable, boolean adjustSizeOnInit, String title,
+            App parent) {
+        SVector wh = size.get();
+        this((int) wh.x, (int) wh.y, windowMode, resizable, adjustSizeOnInit, title, parent);
     }
 
     public App(int width, int height, int windowMode, boolean resizable, boolean adjustSizeOnInit, String title,

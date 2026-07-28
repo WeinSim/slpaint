@@ -37,8 +37,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
 /**
  * <pre>
  * TODO:
- * UI
- *   Make .zeroMargin().noOutline() the default
  * Effects
  *   UI
  *     Buttons to enable / disable all effects
@@ -144,10 +142,7 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *     Effects UI
  *       Make multiple effect instances selectable using Shift / Ctrl clicks?
  *         Make that kind of selectable list a predefined sutil.ui asset?
- *       An effect should not be selected when the eye / trash can icons are
- *         clicked. => add option in UI to only run a click action if the mouse
- *         is not above any children (or have the mouse click be "used up" by 
- *         children click action, similar to scroll?)
+ *         For what?
  *     Icons
  *       Automatically render invalid white icons as grey?
  *         -> would require changes in rendering API

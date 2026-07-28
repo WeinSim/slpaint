@@ -25,18 +25,15 @@ public class EffectsPanel extends UIContainer {
         this.app = app;
         bottomPanelVisible = false;
 
-        noOutline();
         setVFillSize();
         withSeparators(true);
 
         UIContainer top = new UIContainer(VERTICAL, CENTER);
-        top.zeroMargin().noOutline();
         top.setFillSize();
         UIContainer buttonsTop = new UIContainer(HORIZONTAL, CENTER);
-        buttonsTop.zeroMargin().noOutline();
         buttonsTop.setHFillSize();
         buttonsTop.add(new UIText("Active Effects", UISizes.TEXT_SMALL));
-        buttonsTop.add(new UIContainer(0, 0).setHFillSize().zeroMargin().noOutline());
+        buttonsTop.addFill(false);
         buttonsTop.add(new UIButton(
                 UILabel.icon("close").small(),
                 () -> app.removeAllPreviewEffects())
@@ -49,15 +46,14 @@ public class EffectsPanel extends UIContainer {
         add(top);
 
         UIContainer bottom = new UIContainer(VERTICAL, LEFT);
-        bottom.zeroMargin().noOutline();
         bottom.setFillSize();
         bottom.setVisibilitySupplier(() -> bottomPanelVisible);
         bottom.add(new UIText("Available Effects", UISizes.TEXT_SMALL));
         UIContainer available = new UIContainer(VERTICAL, LEFT, TOP, VERTICAL);
-        available.setFillSize();
+        available.withMargin().setFillSize();
+        available.withOutline();
         for (Effect effect : Effect.values()) {
             UIContainer row = new UIContainer(HORIZONTAL, CENTER);
-            row.zeroMargin().noOutline();
             row.add(new UIButton(UILabel.icon("plus"),
                     () -> {
                         app.addPreviewEffect(effect);
@@ -88,6 +84,7 @@ public class EffectsPanel extends UIContainer {
         public ActiveEffectsContainer() {
             super(VERTICAL, CENTER, TOP, VERTICAL);
             setHFillSize();
+            withOutline();
 
             add(new UIText("No Effects Selected", UISizes.TEXT_SMALL)
                     .setColor(UIColors.TEXT_INVALID)
@@ -116,6 +113,12 @@ public class EffectsPanel extends UIContainer {
                     addFirst(new InstanceContainer(effect));
                 }
             }
+        }
+
+        @Override
+        public void update() {
+            super.update();
+
             boolean previewEmpty = previewEmpty();
             setAlignment(previewEmpty ? CENTER : TOP);
             setMarginScale(previewEmpty ? 3 : 1);
@@ -136,15 +139,13 @@ public class EffectsPanel extends UIContainer {
             this.effect = effect;
 
             setHFillSize();
-            zeroMargin();
             zeroPadding();
             setStyle(new UIStyle(UIColors.BACKGROUND_2, null, null));
 
             UIContainer topRow = new UIContainer(HORIZONTAL, CENTER);
-            topRow.zeroMargin().noOutline();
             topRow.setHFillSize();
             topRow.add(UILabel.text(effect.getEffect().name).setMarginScale(1.0));
-            topRow.add(new UIContainer(0, 0).setHFillSize().zeroMargin().noOutline());
+            topRow.addFill(false);
             UILabel[] labels = {
                     UILabel.icon("arrow_up"),
                     UILabel.icon("arrow_down"),
@@ -158,28 +159,13 @@ public class EffectsPanel extends UIContainer {
                     () -> app.removePreviewEffect(effect)
             };
             UIContainer buttons = new UIContainer(HORIZONTAL, CENTER);
-            buttons.zeroMargin().noOutline();
             buttons.zeroPadding();
             for (int i = 0; i < actions.length; i++)
                 buttons.add(new UIButton(labels[i].small(), actions[i]));
             topRow.add(buttons);
-            // topRow.add(new UIButton(
-            // UILabel.icon("arrow_up"),
-            // () -> app.movePreviewEffectUp(effect)));
-            // topRow.add(new UIButton(
-            // UILabel.icon("arrow_down"),
-            // () -> app.movePreviewEffectDown(effect)));
-            // topRow.add(new UIButton(
-            // UILabel.icons("eye_open", "eye_closed", effect::isVisible).setActive(() ->
-            // true),
-            // () -> effect.toggleVisibility()));
-            // topRow.add(new UIButton(
-            // UILabel.icon("trash_can"),
-            // () -> app.removePreviewEffect(effect)));
             add(topRow);
             UIContainer bottomRow = new UIContainer(HORIZONTAL, CENTER);
-            // bottomRow.zeroMargin().noOutline();
-            bottomRow.noOutline();
+            bottomRow.withMargin();
             bottomRow.setHFillSize();
             switch (effect) {
                 case Contrast contrast -> {
@@ -234,7 +220,6 @@ public class EffectsPanel extends UIContainer {
         public CountContainer(LongSupplier counter, long max) {
             super(HORIZONTAL, CENTER);
 
-            noOutline();
             setStyle(new UIStyle(UIColors.BACKGROUND_HIGHLIGHT, null, null).setShape(UIShape.ELLIPSE));
             setVisibilitySupplier(() -> counter.getAsLong() != 0);
             Supplier<String> textSupplier = () -> {

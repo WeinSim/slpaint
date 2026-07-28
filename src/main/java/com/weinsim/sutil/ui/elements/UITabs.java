@@ -19,19 +19,16 @@ public class UITabs extends UIContainer {
         selectedContent = null;
         tabs = new HashMap<>();
 
-        noOutline();
-        zeroMargin();
         zeroPadding();
 
         titles = new UIContainer(HORIZONTAL, BOTTOM);
-        titles.noOutline();
+        titles.withMargin();
         titles.setBottomMarginScale(0);
         add(titles);
 
         addSeparator();
 
         mainArea = new UIContainer(VERTICAL, LEFT);
-        mainArea.zeroMargin().noOutline();
         mainArea.setVFillSize();
         mainArea.setHFillSize();
         add(mainArea);
