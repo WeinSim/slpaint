@@ -5,10 +5,7 @@ in vec2 uv;
 out vec4 outColor;
 
 uniform sampler2D textureSampler;
-
-// sRGB linear luminance weights
-// https://en.wikipedia.org/wiki/Grayscale#Converting_color_to_grayscale
-const vec3 luminanceWeights = vec3(0.2126, 0.7152, 0.0722);
+uniform vec3 luminanceWeights;
 
 void main(void) {
     vec4 color = texture(textureSampler, uv);

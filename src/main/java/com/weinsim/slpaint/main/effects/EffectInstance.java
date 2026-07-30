@@ -1,19 +1,29 @@
 package com.weinsim.slpaint.main.effects;
 
-public abstract class EffectInstance {
+import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.function.Supplier;
+
+public abstract sealed class EffectInstance permits IntEffect, FloatEffect, VoidEffect {
 
     private boolean visible;
 
+    private HashMap<String, Supplier<?>> uniforms;
+
     public EffectInstance() {
         visible = true;
+        uniforms = new HashMap<>();
+        addUniform("textureSampler", () -> 0);
     }
 
-    public void loadUniforms() {
-        loadUniform("textureSampler", 0);
+    protected void addUniform(String name, Supplier<?> value) {
+        uniforms.put(name, value);
     }
 
-    protected void loadUniform(String name, Object value) {
-        getEffect().loadUniform(name, value);
+    public final void loadUniforms() {
+        Effect effect = getEffect();
+        for (Entry<String, Supplier<?>> e : uniforms.entrySet())
+            effect.loadUniform(e.getKey(), e.getValue().get());
     }
 
     public abstract Effect getEffect();

@@ -1,8 +1,9 @@
 package com.weinsim.slpaint.main.effects;
 
-public class BlackWhite extends EffectInstance {
+public final class BlackWhite extends VoidEffect {
 
     BlackWhite() {
+        addUniform("luminanceWeights", () -> Effect.LUMINANCE_WEIGHTS);
     }
 
     @Override

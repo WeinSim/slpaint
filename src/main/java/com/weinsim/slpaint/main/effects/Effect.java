@@ -16,7 +16,14 @@ public enum Effect implements Cleanable {
     BLACK_WHITE("Black / White", "blackwhite", BlackWhite::new),
     BRIGHTNESS("Brightness", "brightness", Brightness::new),
     CONTRAST("Contrast", "contrast", Contrast::new),
-    RESIZE("Resize", "resize", Resize::new, false);
+    RESIZE("Resize", "resize", Resize::new, false),
+    SATURATION("Saturation", "saturation", Saturation::new);
+
+    /*
+     * sRGB linear luminance weights
+     * https://en.wikipedia.org/wiki/Grayscale#Converting_color_to_grayscale
+     */
+    public static final SVector LUMINANCE_WEIGHTS = new SVector(0.2126, 0.7152, 0.0722);
 
     private ShaderProgram shader;
     public final String name;

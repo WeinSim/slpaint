@@ -6,14 +6,23 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 import com.weinsim.slpaint.main.apps.MainApp;
-import com.weinsim.slpaint.main.effects.*;
+import com.weinsim.slpaint.main.effects.Effect;
+import com.weinsim.slpaint.main.effects.EffectInstance;
+import com.weinsim.slpaint.main.effects.FloatEffect;
+import com.weinsim.slpaint.main.effects.IntEffect;
+import com.weinsim.slpaint.main.effects.VoidEffect;
 import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UIShape;
 import com.weinsim.sutil.ui.UISizes;
 import com.weinsim.sutil.ui.UIStyle;
-import com.weinsim.sutil.ui.elements.*;
+import com.weinsim.sutil.ui.elements.UIButton;
+import com.weinsim.sutil.ui.elements.UIContainer;
+import com.weinsim.sutil.ui.elements.UILabel;
+import com.weinsim.sutil.ui.elements.UINumberInput;
+import com.weinsim.sutil.ui.elements.UIScale;
+import com.weinsim.sutil.ui.elements.UIText;
 
 public class EffectsPanel extends UIContainer {
 
@@ -96,10 +105,10 @@ public class EffectsPanel extends UIContainer {
             @Override
             public void update() {
                 super.update();
-                if (bottomPanelVisible)
-                    setVFillSize();
-                else
-                    setVMinimalSize();
+                // if (bottomPanelVisible)
+                // setVFillSize();
+                // else
+                setVMinimalSize();
             }
         };
         // bottom.setVisibilitySupplier(() -> bottomPanelVisible)
@@ -219,45 +228,31 @@ public class EffectsPanel extends UIContainer {
             bottomRow.withMargin();
             bottomRow.setHFillSize();
             switch (effect) {
-                case Contrast contrast -> {
-                    // a bit of jank logic for the contrast scale
-                    final double exponent = 4;
-                    bottomRow.add(new UIScale(HORIZONTAL,
-                            () -> Math.pow(
-                                    SUtil.map(contrast.getMultiplier(),
-                                            Contrast.MIN_CONTRAST, Contrast.MAX_CONTRAST,
-                                            0, 1),
-                                    1 / exponent),
-                            s -> contrast.setMultiplier(
-                                    SUtil.map(Math.pow(s, exponent),
-                                            0, 1,
-                                            Contrast.MIN_CONTRAST, Contrast.MAX_CONTRAST))));
+                case FloatEffect f -> {
                     final double scale = 100;
+                    bottomRow.add(new UIScale(HORIZONTAL,
+                            () -> Math.pow(SUtil.map(f.getValue(), f.getMin(), f.getMax(), 0, 1), 1 / f.getExponent()),
+                            v -> f.setValue(SUtil.map(Math.pow(v, f.getExponent()), 0, 1, f.getMin(), f.getMax()))));
                     bottomRow.add(new UINumberInput(
-                            () -> (int) Math.round(contrast.getMultiplier() * scale),
-                            m -> contrast.setMultiplier(m / scale)));
+                            () -> (int) Math.round(f.getValue() * scale),
+                            v -> f.setValue(v / scale)));
                     bottomRow.add(new UIText("%"));
                     add(bottomRow);
                 }
-                case Brightness brightness -> {
+                case IntEffect i -> {
                     bottomRow.add(new UIScale(HORIZONTAL,
-                            () -> SUtil.map(brightness.getBrightness(),
-                                    Brightness.MIN_BRIGHTNESS, Brightness.MAX_BRIGHTNESS,
-                                    0, 1),
-                            s -> brightness.setBrightness(
-                                    (int) SUtil.map(s,
-                                            0, 1,
-                                            Brightness.MIN_BRIGHTNESS, Brightness.MAX_BRIGHTNESS))));
+                            () -> SUtil.map(i.getValue(), i.getMin(), i.getMax(), 0, 1),
+                            v -> i.setValue((int) Math.round(SUtil.map(v, 0, 1, i.getMin(), i.getMax())))));
                     bottomRow.add(new UINumberInput(
-                            () -> Math.round(brightness.getBrightness()),
-                            b -> brightness.setBrightness(b)));
+                            () -> i.getValue(),
+                            v -> i.setValue(v)));
                     add(bottomRow);
                 }
-                case Resize _,BlackWhite _ -> {
+                case VoidEffect _ -> {
                 }
                 default -> {
-                    String name = effect.getEffect().name();
-                    add(new UIText(String.format("[unable to load UI for %s]", name)));
+                    String name = effect == null ? "null" : effect.getEffect().name();
+                    add(UILabel.text(String.format("[unable to load UI for %s]", name)));
                 }
             }
         }

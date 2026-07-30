@@ -39,7 +39,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  * <pre>
  * TODO:
  * Add more fun effects
- *   Saturation
  *   Blur?
  *     Proper gaussian blur would require two render passes (horizontal and
  *       vertical blur).
