@@ -38,8 +38,11 @@ import com.weinsim.sutil.ui.elements.UITextInput;
 /**
  * <pre>
  * TODO:
- * Effects
- *   Effects treat transparent pixels as opaque
+ * Add more fun effects
+ *   Saturation
+ *   Blur?
+ *     Proper gaussian blur would require two render passes (horizontal and
+ *       vertical blur).
  *
  * App:
  *   Keyboard shortcuts
@@ -50,7 +53,7 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *     Drawing with a semi-transparent color has weird artifacts because some
  *       pixels are drawn multiple times on consecutive frames, resulting in
  *       the wrong opacity
- *       => Make the pencil tool also use the temp framebuffer?
+ *       => Make the pencil tool also use a preview image (like the line tool)?
  *     Sizes 1 & 2 and 3 & 4 look the same
  *     Make sizes UI prettier
  *   Selection (/ drag tools)
@@ -60,9 +63,8 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       => remove "lock aspect ratio" setting?
  *   update() takes about twice as long when a modal dialog is open
  *     Maybe because of the many long textWidth() calculations?
- *   Undoing / redoing an operation that changes the image size doesn't change
- *     the temp FBO size
- *   Transparency
+ *   Transparency (need to check: are theses issues still there now that more
+ *       things are happening on the GPU?)
  *     Selecting a semi-transparent area and pasting it over a completely
  *       transparent area messes up the pixel colors: the semi-transparent area
  *       picks up the "color" (RGB values) of the transparent background.
@@ -110,6 +112,8 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       Something similar to how VSCode handles scrollbars.
  *       => reduces issues like visibilitySupplier madness and makes overall UI
  *       structure simpler / more intuitive
+ *     Use suppliers for UIContainer margin / padding / size types? This would
+ *       save a lot of update() overrides
  *   SLPaint specific issues:
  *     Mouse input: tapping the touchpad triggers a mouse press event but not
  *       mouse release event (=> logic that sets leftMousePressed and
@@ -121,9 +125,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *     Ctrl + 0 can cause the image to appear completely outside of the canvas
  *       Reason: the point at the center of the canvas stays fixed. For a very
  *       zoomed out image, this is likely to be outside of the image.
- *     Effects UI
- *       Make "Add effect" and "Apply effects" butttons better
- *         They should not look as similar and should maybe stand out more
  *     Modal dialogs
  *       Convert other small dialogs into modal dialogs? (e.g. ResizeUI)
  *       Add options for custom button labels like in JOptionPane
@@ -138,15 +139,11 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       Would require underlined letters
  *     Layering inconsistency: the SizeKnobs' outline appears above the
  *       dropdowns of the top row (Rotate, Flip, font selection)
- *     Effects UI
- *       Make multiple effect instances selectable using Shift / Ctrl clicks?
- *         Make that kind of selectable list a predefined sutil.ui asset?
- *         For what?
  *     Icons
  *       Automatically render invalid white icons as grey?
  *         -> would require changes in rendering API
  *       The current icons look kind of bad in light mode
- *         -> separate icons for light and dark mode?
+ *         -> separate icons for light and dark mode
  *       Create icons for:
  *         Basically everything in the menu bar (cut, copy, paste, zoom)
  *     Tool + undo inconsistencies:
@@ -155,7 +152,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *         Currently it does nothing (except sometimes with selection).
  *     Color hex code input?
  *     Make side panel collapsable?
- *     Make debug panel collapsable (but always existent)?
  *     Tool cursors
  *     About
  *       Make hyperlinks clickable? (=> underlined text!)
@@ -196,7 +192,7 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *     Rename transformationMatrix to uiMatrix
  *   Maximized windows don't show up correctly on Windows 11
  *   Possible ideas for future rendering improvements:
- *     Currently, all fragment shaders are quite similarly. => Combine all
+ *     Currently, all fragment shaders are quite similar. => Combine all
  *       fragment shaders into a single one (that gets an int containing various
  *       flags as an input)?
  *     Perhaps even combine all vertex shaders into one? (Would allow for just a
@@ -207,6 +203,7 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  * 
  * Backend:
  *   Proper package names / structure
+ *     Is the current one so bad?
  *   Make SUtil a git submodule / maven subproject?
  *   Make MainApp static?
  *   Sizes
@@ -216,7 +213,7 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *   Performance: only ~50fps on Microsoft Surface
  *     Mouse movement has a huge impact: keeping the mouse still drops the
  *       update time from >10ms to <2ms. This even happens when we don't even
- *       call glfwGetCursorPos() and even when the mouse is not even about the
+ *       call glfwGetCursorPos() and even when the mouse is not even above the
  *       window.
  *   Memory usage: image history can grow quite large (~100MiB for uncompressed
  *     WindowsXP test image (2880x2613))
@@ -390,7 +387,7 @@ public final class MainApp extends App {
                 height = image.getHeight();
         if (previewImage.getWidth() != width || previewImage.getHeight() != height)
             previewImage = new Image(width, height);
-        for (int i = previewEffects.size() - 1; i >= 0; i--) {
+        for (int i = 0; i < previewEffects.size(); i++) {
             EffectInstance effect = previewEffects.get(i);
             if (!effect.isVisible())
                 continue;
@@ -400,7 +397,10 @@ public final class MainApp extends App {
                 previewImage.applyEffect(effect);
             hasActiveEffects = true;
         }
-        previewImage.syncOpenGLTexture();
+        if (hasActiveEffects)
+            previewImage.syncOpenGLTexture();
+        else
+            image.syncOpenGLTexture();
     }
 
     @Override
@@ -622,12 +622,16 @@ public final class MainApp extends App {
         imageManager.addSnapshot();
     }
 
+    public boolean hasActiveEffects() {
+        return hasActiveEffects;
+    }
+
     public Image getImage() {
         return imageManager.getImage();
     }
 
     public Image getPreviewImage() {
-        return hasActiveEffects ? previewImage : getImage();
+        return previewImage;
     }
 
     public long getFilesize() {
@@ -803,12 +807,13 @@ public final class MainApp extends App {
     public void applyAllPreviewEffects() {
         if (previewEffects.isEmpty())
             return;
-        for (int i = previewEffects.size() - 1; i >= 0; i--) {
+        for (int i = 0; i < previewEffects.size(); i++) {
             EffectInstance effect = previewEffects.get(i);
             if (!effect.isVisible())
                 continue;
             getImage().applyEffect(effect);
             previewEffects.remove(i);
+            i--;
         }
         imageManager.addSnapshot();
     }
@@ -866,11 +871,15 @@ public final class MainApp extends App {
     }
 
     public static boolean isShowDebugPanel() {
-        return showDebugPanel.get();
+        return showDebugPanel.get() && MainApp.DEV_BUILD;
     }
 
     public static void setShowDebugPanel(boolean showDebugPanel) {
         MainApp.showDebugPanel.set(showDebugPanel);
+    }
+
+    public static void toggleShowDebugPanel() {
+        setShowDebugPanel(!isShowDebugPanel());
     }
 
     public static boolean isAskUnsavedChanges() {

@@ -261,7 +261,12 @@ public class ImageCanvas extends UIContainer {
         private class ImageContainerChild extends UIImage {
 
             ImageContainerChild() {
-                super(() -> app.getPreviewImage().getTextureID(), new SVector());
+                super(
+                        () -> (app.hasActiveEffects()
+                                ? app.getPreviewImage()
+                                : app.getImage())
+                                .getTextureID(),
+                        new SVector());
                 style.setBackgroundCheckerboard(UIColors.TRANSPARENCY_1, UIColors.TRANSPARENCY_2, UISizes.CHECKERBOARD);
             }
 

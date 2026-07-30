@@ -20,18 +20,19 @@ public class EffectsPanel extends UIContainer {
     private final MainApp app;
 
     private boolean bottomPanelVisible;
-    private boolean bottomPanelPinned;
+    // private boolean bottomPanelPinned;
 
     public EffectsPanel(MainApp app) {
         super(VERTICAL, CENTER);
         this.app = app;
-        bottomPanelVisible = false;
-        bottomPanelPinned = false;
+        bottomPanelVisible = true;
+        // bottomPanelPinned = false;
 
         setVFillSize();
         withSeparators(true);
 
-        UIContainer top = addSection(
+        BooleanSupplier prevEffectsNotEmpty = () -> !app.getPreviewEffects().isEmpty();
+        UIContainer top = new Section(
                 "Active Effects",
                 new UILabel[] {
                         UILabel.icon("eye_open"),
@@ -43,67 +44,90 @@ public class EffectsPanel extends UIContainer {
                         app::hideAllPreviewEffects,
                         app::removeAllPreviewEffects
                 },
-                () -> !app.getPreviewEffects().isEmpty(),
+                prevEffectsNotEmpty,
                 new ActiveEffectsContainer());
+        // top.add(new UIButton(
+        // UILabel.iconText("plus", "Add Effect"),
+        // () -> bottomPanelVisible = true));
         top.add(new UIButton(
-                UILabel.iconText("plus", "Add Effect"),
-                () -> bottomPanelVisible = true));
-        top.add(new UIButton(
-                UILabel.iconText("arrow_right", "Apply Effects"),
-                app::applyAllPreviewEffects));
+                UILabel.iconText("arrow_right", "Apply Effects", app::hasActiveEffects),
+                app::applyAllPreviewEffects)
+                .setVisibilitySupplier(prevEffectsNotEmpty));
+        add(top);
 
         UIContainer available = new UIContainer(VERTICAL, LEFT, TOP, VERTICAL);
-        available.withMargin().setFillSize();
+        available.withMargin().setHFillSize();
         available.withOutline();
+        BooleanSupplier bottomVis = () -> bottomPanelVisible;
+        available.setVisibilitySupplier(bottomVis);
         for (Effect effect : Effect.values()) {
+            // skip "fake" effects (for now just Resize)
+            if (!effect.userAccessible)
+                continue;
             UIContainer row = new UIContainer(HORIZONTAL, CENTER);
             row.add(new UIButton(UILabel.icon("plus"),
                     () -> {
                         app.addPreviewEffect(effect);
-                        if (!bottomPanelPinned)
-                            bottomPanelVisible = false;
+                        // if (!bottomPanelPinned)
+                        // bottomPanelVisible = false;
                     }));
             row.add(new UIText(effect.name));
             row.add(new CountContainer(
-                    () -> app.getPreviewEffects()
-                            .stream()
+                    () -> app.getPreviewEffects().stream()
                             .filter(e -> e.getEffect() == effect)
                             .count()));
             available.add(row);
         }
-        UIContainer bottom = addSection(
+        UIContainer bottom = new Section(
                 "Available Effects",
-                new UILabel[] { UILabel.text("P"), UILabel.icon("expand_down") },
+                new UILabel[] {
+                        // UILabel.text("P"),
+                        UILabel.icons("expand_down", "expand_up", bottomVis).alwaysActive()
+                },
                 new Runnable[] {
-                        () -> bottomPanelPinned = !bottomPanelPinned,
+                        // () -> bottomPanelPinned = !bottomPanelPinned,
                         () -> {
-                            bottomPanelPinned = false;
-                            bottomPanelVisible = false;
+                            // bottomPanelPinned = false;
+                            bottomPanelVisible = !bottomPanelVisible;
                         }
                 },
-                () -> true,
-                available);
-        bottom.setVisibilitySupplier(() -> bottomPanelVisible);
+                null,
+                available) {
+            @Override
+            public void update() {
+                super.update();
+                if (bottomPanelVisible)
+                    setVFillSize();
+                else
+                    setVMinimalSize();
+            }
+        };
+        // bottom.setVisibilitySupplier(() -> bottomPanelVisible)
+        add(bottom);
     }
 
-    private UIContainer addSection(String title, UILabel[] buttonLabels, Runnable[] buttonActions,
-            BooleanSupplier buttonsVisible, UIContainer mainArea) {
+    private class Section extends UIContainer {
 
-        UIContainer section = new UIContainer(VERTICAL, CENTER);
-        section.setFillSize();
-        UIContainer buttons = new UIContainer(HORIZONTAL, CENTER);
-        buttons.setHFillSize();
-        buttons.add(new UIText(title, UISizes.TEXT_SMALL));
-        buttons.addFill(false);
-        for (int i = 0; i < buttonLabels.length; i++)
-            buttons.add(new UIButton(
-                    buttonLabels[i].small(),
-                    buttonActions[i])
-                    .setVisibilitySupplier(buttonsVisible));
-        section.add(buttons);
-        section.add(mainArea.addScrollbars());
-        add(section);
-        return section;
+        public Section(String title, UILabel[] buttonLabels, Runnable[] buttonActions, BooleanSupplier buttonsVisible,
+                UIContainer mainArea) {
+
+            super(VERTICAL, CENTER);
+            setFillSize();
+            UIContainer buttons = new UIContainer(HORIZONTAL, CENTER);
+            buttons.setHFillSize();
+            buttons.add(new UIText(title, UISizes.TEXT_SMALL));
+            buttons.addFill(false);
+            for (int i = 0; i < buttonLabels.length; i++) {
+                UIButton button = new UIButton(
+                        buttonLabels[i].small(),
+                        buttonActions[i]);
+                if (buttonsVisible != null)
+                    button.setVisibilitySupplier(buttonsVisible);
+                buttons.add(button);
+            }
+            add(buttons);
+            add(mainArea.addScrollbars());
+        }
     }
 
     private class ActiveEffectsContainer extends UIContainer {
@@ -197,15 +221,17 @@ public class EffectsPanel extends UIContainer {
             switch (effect) {
                 case Contrast contrast -> {
                     // a bit of jank logic for the contrast scale
-                    final double contrastMin = 0,
-                            contrastMax = 20;
-                    final double exponent = 2;
+                    final double exponent = 4;
                     bottomRow.add(new UIScale(HORIZONTAL,
                             () -> Math.pow(
-                                    SUtil.map(contrast.getMultiplier(), contrastMin, contrastMax, 0, 1),
+                                    SUtil.map(contrast.getMultiplier(),
+                                            Contrast.MIN_CONTRAST, Contrast.MAX_CONTRAST,
+                                            0, 1),
                                     1 / exponent),
                             s -> contrast.setMultiplier(
-                                    SUtil.map(Math.pow(s, exponent), 0, 1, contrastMin, contrastMax))));
+                                    SUtil.map(Math.pow(s, exponent),
+                                            0, 1,
+                                            Contrast.MIN_CONTRAST, Contrast.MAX_CONTRAST))));
                     final double scale = 100;
                     bottomRow.add(new UINumberInput(
                             () -> (int) Math.round(contrast.getMultiplier() * scale),

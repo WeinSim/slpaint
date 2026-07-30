@@ -12,7 +12,7 @@ import com.weinsim.slpaint.renderengine.Cleanable;
 public class PingPongFBO implements Cleanable {
 
     private final int fboID;
-    private final int[] textureIDs;
+    public final int[] textureIDs;
 
     private int activeTexture;
 

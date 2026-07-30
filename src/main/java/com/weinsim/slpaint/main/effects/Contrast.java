@@ -2,6 +2,9 @@ package com.weinsim.slpaint.main.effects;
 
 public class Contrast extends EffectInstance {
 
+    public static final double MIN_CONTRAST = 0,
+            MAX_CONTRAST = 20;
+
     private double multiplier;
 
     Contrast() {
@@ -24,7 +27,7 @@ public class Contrast extends EffectInstance {
     }
 
     public void setMultiplier(double multiplier) {
-        this.multiplier = multiplier;
+        this.multiplier = Math.clamp(multiplier, MIN_CONTRAST, MAX_CONTRAST);
     }
 
 }

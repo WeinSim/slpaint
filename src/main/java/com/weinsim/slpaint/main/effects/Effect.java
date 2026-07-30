@@ -16,17 +16,25 @@ public enum Effect implements Cleanable {
     BLACK_WHITE("Black / White", "blackwhite", BlackWhite::new),
     BRIGHTNESS("Brightness", "brightness", Brightness::new),
     CONTRAST("Contrast", "contrast", Contrast::new),
-    RESIZE("Resize", "resize", Resize::new);
+    RESIZE("Resize", "resize", Resize::new, false);
 
     private ShaderProgram shader;
     public final String name;
     private final String shaderName;
     private final Supplier<EffectInstance> constructor;
+    public final boolean userAccessible;
 
     private Effect(String name, String shaderName, Supplier<EffectInstance> instanceConstructor) {
+        this(name, shaderName, instanceConstructor, true);
+    }
+
+    private Effect(String name, String shaderName, Supplier<EffectInstance> instanceConstructor,
+            boolean userAccessible) {
+
         this.name = name;
         this.shaderName = shaderName;
         this.constructor = instanceConstructor;
+        this.userAccessible = userAccessible;
         loadShader();
         putQuadData(shader.getRawModel());
     }

@@ -76,7 +76,7 @@ public class MainUI extends AppUI<MainApp> {
         if (MainApp.DEV_BUILD)
             mainRow.add(new UIButton(
                     UILabel.icons("expand_right", "expand_left", MainApp::isShowDebugPanel).alwaysActive(),
-                    () -> MainApp.setShowDebugPanel(!MainApp.isShowDebugPanel())));
+                    MainApp::toggleShowDebugPanel));
         mainRow.add(createDebugPanel());
         root.add(mainRow);
 
@@ -474,8 +474,8 @@ public class MainUI extends AppUI<MainApp> {
             final int j = i;
             UIImage image = new UIImage(
                     // set PingPongFBO#textureIDs to public for this to work
-                    // () -> imageSupplier.get().getFBO().textureIDs[j],
-                    () -> 0,
+                    () -> imageSupplier.get().getFBO().textureIDs[j],
+                    // () -> 0,
                     () -> UISizes.BIG_COLOR_BUTTON.get2f().scale(2));
             image.setStyle(
                     new UIStyle(
