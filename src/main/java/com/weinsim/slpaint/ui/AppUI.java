@@ -68,13 +68,13 @@ public abstract class AppUI<T extends App> extends UI implements Cleanable {
     public double textWidthImpl(String text, double textSize, String fontName, int len) {
         TextFont font = TextFont.getFont(fontName);
         len = Math.clamp(len, 0, text.length());
-        return font.textWidth(text, len) * textSize / font.size;
+        return font.textWidth(text, len) * textSize / font.size();
     }
 
     @Override
     public int getCharIndexImpl(String text, double textSize, String fontName, double x) {
         TextFont font = TextFont.getFont(fontName);
-        return font.getCharIndex(text, x / textSize * font.size);
+        return font.getCharIndex(text, x / textSize * font.size());
     }
 
     @Override

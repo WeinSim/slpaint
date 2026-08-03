@@ -300,7 +300,7 @@ public class UIRenderMaster {
             return;
 
         drawCalls.add(
-                new TextDrawCall(position, depth, textSize / textFont.size, new Matrix3f().load(uiMatrix),
+                new TextDrawCall(position, depth, textSize / textFont.size(), new Matrix3f().load(uiMatrix),
                         new ClipAreaInfo(clipAreaInfo), new Vector4f(fill), text, textFont));
     }
 
@@ -548,7 +548,7 @@ public class UIRenderMaster {
 
     public void textFont(TextFont font) {
         textFont = font;
-        textSize = font.size;
+        textSize = font.size();
     }
 
     public void textSize(double textSize) {

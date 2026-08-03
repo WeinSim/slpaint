@@ -12,6 +12,10 @@ import org.newdawn.slick.opengl.TextureLoader;
 
 import com.weinsim.slpaint.main.Loader;
 import com.weinsim.slpaint.main.apps.MainApp;
+import com.weinsim.slpaint.renderengine.UIRenderMaster;
+import com.weinsim.slpaint.renderengine.bufferobjects.FloatVBO;
+import com.weinsim.slpaint.renderengine.bufferobjects.IntVBO;
+import com.weinsim.slpaint.renderengine.drawcalls.TextDrawCall;
 import com.weinsim.slpaint.settings.StringSetting;
 import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.json.JSONParser;
@@ -19,17 +23,13 @@ import com.weinsim.sutil.json.values.JSONArray;
 import com.weinsim.sutil.json.values.JSONObject;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
-import com.weinsim.slpaint.renderengine.UIRenderMaster;
-import com.weinsim.slpaint.renderengine.bufferobjects.FloatVBO;
-import com.weinsim.slpaint.renderengine.bufferobjects.IntVBO;
-import com.weinsim.slpaint.renderengine.drawcalls.TextDrawCall;
 
-public class TextFont {
+public record TextFont(String name, int size, int lineHeight, int base, String[] textureFilenames,
+        int textureWidth, int textureHeight, FontChar[] fontChars, HashMap<Character, Integer> charIDs,
+        int unknownCharIndex, float[] uboData) {
 
     private static final String FONT_DIRECTORY = "fonts/";
     private static final String FONT_FILE = "fonts.json";
-    public static final String DEFAULT_FONT_NAME;
-    public static final String[] AVAILABLE_FONTS;
 
     private static final char[] CHAR_RANGES = {
             0x0020, 0x007E,
@@ -43,52 +43,39 @@ public class TextFont {
     };
 
     static {
+        init();
+    }
+
+    private static HashMap<String, TextFont> fonts;
+    private static String[] availableFonts;
+    private static TextFont defaultFont;
+    private static StringSetting currentFont = new StringSetting("font");
+
+    /**
+     * Parses the font info file and loads the default font.
+     */
+    private static void init() {
+        String defaultFontName;
         try {
             JSONObject fonts = JSONParser.parseObject(Loader.getString(FONT_DIRECTORY + FONT_FILE));
             JSONArray fontsArray = fonts.getArray("fonts");
-            AVAILABLE_FONTS = new String[fontsArray.size()];
-            for (int i = 0; i < AVAILABLE_FONTS.length; i++) {
-                AVAILABLE_FONTS[i] = fontsArray.getString(i);
+            availableFonts = new String[fontsArray.size()];
+            for (int i = 0; i < availableFonts.length; i++) {
+                availableFonts[i] = fontsArray.getString(i);
             }
-            DEFAULT_FONT_NAME = fonts.getString("defaultFont");
+            defaultFontName = fonts.getString("defaultFont");
         } catch (IOException e) {
             final String message = String.format("Unable to load font info file (%s)", FONT_FILE);
             throw new RuntimeException(message, e);
         }
-    }
-
-    private static HashMap<String, TextFont> fontCache = new HashMap<>();
-    private static TextFont defaultFont;
-    private static StringSetting currentFont = new StringSetting("font");
-
-    public final String name;
-    public final int size;
-    public final int lineHeight;
-    public final int base;
-
-    private final String[] textureFilenames;
-    public final int textureWidth, textureHeight;
-
-    private final FontChar[] fontChars;
-    private final HashMap<Character, Integer> charIDs;
-    private final int unknownCharIndex;
-    private final float[] uboData;
-
-    public TextFont(String name, int size, int lineHeight, int base, String[] textureFilenames,
-            int textureWidth, int textureHeight, FontChar[] fontChars, HashMap<Character, Integer> charIDs,
-            int unknownCharIndex, float[] uboData) {
-
-        this.name = name;
-        this.size = size;
-        this.lineHeight = lineHeight;
-        this.base = base;
-        this.textureFilenames = textureFilenames;
-        this.textureWidth = textureWidth;
-        this.textureHeight = textureHeight;
-        this.fontChars = fontChars;
-        this.charIDs = charIDs;
-        this.unknownCharIndex = unknownCharIndex;
-        this.uboData = uboData;
+        fonts = new HashMap<>();
+        try {
+            defaultFont = load(defaultFontName);
+            fonts.put(defaultFontName, defaultFont);
+        } catch (IOException e) {
+            String message = String.format("Unable to load default font (%s)", defaultFontName);
+            throw new RuntimeException(message, e);
+        }
     }
 
     private static TextFont load(String name) throws IOException {
@@ -225,37 +212,8 @@ public class TextFont {
         return textureIDs;
     }
 
-    private FontChar[] toChars(String text) {
-        return toChars(text, text.length());
-    }
-
-    private FontChar[] toChars(String text, int len) {
-        FontChar[] chars = new FontChar[len];
-        char[] charArray = text.toCharArray();
-        for (int i = 0; i < len; i++) {
-            chars[i] = fontChars[charIDs.getOrDefault(charArray[i], unknownCharIndex)];
-        }
-        return chars;
-    }
-
-    public void putCharsIntoVBOs(TextDrawCall drawCall, IntVBO dataIndex, FloatVBO position, FloatVBO depth,
-            IntVBO charIndex, int batchIndex) {
-
-        double x = drawCall.position.x,
-                y = drawCall.position.y;
-        for (FontChar fontChar : toChars(drawCall.text)) {
-            dataIndex.putData(batchIndex);
-
-            charIndex.putData(charIDs.get((char) fontChar.id()));
-
-            SVector vertexPos = new SVector(x + fontChar.xOffset() * drawCall.relativeSize,
-                    y + (fontChar.yOffset() - base + 0.8 * size) * drawCall.relativeSize);
-            position.putData(vertexPos);
-
-            depth.putData(drawCall.depth);
-
-            x += fontChar.xAdvance() * drawCall.relativeSize;
-        }
+    private FontChar getFontChar(char c) {
+        return fontChars[charIDs.getOrDefault(c, unknownCharIndex)];
     }
 
     public double textWidth(String text) {
@@ -263,39 +221,91 @@ public class TextFont {
     }
 
     public double textWidth(String text, int len) {
-        FontChar[] chars = toChars(text, len);
+        char[] chars = text.toCharArray();
+        len = Math.clamp(len, 0, chars.length);
         double sum = 0;
-        for (FontChar fontChar : chars) {
-            sum += fontChar.xAdvance();
-        }
+        for (int i = 0; i < len; i++)
+            sum += getFontChar(chars[i]).xAdvance();
         return sum;
     }
 
     public int getCharIndex(String text, double x) {
-        FontChar[] chars = toChars(text);
-
-        if (chars.length == 0)
+        if (text.isEmpty())
             return 0;
-
+        char[] chars = text.toCharArray();
         double sum = 0;
         int index = chars.length;
         for (int i = 0; i < chars.length; i++) {
-            double current = sum,
-                    next = sum + chars[i].xAdvance();
+            double current = sum;
+            double next = sum + getFontChar(chars[i]).xAdvance();
             double middle = (current + next) / 2;
             if (middle > x) {
                 index = i;
                 break;
             }
-
             sum = next;
         }
-
         return index;
+    }
+
+    public void putCharsIntoVBOs(TextDrawCall drawCall, IntVBO dataIndex, FloatVBO position, FloatVBO depth,
+            IntVBO charIndex, int batchIndex) {
+
+        double x = drawCall.position.x,
+                y = drawCall.position.y;
+        char[] chars = drawCall.text.toCharArray();
+        for (char c: chars) {
+            FontChar fontChar = getFontChar(c);
+            dataIndex.putData(batchIndex);
+            charIndex.putData(charIDs.get((char) fontChar.id()));
+            SVector vertexPos = new SVector(x + fontChar.xOffset() * drawCall.relativeSize,
+                    y + (fontChar.yOffset() - base + 0.8 * size) * drawCall.relativeSize);
+            position.putData(vertexPos);
+            depth.putData(drawCall.depth);
+            x += fontChar.xAdvance() * drawCall.relativeSize;
+        }
     }
 
     public float[] getUBOData() {
         return uboData;
+    }
+
+    public static TextFont getFont(String name) {
+        // try returning already loaded font
+        TextFont font = null;
+        if (fonts.containsKey(name)) {
+            font = fonts.get(name);
+        } else {
+            // load new font
+            try {
+                font = load(name);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            // even if we fail to load the font, we still put null into the font cache to
+            // indicate that we already tried to load this font
+            fonts.put(name, font);
+        }
+        return font != null ? font : defaultFont;
+    }
+
+    public static String[] getAvailableFonts() {
+        return availableFonts;
+    }
+
+    public static TextFont getCurrentFont() {
+        return getFont(getCurrentFontName());
+    }
+
+    public static String getCurrentFontName() {
+        return currentFont.get();
+    }
+
+    public static void setCurrentFontName(String name) {
+        // test if this font is actually available
+        TextFont font = getFont(name);
+        if (font.name.equals(name))
+            currentFont.set(name);
     }
 
     public static void createFontAtlas(String name, int textSize) {
@@ -336,78 +346,22 @@ public class TextFont {
         addArgument(commands, "texture-size", "%dx%d".formatted(textureWidth, textureHeight));
         addArgument(commands, "font-size", fontSize);
         StringBuilder charsBuilder = new StringBuilder();
-        for (int i = 0; i < charRanges.length / 2; i++) {
+        for (int i = 0; i < charRanges.length / 2; i++)
             charsBuilder.append("%d-%d,".formatted((int) charRanges[2 * i], (int) charRanges[2 * i + 1]));
-        }
-        for (int extraChar : extraChars) {
+        for (int extraChar : extraChars)
             charsBuilder.append("%d,".formatted((int) extraChar));
-        }
         int len = charsBuilder.length();
-        if (len > 0) {
+        if (len > 0)
             charsBuilder.deleteCharAt(len - 1);
-        }
         addArgument(commands, "chars", charsBuilder.toString());
         addArgument(commands, "background-color", "%d,%d,%d".formatted(
                 SUtil.red(bgColor), SUtil.green(bgColor), SUtil.blue(bgColor)));
-
         // System.out.print("Generated command: ");
         // for (String str : commands) {
         // System.out.print(str + " ");
         // }
         // System.out.println();
-
         return commands;
-    }
-
-    public static TextFont getFont(String name) {
-        if (defaultFont == null) {
-            // put the default font into the cache
-            try {
-                defaultFont = load(DEFAULT_FONT_NAME);
-                fontCache.put(DEFAULT_FONT_NAME, defaultFont);
-            } catch (IOException e) {
-                String message = String.format("Unable to load default font (%s)", DEFAULT_FONT_NAME);
-                throw new RuntimeException(message, e);
-            }
-        }
-
-        // try returning already loaded font
-        TextFont font = null;
-        if (fontCache.containsKey(name)) {
-            font = fontCache.get(name);
-        } else {
-            // load new font
-            try {
-                font = TextFont.load(name);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            // even if we fail to load the font, we still put null into the font cache to
-            // indicate that we already tried to load this font
-            fontCache.put(name, font);
-        }
-
-        return font != null ? font : defaultFont;
-    }
-
-    // public static TextFont getDefaultFont() {
-    // return getFont(DEFAULT_FONT_NAME);
-    // }
-
-    public static TextFont getCurrentFont() {
-        return getFont(getCurrentFontName());
-    }
-
-    public static String getCurrentFontName() {
-        return currentFont.get();
-    }
-
-    public static void setCurrentFontName(String name) {
-        // test if this font is actually available
-        TextFont font = getFont(name);
-        if (font.name.equals(name))
-            currentFont.set(name);
     }
 
 }

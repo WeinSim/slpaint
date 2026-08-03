@@ -18,12 +18,12 @@ import com.weinsim.slpaint.main.effects.Effect;
 import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.main.image.ImageFormat;
 import com.weinsim.slpaint.main.image.ImageManager;
-import com.weinsim.slpaint.settings.BooleanSetting;
-import com.weinsim.slpaint.settings.ColorArraySetting;
-import com.weinsim.slpaint.settings.Settings;
 import com.weinsim.slpaint.main.tools.ImageTool;
 import com.weinsim.slpaint.renderengine.Window;
 import com.weinsim.slpaint.renderengine.font.TextFont;
+import com.weinsim.slpaint.settings.BooleanSetting;
+import com.weinsim.slpaint.settings.ColorArraySetting;
+import com.weinsim.slpaint.settings.Settings;
 import com.weinsim.slpaint.ui.AppUI;
 import com.weinsim.slpaint.ui.MainUI;
 import com.weinsim.slpaint.ui.components.ImageCanvas;
@@ -167,7 +167,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       the letters 'e', 'r', 'i' and 'd' are blurry, whereas 'p', 'u', 'm'
  *       and 'b' are sharp. (it seems like most blurry letters are on page 2.)
  *     Potential speedups for text rendering:
- *       Cache conversion from String to FontChar[] in TextFont
  *       Only override the parts of the text VAOs that actually change from one
  *         frame to the next
  *   Anti aliasing doesn't work despite being enabled
@@ -217,7 +216,7 @@ public final class MainApp extends App {
      * <li>Adds a test context menu to the settings window
      * </ul>
      */
-    public static final boolean DEV_BUILD = false;
+    public static final boolean DEV_BUILD = true;
 
     /**
      * https://images.minitool.com/de.minitool.com/images/uploads/news/2022/02/microsoft-paint-herunterladen-installieren/microsoft-paint-herunterladen-installieren-1.png

@@ -70,7 +70,7 @@ public class SettingsUI extends AppUI<SettingsApp> {
                 new String[] { "HSV", "HSL" },
                 () -> App.isHSLColorSpace() ? 1 : 0,
                 i1 -> App.setHSLColorSpace(i1 == 1)));
-        final String[] fonts = TextFont.AVAILABLE_FONTS;
+        final String[] fonts = TextFont.getAvailableFonts();
         mainContainer.add(createDropdown("Font:",
                 fonts,
                 TextFont::getCurrentFontName,
