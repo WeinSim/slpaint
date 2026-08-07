@@ -2,24 +2,28 @@ package com.weinsim.slpaint.ui;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL21.*;
 import static org.lwjgl.opengl.GL30.*;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.lwjglx.util.vector.Vector4f;
-import org.newdawn.slick.opengl.Texture;
-import org.newdawn.slick.opengl.TextureLoader;
+import javax.imageio.ImageIO;
 
 import com.weinsim.slpaint.main.ColorPicker;
 import com.weinsim.slpaint.main.Loader;
 import com.weinsim.slpaint.main.apps.App;
 import com.weinsim.slpaint.main.apps.MainApp;
+import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.renderengine.Cleanable;
 import com.weinsim.slpaint.renderengine.font.TextFont;
 import com.weinsim.slpaint.settings.BooleanSetting;
 import com.weinsim.slpaint.settings.ColorSetting;
-import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.color.Color;
+import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 
 public abstract class AppUI<T extends App> extends UI implements Cleanable {
@@ -27,31 +31,31 @@ public abstract class AppUI<T extends App> extends UI implements Cleanable {
     private static final String ICON_BASE_PATH = "icons/%s.png",
             MISSING_ICON_NAME = "questionmark";
 
-    private static final Vector4f[] DEFAULT_UI_COLORS_DARK = {
-            new Vector4f(0.3f, 0.3f, 0.3f, 1.0f),
-            new Vector4f(0.07f, 0.35f, 0.5f, 1.0f),
-            new Vector4f(0.5f, 0.07f, 0.35f, 1.0f),
-            new Vector4f(0.42f, 0.14f, 0.14f, 1.0f)
+    private static final Color[] DEFAULT_UI_COLORS_DARK = {
+            Color.sRGB(0.3, 0.3, 0.3),
+            Color.sRGB(0.07, 0.35, 0.5),
+            Color.sRGB(0.5, 0.07, 0.35),
+            Color.sRGB(0.42, 0.14, 0.14)
     };
 
-    private static final Vector4f[] DEFAULT_UI_COLORS_LIGHT = {
-            new Vector4f(1, 1, 1, 1),
-            new Vector4f(0.67f, 0.85f, 0.95f, 1.0f),
-            new Vector4f(0.95f, 0.63f, 0.84f, 1.0f),
-            new Vector4f(0.84f, 0.51f, 0.51f, 1.0f)
+    private static final Color[] DEFAULT_UI_COLORS_LIGHT = {
+            Color.sGrey(1.0),
+            Color.sRGB(0.67, 0.85, 0.95),
+            Color.sRGB(0.95, 0.63, 0.84),
+            Color.sRGB(0.84, 0.51, 0.51)
     };
 
     protected final T app;
 
     private static BooleanSetting darkMode = new BooleanSetting("darkMode");
     private static ColorSetting baseColor = new ColorSetting("baseColor");
+    private static ColorPicker baseColorPicker = new ColorPicker(getBaseColor());
 
     private ArrayList<Integer> iconTextures;
 
     public AppUI(T app) {
         this.app = app;
         super(app.getUIScale(), app.getWindowSize());
-
         iconTextures = new ArrayList<>();
     }
 
@@ -62,6 +66,12 @@ public abstract class AppUI<T extends App> extends UI implements Cleanable {
             UI.addKeyboardShortcut("reload_shaders", GLFW_KEY_S, GLFW_MOD_SHIFT, true, app::reloadShaders);
             UI.addKeyboardShortcut("reload_ui", GLFW_KEY_R, GLFW_MOD_SHIFT, true, () -> app.queueEvent(app::loadUI));
         }
+    }
+
+    @Override
+    public void update(SVector mousePos, boolean focus) {
+        baseColor.set(baseColorPicker.getColor());
+        super.update(mousePos, focus);
     }
 
     @Override
@@ -82,16 +92,20 @@ public abstract class AppUI<T extends App> extends UI implements Cleanable {
         String filename = String.format(ICON_BASE_PATH, name);
         if (!Loader.exists(filename))
             filename = String.format(ICON_BASE_PATH, MISSING_ICON_NAME);
-        Texture texture = null;
+        BufferedImage image;
         try {
-            texture = TextureLoader.getTexture("PNG", Loader.getInputStream(filename));
-        } catch (Exception e) {
+            image = Image.toARGB(ImageIO.read(Loader.getInputStream(filename)));
+        } catch (IOException e) {
             // e.printStackTrace();
             throw new RuntimeException(String.format("Unable to load icon \"%s\"", name));
         }
-        int textureID = texture.getTextureID();
+        int textureID = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, textureID);
+        int[] pixelData = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, image.getWidth(), image.getHeight(), 0, GL_BGRA,
+                GL_UNSIGNED_INT_8_8_8_8_REV, pixelData);
         glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
         return textureID;
     }
 
@@ -152,22 +166,16 @@ public abstract class AppUI<T extends App> extends UI implements Cleanable {
         AppUI.darkMode.set(darkMode);
     }
 
-    public static Vector4f getBaseColor() {
-        int rgb = baseColor.get().getRGB();
-
-        int red = SUtil.red(rgb);
-        int green = SUtil.green(rgb);
-        int blue = SUtil.blue(rgb);
-        int alpha = SUtil.alpha(rgb);
-        return (Vector4f) new Vector4f(red, green, blue, alpha).scale(1.0f / 255);
+    public static Color getBaseColor() {
+        return baseColor.get();
     }
 
     @Override
-    protected Vector4f getBaseColorImpl() {
+    protected Color getBaseColorImpl() {
         return getBaseColor();
     }
 
-    public static Vector4f[] getDefaultUIColors() {
+    public static Color[] getDefaultUIColors() {
         return isDarkMode() ? DEFAULT_UI_COLORS_DARK : DEFAULT_UI_COLORS_LIGHT;
     }
 
@@ -176,7 +184,7 @@ public abstract class AppUI<T extends App> extends UI implements Cleanable {
     }
 
     public static ColorPicker getBaseColorPicker() {
-        return baseColor.get();
+        return baseColorPicker;
     }
 
     @Override

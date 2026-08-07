@@ -1,6 +1,7 @@
 package com.weinsim.slpaint.ui.components;
 
 import com.weinsim.slpaint.main.ColorPicker;
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.ui.elements.UIScale;
 
 public class AlphaScale extends UIScale {
@@ -23,8 +24,8 @@ public class AlphaScale extends UIScale {
             super(orientation);
         }
 
-        public int getRGB() {
-            return colorPicker.getRGB();
+        public Color getColor() {
+            return colorPicker.getColor();
         }
     }
 

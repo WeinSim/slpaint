@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.BooleanSupplier;
 
+import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UIColors;
@@ -1086,9 +1087,12 @@ public class UIContainer extends UIElement {
             withMargin();
 
             setStyle(new UIStyle(
-                    () -> mouseAbove || scrollbarContainer.isDragging()
-                            ? UIColors.OUTLINE.get()
-                            : UIColors.SCROLLBAR_HIGHLIGHT.get(),
+                    // () -> mouseAbove || scrollbarContainer.isDragging()
+                    // ? UIColors.OUTLINE.get()
+                    // : UIColors.SCROLLBAR_HIGHLIGHT.get(),
+                    SUtil.ifThenElse(() -> mouseAbove || scrollbarContainer.isDragging(),
+                            UIColors.OUTLINE,
+                            UIColors.SCROLLBAR_HIGHLIGHT),
                     null, null));
 
             addAnchor(Anchor.TOP_LEFT, this::getPos);

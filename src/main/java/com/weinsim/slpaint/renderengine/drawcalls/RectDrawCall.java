@@ -1,23 +1,22 @@
 package com.weinsim.slpaint.renderengine.drawcalls;
 
 import org.lwjglx.util.vector.Matrix3f;
-import org.lwjglx.util.vector.Vector4f;
 
 import com.weinsim.slpaint.renderengine.bufferobjects.UBOEntry;
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.math.SVector;
 
 public abstract sealed class RectDrawCall extends DrawCall permits RectFillDrawCall, RectOutlineDrawCall {
 
-    public final Vector4f color1;
-    public final Vector4f color2;
+    public final Color color1;
+    public final Color color2;
     public final double checkerboardSize;
     public final boolean applyCheckerboard;
 
     public RectDrawCall(SVector position, double depth, SVector size, Matrix3f uiMatrix, ClipAreaInfo clipAreaInfo,
-            Vector4f color1, Vector4f color2, double checkerboardSize, boolean applyCheckerboard) {
+            Color color1, Color color2, double checkerboardSize, boolean applyCheckerboard) {
 
         super(position, depth, size, clipAreaInfo, uiMatrix);
-
         this.color1 = color1;
         this.color2 = color2;
         this.checkerboardSize = checkerboardSize;
@@ -49,11 +48,9 @@ public abstract sealed class RectDrawCall extends DrawCall permits RectFillDrawC
 
     @Override
     public boolean usesAlpha() {
-        if (applyCheckerboard) {
-            return color1.w < 1 || color2.w < 1;
-        } else {
-            return color1.w < 1;
-        }
+        return applyCheckerboard
+                ? color1.sRGBFloat().alpha() < 1 || color2.sRGBFloat().alpha() < 1
+                : color1.sRGBFloat().alpha() < 1;
     }
 
 }

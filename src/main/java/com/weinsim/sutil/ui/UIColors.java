@@ -2,9 +2,10 @@ package com.weinsim.sutil.ui;
 
 import java.util.function.Supplier;
 
-import org.lwjglx.util.vector.Vector4f;
+import com.weinsim.sutil.color.Color;
+import com.weinsim.sutil.color.SRGBFloat;
 
-public enum UIColors implements Supplier<Vector4f> {
+public enum UIColors implements Supplier<Color> {
 
     BACKGROUND(0.24, 0.95),
     BACKGROUND_2(0.35, 0.91),
@@ -13,60 +14,79 @@ public enum UIColors implements Supplier<Vector4f> {
     OUTLINE(1.1, 0.45),
     SCROLLBAR_HIGHLIGHT(0.9, 0.6),
     SEPARATOR(0.56, 0.7),
-    HIGHLIGHT(new Vector4f(1f, 1f, 1f, 1f), new Vector4f(0f, 0f, 0f, 1f)),
-    TEXT(new Vector4f(0.75f, 0.75f, 0.75f, 1f), new Vector4f(0f, 0f, 0f, 1f)),
-    TEXT_INVALID(new Vector4f(0.45f, 0.45f, 0.45f, 1f), new Vector4f(0.40f, 0.40f, 0.40f, 1f)),
+    HIGHLIGHT(Color.sGrey(1.0), Color.sGrey(0.0)),
+    TEXT(Color.sGrey(0.75), Color.sGrey(0.0)),
+    TEXT_INVALID(Color.sGrey(0.45), Color.sGrey(0.40)),
     CANVAS(0.4, 0.85),
     TRANSPARENCY_1(0.6, 1),
     TRANSPARENCY_2(0.0, 0.85),
-    SELECTION_BORDER_1(new Vector4f(0f, 0f, 0f, 1f)),
-    SELECTION_BORDER_2(new Vector4f(1f, 1f, 1f, 1f)),
-    INVALID(new Vector4f(0.5f, 0.5f, 0.5f, 1f));
+    SELECTION_BORDER_1(Color.sGrey(0.0)),
+    SELECTION_BORDER_2(Color.sGrey(1.0)),
+    INVALID(Color.sGrey(0.5));
 
-    public final double darkModeBrightness, lightModeBrightness;
+    /**
+     * These brightness factors are referring to sRGB values (where multiplication
+     * doesn't make that much sense, but whatever).
+     */
+    private final float darkModeBrightness, lightModeBrightness;
+    private final Color darkColor, lightColor;
+    private final boolean useBrightness;
 
-    public final Vector4f darkColor, lightColor;
-
-    public final boolean useBrightness;
+    private UIColorSettings settingsCache;
+    private Color colorCache;
 
     private UIColors(double darkModeBrightness, double lightModeBrightness) {
-        this.darkModeBrightness = darkModeBrightness;
-        this.lightModeBrightness = lightModeBrightness;
-
-        useBrightness = true;
-
-        darkColor = null;
-        lightColor = null;
+        this(darkModeBrightness, lightModeBrightness, null, null, true);
     }
 
-    private UIColors(Vector4f color) {
+    private UIColors(Color color) {
         this(color, color);
     }
 
-    private UIColors(Vector4f darkColor, Vector4f lightColor) {
+    private UIColors(Color darkColor, Color lightColor) {
+        this(0, 0, darkColor, lightColor, false);
+    }
+
+    private UIColors(double darkModeBrightness, double lightModeBrightness, Color darkColor, Color lightColor,
+            boolean useBrightness) {
+        this.darkModeBrightness = (float) darkModeBrightness;
+        this.lightModeBrightness = (float) lightModeBrightness;
         this.darkColor = darkColor;
         this.lightColor = lightColor;
+        this.useBrightness = useBrightness;
 
-        useBrightness = false;
-
-        darkModeBrightness = 0;
-        lightModeBrightness = 0;
+        settingsCache = null;
+        colorCache = null;
     }
 
     @Override
-    public Vector4f get() {
-        // This method is being called ~5520 times per second (which is too much!)
-        // Maybe cache the results?
+    public Color get() {
+        UIColorSettings settings = new UIColorSettings(UI.getBaseColor(), UI.isDarkMode());
+        if (settings.equals(settingsCache))
+            return colorCache;
 
-        boolean darkMode = UI.isDarkMode();
+        // System.out.format("Recalculating UI color for %s\n", name());
         if (useBrightness) {
-            double brightness = darkMode ? darkModeBrightness : lightModeBrightness;
-            Vector4f ret = (Vector4f) new Vector4f(UI.getBaseColor()).scale((float) brightness);
-            ret.w = 1.0f;
-            return ret;
+            float brightness = settings.darkMode() ? darkModeBrightness : lightModeBrightness;
+            colorCache = Color.sRGB(
+                    settings.red() * brightness,
+                    settings.green() * brightness,
+                    settings.blue() * brightness,
+                    1.0f);
         } else {
-            return darkMode ? darkColor : lightColor;
+            colorCache = settings.darkMode() ? darkColor : lightColor;
         }
+        settingsCache = settings;
+        return colorCache;
+    }
+
+    private record UIColorSettings(double red, double green, double blue, boolean darkMode) {
+
+        UIColorSettings(Color baseColor, boolean darkMode) {
+            SRGBFloat sRGB = baseColor.sRGBFloat();
+            this(sRGB.red(), sRGB.green(), sRGB.blue(), darkMode);
+        }
+
     }
 
 }

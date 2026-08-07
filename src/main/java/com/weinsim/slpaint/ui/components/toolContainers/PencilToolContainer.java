@@ -5,6 +5,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.tools.ImageTool;
 import com.weinsim.slpaint.main.tools.PencilTool;
+import com.weinsim.sutil.color.Color;
 
 public final class PencilToolContainer extends ToolContainer<PencilTool> {
 
@@ -39,7 +40,7 @@ public final class PencilToolContainer extends ToolContainer<PencilTool> {
             int pmouseX = prevMousePosition[0],
                     pmouseY = prevMousePosition[1];
 
-            int color = state == PencilTool.DRAWING_PRIMARY ? app.getPrimaryColor() : app.getSecondaryColor();
+            Color color = (state == PencilTool.DRAWING_PRIMARY ? app.getPrimaryColor() : app.getSecondaryColor());
             boolean ignoreAlpha = !ImageTool.PENCIL.isApplyTransparency();
             app.drawLine(mouseX, mouseY, pmouseX, pmouseY, tool.getSize(), color, ignoreAlpha);
         }

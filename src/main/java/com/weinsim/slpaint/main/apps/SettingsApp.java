@@ -1,11 +1,10 @@
 package com.weinsim.slpaint.main.apps;
 
-import org.lwjglx.util.vector.Vector4f;
-
 import com.weinsim.slpaint.main.ColorPicker;
 import com.weinsim.slpaint.renderengine.Window;
 import com.weinsim.slpaint.ui.AppUI;
 import com.weinsim.slpaint.ui.SettingsUI;
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.ui.UISizes;
 
 public final class SettingsApp extends App {
@@ -18,25 +17,24 @@ public final class SettingsApp extends App {
         loadUI();
     }
 
-    public void setUIColor(int color) {
-        colorPicker.setRGB(color);
+    public void setUIColor(Color color) {
+        colorPicker.setColor(color);
     }
 
     public void setDarkMode(boolean darkMode) {
         if (AppUI.isDarkMode() == darkMode)
             return;
 
-        Vector4f[] oldColors = AppUI.getDefaultUIColors();
+        Color[] oldColors = AppUI.getDefaultUIColors();
         AppUI.setDarkMode(darkMode);
-        Vector4f[] newColors = AppUI.getDefaultUIColors();
+        Color[] newColors = AppUI.getDefaultUIColors();
 
-        int baseRGB = MainApp.toInt(AppUI.getBaseColor());
+        Color baseColor = AppUI.getBaseColor();
 
         // this is a bit of a hack
         for (int i = 0; i < oldColors.length; i++) {
-            if (baseRGB == MainApp.toInt(oldColors[i])) {
-                setUIColor(MainApp.toInt(newColors[i]));
-            }
+            if (baseColor.equals(oldColors[i]))
+                setUIColor(newColors[i]);
         }
     }
 

@@ -12,10 +12,19 @@ import org.lwjglx.util.vector.Vector4f;
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.main.image.ImageFormat;
-import com.weinsim.slpaint.main.tools.*;
+import com.weinsim.slpaint.main.tools.DragTool;
+import com.weinsim.slpaint.main.tools.ImageTool;
+import com.weinsim.slpaint.main.tools.LineTool;
+import com.weinsim.slpaint.main.tools.PencilTool;
+import com.weinsim.slpaint.main.tools.SelectionTool;
 import com.weinsim.slpaint.renderengine.font.TextFont;
-import com.weinsim.slpaint.ui.components.*;
+import com.weinsim.slpaint.ui.components.ColorPickContainer;
+import com.weinsim.slpaint.ui.components.CustomColorContainer;
+import com.weinsim.slpaint.ui.components.EffectsPanel;
+import com.weinsim.slpaint.ui.components.ImageCanvas;
+import com.weinsim.slpaint.ui.components.UIColorElement;
 import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UISizes;
@@ -370,9 +379,7 @@ public class MainUI extends AppUI<MainApp> {
             colorContainer.withMargin();
             UIStyle.setSelectableButtonStyle(colorContainer, () -> app.getColorSelection() == index);
             colorContainer.setSelectable(true);
-            Supplier<Vector4f> cg = i == 0
-                    ? () -> MainApp.toVector4f(app.getPrimaryColor())
-                    : () -> MainApp.toVector4f(app.getSecondaryColor());
+            Supplier<Color> cg = i == 0 ? app::getPrimaryColor : app::getSecondaryColor;
             colorContainer.add(new UIColorElement(cg, UISizes.BIG_COLOR_BUTTON));
             UIContainer textContainer = new UIContainer(VERTICAL, CENTER);
             textContainer.zeroPadding();
@@ -393,11 +400,9 @@ public class MainUI extends AppUI<MainApp> {
                 currentRow = new UIContainer(HORIZONTAL, CENTER);
                 currentRow.setPaddingScale(colorPaddingScale);
             }
-
-            final int colorInt = MainApp.DEFAULT_COLORS[i];
-            final Vector4f color = MainApp.toVector4f(colorInt);
+            final Color color = MainApp.DEFAULT_COLORS[i];
             UIColorElement button = new UIColorElement(() -> color, UISizes.COLOR_BUTTON);
-            button.addLeftClickAction(() -> app.selectColor(colorInt));
+            button.addLeftClickAction(() -> app.selectColor(color));
             button.setCursorShape(() -> button.mouseAbove() ? GLFW_POINTING_HAND_CURSOR : null);
             currentRow.add(button);
 
@@ -408,18 +413,18 @@ public class MainUI extends AppUI<MainApp> {
         }
         CustomColorContainer ccc = new CustomColorContainer(HORIZONTAL,
                 app.getCustomColorButtonArray(),
-                c -> app.selectColor(MainApp.toInt(c)));
+                app::selectColor);
         ccc.setPaddingScale(colorPaddingScale);
         allColors.add(ccc);
         colorPanel.add(allColors);
 
-        colorPanel.add(new ColorPickContainer(
+        ColorPickContainer cpc = new ColorPickContainer(
                 app.getSelectedColorPicker(),
                 app::addCustomColor,
                 VERTICAL,
-                true,
-                false)
-                .setHFillSize());
+                true);
+        cpc.setHFillSize();
+        colorPanel.add(cpc);
 
         return colorPanel.addScrollbars();
     }
@@ -479,7 +484,7 @@ public class MainUI extends AppUI<MainApp> {
                     () -> UISizes.BIG_COLOR_BUTTON.get2f().scale(2));
             image.setStyle(
                     new UIStyle(
-                            () -> null,
+                            null,
                             UIColors.HIGHLIGHT,
                             () -> imageSupplier.get().getFBO().getActiveTexture() == j ? 2 : 0));
             preview.add(image);

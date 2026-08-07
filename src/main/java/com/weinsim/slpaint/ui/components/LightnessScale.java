@@ -20,14 +20,12 @@ public class LightnessScale extends UIScale {
                             : value;
                 },
                 value -> {
-                    if (orientation == UI.VERTICAL) {
+                    if (orientation == UI.VERTICAL)
                         value = 1 - value;
-                    }
-                    if (App.isHSLColorSpace()) {
+                    if (App.isHSLColorSpace())
                         colorPicker.setLightness(value);
-                    } else {
+                    else
                         colorPicker.setValue(value);
-                    }
                 },
                 false);
         this.colorPicker = colorPicker;

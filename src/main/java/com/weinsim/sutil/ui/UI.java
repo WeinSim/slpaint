@@ -8,8 +8,7 @@ import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BooleanSupplier;
 
-import org.lwjglx.util.vector.Vector4f;
-
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.elements.UIContainer;
 import com.weinsim.sutil.ui.elements.UIElement;
@@ -373,11 +372,16 @@ public abstract class UI {
 
     protected abstract boolean isDarkModeImpl();
 
-    public static Vector4f getBaseColor() {
+    /**
+     * Ths returned color is expected to be in sRGB format.
+     * 
+     * @return
+     */
+    public static Color getBaseColor() {
         return context.getBaseColorImpl();
     }
 
-    protected abstract Vector4f getBaseColorImpl();
+    protected abstract Color getBaseColorImpl();
 
     public static double getUIScale() {
         return context.uiScale;

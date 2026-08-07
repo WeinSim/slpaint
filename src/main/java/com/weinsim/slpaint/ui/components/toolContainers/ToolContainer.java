@@ -9,7 +9,7 @@ public sealed class ToolContainer<T extends ImageTool> extends UIFloatContainer
 
     protected final T tool;
 
-    protected MainApp app;
+    protected final MainApp app;
 
     public ToolContainer(T tool, MainApp app) {
         super(0, 0);

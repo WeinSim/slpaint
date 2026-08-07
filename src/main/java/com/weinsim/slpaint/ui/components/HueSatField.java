@@ -5,7 +5,6 @@ import com.weinsim.slpaint.main.apps.App;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UISizes;
-import com.weinsim.sutil.ui.UIStyle;
 import com.weinsim.sutil.ui.elements.UIContainer;
 import com.weinsim.sutil.ui.elements.UIDragContainer;
 import com.weinsim.sutil.ui.elements.UIElement;
@@ -23,18 +22,15 @@ public class HueSatField extends UIDragContainer {
      */
     private static final double CURSOR_WIDTH = 2;
 
-    private ColorPicker colorPicker;
+    private final ColorPicker colorPicker;
 
     private double nextX;
 
-    public HueSatField(ColorPicker colorPicker) {
-        this.colorPicker = colorPicker;
-
-        add(new Cursor(colorPicker));
+    public HueSatField(ColorPicker color) {
+        this.colorPicker = color;
+        add(new Cursor());
         setFixedSize(UISizes.HUE_SAT_FIELD.get2f());
-
         nextX = 0;
-
         handCursorAbove = true;
     }
 
@@ -53,7 +49,7 @@ public class HueSatField extends UIDragContainer {
     public double getRelativeX() {
         if (App.isCircularHueSatField()) {
             double radius = App.isHSLColorSpace() ? colorPicker.getHSLSaturation() : colorPicker.getHSVSaturation();
-            double angle = colorPicker.getHue() / 180 * Math.PI;
+            double angle = colorPicker.getHue() / 180.0 * Math.PI;
             return Math.cos(angle) * radius / 2 + 0.5;
         } else {
             return colorPicker.getHue() / 360.0;
@@ -65,7 +61,7 @@ public class HueSatField extends UIDragContainer {
         double saturation = App.isHSLColorSpace() ? colorPicker.getHSLSaturation() : colorPicker.getHSVSaturation();
         if (App.isCircularHueSatField()) {
             double radius = saturation;
-            double angle = colorPicker.getHue() / 180 * Math.PI;
+            double angle = colorPicker.getHue() / 180.0 * Math.PI;
             return Math.sin(angle) * radius / 2 + 0.5;
         } else {
             return 1 - saturation;
@@ -74,16 +70,10 @@ public class HueSatField extends UIDragContainer {
 
     @Override
     public void setRelativeX(double x) {
-        if (App.isCircularHueSatField()) {
+        if (App.isCircularHueSatField())
             nextX = x;
-        } else {
-            x = Math.clamp(x, 0, 1);
-            if (App.isHSLColorSpace()) {
-                colorPicker.setHSLHue(x * 360.0);
-            } else {
-                colorPicker.setHSVHue(x * 360.0);
-            }
-        }
+        else
+            colorPicker.setHue(Math.clamp(x, 0, 1) * 360.0);
     }
 
     @Override
@@ -92,31 +82,26 @@ public class HueSatField extends UIDragContainer {
             y -= 0.5;
             double x = nextX - 0.5;
             double angle = Math.atan2(y, x) / Math.PI * 180;
-            angle = (angle + 360) % 360;
-            if (App.isHSLColorSpace()) {
-                colorPicker.setHSLHue(angle);
-                colorPicker.setHSLSaturation(Math.min(1, 2 * Math.sqrt(x * x + y * y)));
-            } else {
-                colorPicker.setHSVHue(angle);
-                colorPicker.setHSVSaturation(Math.min(1, 2 * Math.sqrt(x * x + y * y)));
-            }
+            colorPicker.setHue(angle);
+            double saturation = 2 * Math.sqrt(x * x + y * y);
+            if (App.isHSLColorSpace())
+                colorPicker.setHSLSaturation(saturation);
+            else
+                colorPicker.setHSVSaturation(saturation);
         } else {
             y = Math.clamp(y, 0, 1);
-            if (App.isHSLColorSpace()) {
+            if (App.isHSLColorSpace())
                 colorPicker.setHSLSaturation(1 - y);
-            } else {
+            else
                 colorPicker.setHSVSaturation(1 - y);
-            }
         }
     }
 
     protected class Cursor extends UIFloatContainer {
 
-        public Cursor(ColorPicker colorPicker) {
+        public Cursor() {
             super(0, 0);
-
             addAnchor(Anchor.CENTER_CENTER, () -> new SVector(getRelativeX(), getRelativeY()).mult(parent.getSize()));
-
             setFixedSize(new SVector(0, 0));
 
             for (int i = 0; i < 4; i++) {
@@ -143,24 +128,31 @@ public class HueSatField extends UIDragContainer {
                 });
             }
         }
+
     }
 
     private static class CursorLine extends UIContainer {
 
+        private final boolean vertical;
+
         public CursorLine(boolean vertical) {
             super(0, 0);
+            this.vertical = vertical;
+            style.setBackgroundColor(UIColors.HIGHLIGHT);
+        }
 
-            setStyle(new UIStyle(UIColors.HIGHLIGHT, () -> null, UISizes.STROKE_WEIGHT));
+        @Override
+        public void update() {
+            super.update();
 
             double len = UISizes.SCALE_SLIDER_LENGTH.get1f() * CURSOR_LINE_LENGTH;
             double w = UISizes.SCALE_SLIDER_WIDTH.get1f() * CURSOR_WIDTH;
-
-            if (vertical) {
+            if (vertical)
                 setFixedSize(new SVector(w, len));
-            } else {
+            else
                 setFixedSize(new SVector(len, w));
-            }
         }
+
     }
 
 }

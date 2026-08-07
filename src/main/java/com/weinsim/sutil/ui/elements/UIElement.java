@@ -9,9 +9,8 @@ import java.util.function.DoubleSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import org.lwjglx.util.vector.Vector4f;
-
 import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UICharInputAction;
@@ -329,7 +328,7 @@ public abstract class UIElement {
         return cursorShapeSupplier.get();
     }
 
-    public Vector4f backgroundColor() {
+    public Color backgroundColor() {
         return style.backgroundColor();
     }
 
@@ -337,11 +336,11 @@ public abstract class UIElement {
         return style.doBackgroundCheckerboard();
     }
 
-    public Vector4f backgroundCheckerboardColor1() {
+    public Color backgroundCheckerboardColor1() {
         return style.backgroundCheckerboardColor1();
     }
 
-    public Vector4f backgroundCheckerboardColor2() {
+    public Color backgroundCheckerboardColor2() {
         return style.backgroundCheckerboardColor2();
     }
 
@@ -349,11 +348,10 @@ public abstract class UIElement {
         return style.backgroundCheckerboardSize();
     }
 
-    public final Vector4f strokeColor() {
-        Vector4f ol = style.strokeColor();
-        if (ol == null && isSelected()) {
+    public final Color strokeColor() {
+        Color ol = style.strokeColor();
+        if (ol == null && isSelected())
             ol = UIColors.OUTLINE.get();
-        }
         return ol;
     }
 
@@ -373,11 +371,11 @@ public abstract class UIElement {
         return style.doStrokeCheckerboard();
     }
 
-    public Vector4f strokeCheckerboardColor1() {
+    public Color strokeCheckerboardColor1() {
         return style.strokeCheckerboardColor1();
     }
 
-    public Vector4f strokeCheckerboardColor2() {
+    public Color strokeCheckerboardColor2() {
         return style.strokeCheckerboardColor2();
     }
 
@@ -434,16 +432,16 @@ public abstract class UIElement {
     }
 
     public void setDefaultStyle() {
-        Supplier<Vector4f> backgroundColorSupplier = () -> {
-            Vector4f bgColor = null;
+        Supplier<Color> backgroundColorSupplier = () -> {
+            Color bgColor = null;
             if (backgroundNormal)
                 bgColor = UIColors.BACKGROUND.get();
             if (backgroundHighlight && mouseAbove)
                 bgColor = UIColors.BACKGROUND_HIGHLIGHT.get();
             return bgColor;
         };
-        Supplier<Vector4f> outlineColorSupplier = () -> {
-            Vector4f outlineColor = null;
+        Supplier<Color> outlineColorSupplier = () -> {
+            Color outlineColor = null;
             if (outlineNormal || (outlineHighlight && mouseAbove))
                 outlineColor = UIColors.OUTLINE.get();
             return outlineColor;

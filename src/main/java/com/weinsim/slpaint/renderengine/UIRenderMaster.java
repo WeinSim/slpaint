@@ -11,14 +11,28 @@ import java.util.LinkedList;
 
 import org.lwjglx.util.vector.Matrix3f;
 import org.lwjglx.util.vector.Vector3f;
-import org.lwjglx.util.vector.Vector4f;
 
 import com.weinsim.slpaint.main.apps.App;
 import com.weinsim.slpaint.main.image.Image;
-import com.weinsim.slpaint.renderengine.drawcalls.*;
+import com.weinsim.slpaint.renderengine.drawcalls.ClipAreaInfo;
+import com.weinsim.slpaint.renderengine.drawcalls.DrawCall;
+import com.weinsim.slpaint.renderengine.drawcalls.EllipseDrawCall;
+import com.weinsim.slpaint.renderengine.drawcalls.HSLDrawCall;
+import com.weinsim.slpaint.renderengine.drawcalls.ImageDrawCall;
+import com.weinsim.slpaint.renderengine.drawcalls.RectFillDrawCall;
+import com.weinsim.slpaint.renderengine.drawcalls.RectOutlineDrawCall;
+import com.weinsim.slpaint.renderengine.drawcalls.TextDrawCall;
 import com.weinsim.slpaint.renderengine.font.TextFont;
-import com.weinsim.slpaint.renderengine.renderers.*;
+import com.weinsim.slpaint.renderengine.renderers.EllipseRenderer;
+import com.weinsim.slpaint.renderengine.renderers.HSLRenderer;
+import com.weinsim.slpaint.renderengine.renderers.ImageRenderer;
+import com.weinsim.slpaint.renderengine.renderers.RectFillRenderer;
+import com.weinsim.slpaint.renderengine.renderers.RectOutlineRenderer;
+import com.weinsim.slpaint.renderengine.renderers.ShapeRenderer;
+import com.weinsim.slpaint.renderengine.renderers.TextRenderer;
 import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.color.Color;
+import com.weinsim.sutil.color.SRGBFloat;
 import com.weinsim.sutil.math.SVector;
 
 public class UIRenderMaster {
@@ -52,13 +66,13 @@ public class UIRenderMaster {
 
     private double depth;
 
-    private Vector4f fill;
+    private Color fill;
     private int fillMode;
 
-    private Vector4f[] checkerboardColors;
+    private Color[] checkerboardColors;
     private double checkerboardSize;
 
-    private Vector4f stroke;
+    private Color stroke;
     private int strokeMode;
     private double strokeWeight;
 
@@ -80,29 +94,16 @@ public class UIRenderMaster {
         uiMatrixStack = new LinkedList<>();
         clipAreaStack = new LinkedList<>();
 
-        fill = new Vector4f(0, 0, 0, 1);
-        stroke = new Vector4f(0, 0, 0, 1);
+        fill = Color.sGrey(0);
+        stroke = Color.sGrey(0);
 
-        checkerboardColors = new Vector4f[] { new Vector4f(0, 0, 0, 1), new Vector4f(0, 0, 0, 1) };
+        checkerboardColors = new Color[] { Color.sGrey(0), Color.sGrey(0) };
 
         drawCalls = new ArrayList<>();
     }
 
     public void start() {
         defaultFramebuffer();
-
-        glEnable(GL_BLEND);
-        glBlendFuncSeparate(
-                GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, // rgb
-                GL_ONE_MINUS_DST_ALPHA, GL_ONE); // alpha
-
-        glEnable(GL_MULTISAMPLE);
-
-        glDisable(GL_CULL_FACE);
-
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LEQUAL);
-        glDepthMask(true);
 
         uiMatrixStack.clear();
         uiMatrix = new Matrix3f();
@@ -112,10 +113,10 @@ public class UIRenderMaster {
 
         depth = 0;
 
-        checkerboardFill(new SVector[] { new SVector(), new SVector() }, 1);
-        fill(0.5, 0.5, 0.5, 1.0);
+        checkerboardFill(new Color[] { Color.sGrey(0), Color.sGrey(0) }, 1);
+        fill(Color.sRGB(0.5, 0.5, 0.5, 1.0));
 
-        stroke(0.0, 0.0, 0.0, 1.0);
+        stroke(Color.sRGB(0.0, 0.0, 0.0, 1.0));
         strokeWeight(1);
 
         textFont = null;
@@ -128,6 +129,17 @@ public class UIRenderMaster {
     public void render() {
         Matrix3f viewMatrix = createViewMatrix();
         glViewport(0, 0, framebufferSize[0], framebufferSize[1]);
+        // glDisable(GL_FRAMEBUFFER_SRGB);
+        glEnable(GL_FRAMEBUFFER_SRGB);
+        glEnable(GL_BLEND);
+        glBlendFuncSeparate(
+                GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, // rgb
+                GL_ONE_MINUS_DST_ALPHA, GL_ONE); // alpha
+        glEnable(GL_MULTISAMPLE);
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(true);
 
         // drawcall at index LO must come before drawcall at index HI
         ArrayList<Long> orderRequirements = new ArrayList<>();
@@ -210,9 +222,10 @@ public class UIRenderMaster {
         }
     }
 
-    public void setBGColor(Vector4f bgColor) {
+    public void setBGColor(Color bgColor) {
         // glViewport(0, 0, framebufferSize[0], framebufferSize[1]);
-        glClearColor(bgColor.x, bgColor.y, bgColor.z, bgColor.w);
+        SRGBFloat sRGB = bgColor.sRGBFloat();
+        glClearColor((float) sRGB.red(), (float) sRGB.green(), (float) sRGB.blue(), (float) sRGB.alpha());
         glClearDepth(1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
@@ -233,16 +246,16 @@ public class UIRenderMaster {
                     new RectFillDrawCall(position, depth, size,
                             new Matrix3f().load(uiMatrix),
                             new ClipAreaInfo(clipAreaInfo),
-                            new Vector4f(fillMode == NORMAL ? fill : checkerboardColors[0]),
-                            new Vector4f(checkerboardColors[1]), checkerboardSize, fillMode == CHECKERBOARD));
+                            fillMode == NORMAL ? fill : checkerboardColors[0],
+                            checkerboardColors[1], checkerboardSize, fillMode == CHECKERBOARD));
 
         if (strokeMode > 0)
             drawCalls.add(
                     new RectOutlineDrawCall(position, depth, size,
                             new Matrix3f().load(uiMatrix),
                             new ClipAreaInfo(clipAreaInfo),
-                            new Vector4f(strokeMode == NORMAL ? stroke : checkerboardColors[0]), strokeWeight,
-                            new Vector4f(checkerboardColors[1]), checkerboardSize, strokeMode == CHECKERBOARD));
+                            strokeMode == NORMAL ? stroke : checkerboardColors[0], strokeWeight,
+                            checkerboardColors[1], checkerboardSize, strokeMode == CHECKERBOARD));
     }
 
     public void ellipse(SVector position, SVector size) {
@@ -251,7 +264,7 @@ public class UIRenderMaster {
 
         drawCalls.add(
                 new EllipseDrawCall(position, depth, size, new Matrix3f().load(uiMatrix),
-                        new ClipAreaInfo(clipAreaInfo), new Vector4f(fill)));
+                        new ClipAreaInfo(clipAreaInfo), fill));
     }
 
     public void text(String text, SVector position) {
@@ -264,7 +277,7 @@ public class UIRenderMaster {
 
         drawCalls.add(
                 new TextDrawCall(position, depth, textSize / textFont.size, new Matrix3f().load(uiMatrix),
-                        new ClipAreaInfo(clipAreaInfo), new Vector4f(fill), text, textFont));
+                        new ClipAreaInfo(clipAreaInfo), fill, text, textFont));
     }
 
     public void image(int textureID, SVector position, SVector size) {
@@ -296,7 +309,7 @@ public class UIRenderMaster {
         int flags = HSLDrawCall.ALPHA_SCALE
                 | (vertical ? HSLDrawCall.VERTICAL : HSLDrawCall.HORIZONTAL);
         hslRenderer.addShape(new HSLDrawCall(position, depth, size, new Matrix3f().load(uiMatrix),
-                new ClipAreaInfo(clipAreaInfo), new SVector(fill.x, fill.y, fill.z), flags));
+                new ClipAreaInfo(clipAreaInfo), fill.sRGBFloat().toSVector(), flags));
     }
 
     public void clipArea(SVector position, SVector size) {
@@ -413,25 +426,8 @@ public class UIRenderMaster {
         uiMatrix = uiMatrixStack.pop();
     }
 
-    public void fill(double r, double g, double b) {
-        fill(r, g, b, 1.0);
-    }
-
-    public void fill(SVector fill) {
-        fill(fill, 1.0);
-    }
-
-    public void fill(SVector fill, double a) {
-        fill(fill.x, fill.y, fill.z, a);
-    }
-
-    public void fill(double r, double g, double b, double a) {
-        this.fill.set((float) r, (float) g, (float) b, (float) a);
-        fillMode = NORMAL;
-    }
-
-    public void fill(Vector4f fill) {
-        this.fill.set(fill);
+    public void fill(Color fill) {
+        this.fill = fill;
         fillMode = NORMAL;
     }
 
@@ -439,45 +435,15 @@ public class UIRenderMaster {
         fillMode = NONE;
     }
 
-    public void checkerboardFill(SVector[] colors, double size) {
-        checkerboardFill(new Vector4f[] {
-                new Vector4f((float) colors[0].x,
-                        (float) colors[0].y,
-                        (float) colors[0].z,
-                        1.0f),
-                new Vector4f((float) colors[1].x,
-                        (float) colors[1].y,
-                        (float) colors[1].z,
-                        1.0f)
-        }, size);
-    }
-
-    public void checkerboardFill(Vector4f[] colors, double size) {
+    public void checkerboardFill(Color[] colors, double size) {
         fillMode = CHECKERBOARD;
-        checkerboardColors[0].set(colors[0]);
-        checkerboardColors[1].set(colors[1]);
+        checkerboardColors[0] = colors[0];
+        checkerboardColors[1] = colors[1];
         checkerboardSize = size;
     }
 
-    public void stroke(double r, double g, double b) {
-        stroke(r, g, b, 1.0);
-    }
-
-    public void stroke(SVector stroke) {
-        stroke(stroke, 1.0);
-    }
-
-    public void stroke(SVector stroke, double a) {
-        stroke(stroke.x, stroke.y, stroke.z, a);
-    }
-
-    public void stroke(double r, double g, double b, double a) {
-        this.stroke.set((float) r, (float) g, (float) b, (float) a);
-        strokeMode = NORMAL;
-    }
-
-    public void stroke(Vector4f stroke) {
-        this.stroke.set(stroke);
+    public void stroke(Color stroke) {
+        this.stroke = stroke;
         strokeMode = NORMAL;
     }
 
@@ -485,23 +451,10 @@ public class UIRenderMaster {
         strokeMode = NONE;
     }
 
-    public void checkerboardStroke(SVector[] colors, double size) {
-        checkerboardStroke(new Vector4f[] {
-                new Vector4f((float) colors[0].x,
-                        (float) colors[0].y,
-                        (float) colors[0].z,
-                        1.0f),
-                new Vector4f((float) colors[1].x,
-                        (float) colors[1].y,
-                        (float) colors[1].z,
-                        1.0f)
-        }, size);
-    }
-
-    public void checkerboardStroke(Vector4f[] colors, double size) {
+    public void checkerboardStroke(Color[] colors, double size) {
         strokeMode = CHECKERBOARD;
-        checkerboardColors[0].set(colors[0]);
-        checkerboardColors[1].set(colors[1]);
+        checkerboardColors[0] = colors[0];
+        checkerboardColors[1] = colors[1];
         checkerboardSize = size;
     }
 

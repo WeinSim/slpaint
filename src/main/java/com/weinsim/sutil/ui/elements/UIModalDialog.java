@@ -5,8 +5,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.DoubleSupplier;
 
-import org.lwjglx.util.vector.Vector4f;
-
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UISizes;
 
@@ -23,7 +22,7 @@ public class UIModalDialog extends UIFloatContainer {
         soloInputs = true;
         addKeyPressAction(GLFW_KEY_ESCAPE, 0, false, this::cancel);
 
-        style.setBackgroundColor(new Vector4f(0.0f, 0.0f, 0.0f, 0.5f));
+        style.setBackgroundColor(Color.sGrey(0.0, 0.5));
 
         UIContainer content = new UIContainer(VERTICAL, CENTER);
         content.zeroPadding().withBackground().withOutline();

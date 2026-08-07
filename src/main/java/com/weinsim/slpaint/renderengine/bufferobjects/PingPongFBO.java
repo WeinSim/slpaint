@@ -42,7 +42,10 @@ public class PingPongFBO implements Cleanable {
         int currentWidth = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH),
                 currentHeight = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH);
         if (currentWidth != width || currentHeight != height)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
+            // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA,
+            // GL_UNSIGNED_BYTE, (ByteBuffer) null);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE,
+                    (ByteBuffer) null);
     }
 
     /**

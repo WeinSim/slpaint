@@ -18,7 +18,12 @@ import com.weinsim.slpaint.ui.components.CustomColorContainer;
 import com.weinsim.slpaint.ui.components.UIColorElement;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UISizes;
-import com.weinsim.sutil.ui.elements.*;
+import com.weinsim.sutil.ui.elements.UIButton;
+import com.weinsim.sutil.ui.elements.UIContainer;
+import com.weinsim.sutil.ui.elements.UIContextMenu;
+import com.weinsim.sutil.ui.elements.UIDropdown;
+import com.weinsim.sutil.ui.elements.UIFloatMenu;
+import com.weinsim.sutil.ui.elements.UIText;
 
 public class SettingsUI extends AppUI<SettingsApp> {
 
@@ -116,7 +121,7 @@ public class SettingsUI extends AppUI<SettingsApp> {
         for (int i = 0; i < numDefaultColors; i++) {
             final int j = i;
             UIColorElement button = new UIColorElement(() -> AppUI.getDefaultUIColors()[j], UISizes.COLOR_BUTTON);
-            button.addLeftClickAction(() -> app.setUIColor(MainApp.toInt(AppUI.getDefaultUIColors()[j])));
+            button.addLeftClickAction(() -> app.setUIColor(AppUI.getDefaultUIColors()[j]));
             defaultColorContainer.add(button);
         }
         defaultColors.add(defaultColorContainer);
@@ -128,7 +133,7 @@ public class SettingsUI extends AppUI<SettingsApp> {
         UIContainer customColors = new UIContainer(VERTICAL, CENTER);
         CustomColorContainer ccc = new CustomColorContainer(HORIZONTAL,
                 MainApp.getCustomUIBaseColors(),
-                c -> app.setUIColor(MainApp.toInt(c)));
+                app::setUIColor);
         customColors.add(ccc);
         customColors.add(new UIText("Custom Colors", UIText.SMALL));
         allColorsContainer.add(customColors);
@@ -138,11 +143,8 @@ public class SettingsUI extends AppUI<SettingsApp> {
         baseColor.add(allColorsContainer);
 
         ColorPicker colorPicker = app.getColorPicker();
-        ColorPickContainer colorPickContainer = new ColorPickContainer(
-                colorPicker,
-                MainApp::addCustomUIBaseColor,
-                // UISizes.COLOR_PICKER_PANEL,
-                HORIZONTAL, false, true);
+        ColorPickContainer colorPickContainer = new ColorPickContainer(colorPicker, MainApp::addCustomUIBaseColor,
+                HORIZONTAL, false);
         colorPickContainer.setVisibilitySupplier(() -> colorSelectionExpanded);
         baseColor.add(colorPickContainer);
 

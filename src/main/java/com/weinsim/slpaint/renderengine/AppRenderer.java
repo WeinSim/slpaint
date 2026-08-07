@@ -3,8 +3,6 @@ package com.weinsim.slpaint.renderengine;
 import static com.weinsim.sutil.ui.UI.*;
 import static org.lwjgl.glfw.GLFW.*;
 
-import org.lwjglx.util.vector.Vector4f;
-
 import com.weinsim.slpaint.main.apps.App;
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.image.Image;
@@ -12,6 +10,7 @@ import com.weinsim.slpaint.renderengine.font.TextFont;
 import com.weinsim.slpaint.ui.components.AlphaScale;
 import com.weinsim.slpaint.ui.components.HueSatField;
 import com.weinsim.slpaint.ui.components.LightnessScale;
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UIColors;
@@ -59,7 +58,7 @@ public class AppRenderer implements Cleanable {
 
     public void render() {
         uiMaster.start();
-        uiMaster.setBGColor(new Vector4f(0, 0, 0, 1));
+        uiMaster.setBGColor(Color.sGrey(0));
 
         if (DEBUG_RENDERING) {
             renderDebug();
@@ -123,16 +122,16 @@ public class AppRenderer implements Cleanable {
         // checkerboard background
         if (element.doBackgroundCheckerboard()) {
             uiMaster.depth(getDepth(0));
-            Vector4f c1 = element.backgroundCheckerboardColor1(),
+            Color c1 = element.backgroundCheckerboardColor1(),
                     c2 = element.backgroundCheckerboardColor2();
             double s = element.backgroundCheckerboardSize();
-            uiMaster.checkerboardFill(new Vector4f[] { c1, c2 }, s);
+            uiMaster.checkerboardFill(new Color[] { c1, c2 }, s);
             uiMaster.noStroke();
             drawShape(shape, position, size);
         }
 
         // background
-        Vector4f bgColor = element.backgroundColor();
+        Color bgColor = element.backgroundColor();
         if (bgColor != null) {
             uiMaster.depth(getDepth(1));
             uiMaster.fill(bgColor);
@@ -144,18 +143,18 @@ public class AppRenderer implements Cleanable {
         boolean doOutline = false;
         int debugOutline = App.getDebugOutline();
         if ((debugOutline == 1 && element.mouseAbove()) || debugOutline == 2) {
-            uiMaster.stroke(new SVector(1, 0.7, 0.1));
+            uiMaster.stroke(Color.sRGB(1, 0.7, 0.1));
             uiMaster.strokeWeight(UISizes.STROKE_WEIGHT.get1f());
             doOutline = true;
         } else if (element.doStrokeCheckerboard()) {
-            Vector4f c1 = element.strokeCheckerboardColor1(),
+            Color c1 = element.strokeCheckerboardColor1(),
                     c2 = element.strokeCheckerboardColor2();
             double s = element.strokeCheckerboardSize();
-            uiMaster.checkerboardStroke(new Vector4f[] { c1, c2 }, s);
+            uiMaster.checkerboardStroke(new Color[] { c1, c2 }, s);
             uiMaster.strokeWeight(element.strokeWeight());
             doOutline = true;
         } else {
-            Vector4f olColor = element.strokeColor();
+            Color olColor = element.strokeColor();
             if (olColor != null) {
                 uiMaster.stroke(olColor);
                 uiMaster.strokeWeight(element.strokeWeight());
@@ -219,11 +218,11 @@ public class AppRenderer implements Cleanable {
         if (element instanceof AlphaScale.ASVisuals a) {
             // checkerboard background
             uiMaster.noStroke();
-            Vector4f[] transparency = { UIColors.TRANSPARENCY_1.get(), UIColors.TRANSPARENCY_2.get() };
+            Color[] transparency = { UIColors.TRANSPARENCY_1.get(), UIColors.TRANSPARENCY_2.get() };
             uiMaster.checkerboardFill(transparency, size.y / 2);
             uiMaster.rect(position, size);
             // color gradient
-            uiMaster.fill(MainApp.toVector4f(a.getRGB()));
+            uiMaster.fill(a.getColor());
             uiMaster.alphaScale(position, size, a.getOrientation() == VERTICAL);
         }
         if (element instanceof HueSatField) {
@@ -294,7 +293,7 @@ public class AppRenderer implements Cleanable {
         dstImage.markOpenGLTextureDirty();
     }
 
-    public void renderTextToImage(String text, double x, double y, double size, Vector4f color, TextFont font,
+    public void renderTextToImage(String text, double x, double y, double size, Color color, TextFont font,
             Image image) {
 
         if (text.isEmpty())
@@ -317,7 +316,7 @@ public class AppRenderer implements Cleanable {
     }
 
     private void renderDebug() {
-        uiMaster.setBGColor(new Vector4f(0.15f, 0.15f, 0.15f, 1));
+        uiMaster.setBGColor(Color.sGrey(0.15));
 
         SVector p1 = new SVector(500, 100),
                 p2 = new SVector(600, 100),
@@ -325,9 +324,9 @@ public class AppRenderer implements Cleanable {
         SVector s1 = new SVector(800, 100),
                 s2 = new SVector(800, 800),
                 s3 = new SVector(100, 200);
-        Vector4f c1 = new Vector4f(0.8f, 0.2f, 0.2f, 1.0f),
-                c2 = new Vector4f(0.2f, 0.8f, 0.2f, 1.0f),
-                c3 = new Vector4f(0.2f, 0.2f, 0.8f, 0.5f);
+        Color c1 =   Color.sRGB(0.8, 0.2, 0.2),
+                c2 = Color.sRGB(0.2, 0.8, 0.2),
+                c3 = Color.sRGB(0.2, 0.2, 0.8, 0.5);
 
         // MainApp app = (MainApp) this.app;
 

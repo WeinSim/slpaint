@@ -10,11 +10,9 @@ flat in int flags;
 out vec4 outColor;
 
 vec3 hsvToRGB(float h, float s, float v);
-
 vec3 hslToRGB(float h, float s, float l);
-
-float mag(vec2 v);
-
+vec4 toSRGB(vec4 linearRGB);
+vec4 toLinear(vec4 sRGB);
 float atan2(float y, float x);
 
 const float PI = 3.1415926535;
@@ -44,7 +42,7 @@ void main(void) {
     switch (shapeType) {
         case 0:
             vec2 transformedUVCoords = 2 * uvCoords - 1;
-            float mag = mag(transformedUVCoords);
+            float mag = length(transformedUVCoords);
             // if (mag > 1) {
             //     discard;
             // }
@@ -79,10 +77,8 @@ void main(void) {
                 orientation == 1 ? uvCoords.x : 1 - uvCoords.y);
             break;
     }
-}
 
-float mag(vec2 v) {
-    return sqrt(v.x * v.x + v.y * v.y);
+    outColor = toLinear(outColor);
 }
 
 float atan2(float y, float x) {
@@ -168,4 +164,21 @@ vec3 hsvToRGB(float h, float s, float v) {
     g = (g + m);
     b = (b + m);
     return vec3(r, g, b);
+}
+
+// Source: https://gamedev.stackexchange.com/questions/92015/optimized-linear-to-srgb-glsl
+vec4 toSRGB(vec4 linearRGB) {
+    bvec3 cutoff = lessThan(linearRGB.rgb, vec3(0.0031308));
+    vec3 higher = vec3(1.055)*pow(linearRGB.rgb, vec3(1.0/2.4)) - vec3(0.055);
+    vec3 lower = linearRGB.rgb * vec3(12.92);
+
+    return vec4(mix(higher, lower, cutoff), linearRGB.a);
+}
+
+vec4 toLinear(vec4 sRGB) {
+    bvec3 cutoff = lessThan(sRGB.rgb, vec3(0.04045));
+    vec3 higher = pow((sRGB.rgb + vec3(0.055))/vec3(1.055), vec3(2.4));
+    vec3 lower = sRGB.rgb/vec3(12.92);
+
+    return vec4(mix(higher, lower, cutoff), sRGB.a);
 }

@@ -3,6 +3,7 @@ package com.weinsim.slpaint.main.image;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL13.*;
+import static org.lwjgl.opengl.GL21.*;
 import static org.lwjgl.opengl.GL30.*;
 
 import java.awt.AlphaComposite;
@@ -21,6 +22,8 @@ import com.weinsim.slpaint.renderengine.RawModel;
 import com.weinsim.slpaint.renderengine.bufferobjects.PingPongFBO;
 import com.weinsim.slpaint.renderengine.shader.ShaderProgram;
 import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.color.Color;
+import com.weinsim.sutil.color.LinearRGB;
 import com.weinsim.sutil.math.SVector;
 
 /**
@@ -86,6 +89,26 @@ public class Image implements Cleanable {
 
         syncStatus = PIXEL_ARRAY_DIRTY;
         updateOpenGLTexture(false);
+    }
+
+    public static BufferedImage toARGB(BufferedImage image) {
+        return toARGB(image, false);
+    }
+
+    public static BufferedImage toARGB(BufferedImage image, boolean forceCopy) {
+        if (image.getType() != BufferedImage.TYPE_INT_ARGB) {
+            BufferedImage newImage = new BufferedImage(image.getWidth(), image.getHeight(),
+                    BufferedImage.TYPE_INT_ARGB);
+
+            Graphics2D g = newImage.createGraphics();
+            g.setComposite(AlphaComposite.Src);
+            g.drawImage(image, 0, 0, null);
+            g.dispose();
+
+            return newImage;
+        } else {
+            return forceCopy ? copyBufferedImage(image) : image;
+        }
     }
 
     /**
@@ -167,7 +190,9 @@ public class Image implements Cleanable {
             glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
         } else {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA,
+            // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA,
+            // GL_UNSIGNED_INT_8_8_8_8_REV, buffer);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_BGRA,
                     GL_UNSIGNED_INT_8_8_8_8_REV, buffer);
         }
 
@@ -191,7 +216,7 @@ public class Image implements Cleanable {
         syncStatus = CLEAN;
     }
 
-    public void crop(int startX, int startY, int newWidth, int newHeight, int backgroundColor) {
+    public void crop(int startX, int startY, int newWidth, int newHeight, Color backgroundColor) {
         if (newWidth == width && newHeight == height)
             return;
 
@@ -205,7 +230,7 @@ public class Image implements Cleanable {
                 newPixels = ((DataBufferInt) newImage.getRaster().getDataBuffer()).getData();
 
         if (startX < 0 || startX + newWidth > oldWidth || startY < 0 || startY + newHeight > oldHeight)
-            Arrays.fill(newPixels, backgroundColor);
+            Arrays.fill(newPixels, backgroundColor.sRGBPacked().argb());
 
         // all coordinates are w.r.t. the new image
         int copyStartX = Math.max(0, -startX),
@@ -291,10 +316,9 @@ public class Image implements Cleanable {
         setBufferedImage(image);
     }
 
-    public int getPixel(int x, int y) {
+    public Color getPixel(int x, int y) {
         checkBounds(x, y);
-
-        return pixelArray[y * width + x];
+        return Color.sRGB(pixelArray[y * width + x]);
     }
 
     /**
@@ -306,25 +330,24 @@ public class Image implements Cleanable {
      * @param color
      * @see Image#drawPixel
      */
-    public void setPixel(int x, int y, int color) {
+    public void setPixel(int x, int y, Color color) {
         checkBounds(x, y);
-
-        pixelArray[y * width + x] = color;
+        pixelArray[y * width + x] = color.sRGBPacked().argb();
         setDirty(x, y);
     }
 
-    public void setPixels(int x, int y, int w, int h, int color) {
+    public void setPixels(int x, int y, int w, int h, Color color) {
         checkBounds(x, y, w, h);
-
+        int sRGB = color.sRGBPacked().argb();
         if (w == width) {
             int fromIndex = y * width + x,
                     toIndex = (y + h) * width;
-            Arrays.fill(pixelArray, fromIndex, toIndex, color);
+            Arrays.fill(pixelArray, fromIndex, toIndex, sRGB);
         } else {
             for (int row = y; row < y + h; row++) {
                 int fromIndex = row * width + x,
                         toIndex = fromIndex + w;
-                Arrays.fill(pixelArray, fromIndex, toIndex, color);
+                Arrays.fill(pixelArray, fromIndex, toIndex, sRGB);
             }
         }
 
@@ -339,45 +362,39 @@ public class Image implements Cleanable {
      * 
      * @see Image#setPixel
      */
-    public void drawPixel(int x, int y, int color) {
+    public void drawPixel(int x, int y, Color color) {
         checkBounds(x, y);
-
-        drawPixelUnsafe(x, y, color, false);
-
+        drawPixelUnsafe(x, y, color);
         setDirty(x, y);
     }
 
-    private void drawPixelUnsafe(int x, int y, int color, boolean premultipliedAlpha) {
-        int srcAlpha = SUtil.alpha(color);
-
+    private void drawPixelUnsafe(int x, int y, Color color) {
+        LinearRGB src = color.linearRGB();
+        double srcAlpha = src.alpha();
         if (srcAlpha == 0)
             return;
-
-        int c;
-        if (srcAlpha == 255) {
+        Color c;
+        if (srcAlpha == 1.0) {
             c = color;
         } else {
-            int srcRed = SUtil.red(color),
-                    srcGreen = SUtil.green(color),
-                    srcBlue = SUtil.blue(color);
+            double srcRed = src.red(),
+                    srcGreen = src.green(),
+                    srcBlue = src.blue();
 
-            int dst = getPixel(x, y);
-            int dstRed = SUtil.red(dst),
-                    dstGreen = SUtil.green(dst),
-                    dstBlue = SUtil.blue(dst),
-                    dstAlpha = SUtil.alpha(dst);
+            LinearRGB dst = getPixel(x, y).linearRGB();
+            double dstRed = dst.red(),
+                    dstGreen = dst.green(),
+                    dstBlue = dst.blue(),
+                    dstAlpha = dst.alpha();
 
-            double sFactor = srcAlpha / 255.0,
-                    dFactor = (1 - srcAlpha / 255.0) * dstAlpha / 255.0;
+            double sFactor = srcAlpha,
+                    dFactor = (1 - srcAlpha) * dstAlpha;
             double sum = sFactor + dFactor;
-            if (premultipliedAlpha)
-                sFactor = 1;
-
-            c = SUtil.toARGB(
+            c = Color.linearRGB(
                     (sFactor * srcRed + dFactor * dstRed) / sum,
                     (sFactor * srcGreen + dFactor * dstGreen) / sum,
                     (sFactor * srcBlue + dFactor * dstBlue) / sum,
-                    255 - (255 - srcAlpha) * (255 - dstAlpha) / 255);
+                    1 - (1 - srcAlpha) * (1 - dstAlpha));
 
             // c = SUtil.toARGB(
             // ((255 - srcAlpha) * dstRed + srcAlpha * srcRed) / 255,
@@ -385,14 +402,14 @@ public class Image implements Cleanable {
             // ((255 - srcAlpha) * dstBlue + srcAlpha * srcBlue) / 255,
             // 255 - (255 - srcAlpha) * (255 - dstAlpha) / 255);
         }
-        pixelArray[y * width + x] = c;
+        pixelArray[y * width + x] = c.sRGBPacked().argb();
     }
 
-    public void drawLine(int x0, int y0, int x1, int y1, int size, int color) {
+    public void drawLine(int x0, int y0, int x1, int y1, int size, Color color) {
         drawLine(x0, y0, x1, y1, size, color, false);
     }
 
-    public void drawLine(int x0, int y0, int x1, int y1, int size, int color, boolean ignoreAlpha) {
+    public void drawLine(int x0, int y0, int x1, int y1, int size, Color color, boolean ignoreAlpha) {
         final int maxOffset = (size - 1) / 2;
 
         // https://iquilezles.org/articles/distfunctions2d/
@@ -453,25 +470,32 @@ public class Image implements Cleanable {
         }
     }
 
-    public void magic(int x0, int y0, int color) {
-        final int radius = 11;
-        final int margin = 5;
-        final int strokeWeight = 2;
-        final int xc = x0 + radius, yc = y0 + radius;
-        for (int dy = -radius - margin; dy <= margin; dy++) {
-            int y = yc + dy;
-            for (int dx = -radius - margin; dx <= radius + margin; dx++) {
-                int x = xc + dx;
-                if (!isInside(x, y))
-                    continue;
-                double mag = Math.sqrt(dx * dx + dy * dy);
-                if (Math.abs(mag - radius) <= strokeWeight / 2)
-                    setPixel(x, y, color);
+    public void magic(int x0, int y0, Color color) {
+        final int size = 256;
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                if ((x + y) % 2 == 0)
+                    setPixel(x0 + x, y0 + y, color);
             }
         }
+        // final int radius = 11;
+        // final int margin = 5;
+        // final int strokeWeight = 2;
+        // final int xc = x0 + radius, yc = y0 + radius;
+        // for (int dy = -radius - margin; dy <= margin; dy++) {
+        // int y = yc + dy;
+        // for (int dx = -radius - margin; dx <= radius + margin; dx++) {
+        // int x = xc + dx;
+        // if (!isInside(x, y))
+        // continue;
+        // double mag = Math.sqrt(dx * dx + dy * dy);
+        // if (Math.abs(mag - radius) <= strokeWeight / 2)
+        // setPixel(x, y, color);
+        // }
+        // }
     }
 
-    public BufferedImage getSubImage(int x, int y, int w, int h, Integer backgroundColor) {
+    public BufferedImage getSubImage(int x, int y, int w, int h, Color backgroundColor) {
         checkBounds(x, y, w, h);
 
         BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
@@ -480,75 +504,79 @@ public class Image implements Cleanable {
         int srcStride = width,
                 dstStride = w;
 
-        if (backgroundColor == null || backgroundColor == 0) {
-            for (int row = 0; row < h; row++) {
+        if (backgroundColor.equals(Color.sGrey(0))) {
+            for (int row = 0; row < h; row++)
                 System.arraycopy(pixelArray, (y + row) * srcStride + x, outPixels, row * dstStride, w);
-            }
             return out;
         } else {
+            int sRGB = backgroundColor.sRGBPacked().argb();
             for (int row = 0; row < h; row++) {
                 for (int col = 0; col < w; col++) {
                     int c = pixelArray[(y + row) * srcStride + (x + col)];
-                    outPixels[row * dstStride + col] = (c == backgroundColor) ? 0 : c;
+                    outPixels[row * dstStride + col] = (c == sRGB) ? 0 : c;
                 }
             }
             return out;
         }
     }
 
-    /**
-     * The {@code setSubImage} method does not respect the pixels' alpha values. The
-     * pixels are simply copied over.
-     * 
-     * @see Image#drawSubImage(int, int, int, int, int[])
-     */
-    public void setSubImage(int x, int y, int w, int h, int[] pixels) {
-        drawSubImage(x, y, w, h, pixels, false);
-    }
+    // /**
+    // * The {@code setSubImage} method does not respect the pixels' alpha values.
+    // The
+    // * pixels are simply copied over.
+    // *
+    // * @see Image#drawSubImage(int, int, int, int, int[])
+    // */
+    // public void setSubImage(int x, int y, int w, int h, int[] pixels) {
+    // drawSubImage(x, y, w, h, pixels, false);
+    // }
 
-    /**
-     * The {@code drawSubImage} method respects the pixels' alpha values and dos the
-     * appropriate alpha blending the the existing pixels.
-     * 
-     * @see Image#setSubImage(int, int, int, int, int[])
-     */
-    public void drawSubImage(int x, int y, int w, int h, int[] pixels) {
-        drawSubImage(x, y, w, h, pixels, true);
-    }
+    // /**
+    // * The {@code drawSubImage} method respects the pixels' alpha values and dos
+    // the
+    // * appropriate alpha blending the the existing pixels.
+    // *
+    // * @see Image#setSubImage(int, int, int, int, int[])
+    // */
+    // public void drawSubImage(int x, int y, int w, int h, int[] pixels) {
+    // drawSubImage(x, y, w, h, pixels, true);
+    // }
 
-    /**
-     * 
-     * @param pixels are expected to have premultiplied alpha
-     */
-    private void drawSubImage(int x, int y, int w, int h, int[] pixels, boolean doAlphaBlending) {
-        if (x >= width || x + w <= 0 || y >= height || y + h <= 0)
-            return;
+    // /**
+    // *
+    // * @param pixels are expected to have premultiplied alpha
+    // */
+    // private void drawSubImage(int x, int y, int w, int h, int[] pixels, boolean
+    // doAlphaBlending) {
+    // if (x >= width || x + w <= 0 || y >= height || y + h <= 0)
+    // return;
 
-        int x0 = Math.max(0, x),
-                y0 = Math.max(0, y),
-                x1 = Math.min(x + w, width),
-                y1 = Math.min(y + h, height);
+    // int x0 = Math.max(0, x),
+    // y0 = Math.max(0, y),
+    // x1 = Math.min(x + w, width),
+    // y1 = Math.min(y + h, height);
 
-        int stride = w;
-        int offset = (y0 - y) * stride + (x0 - x);
-        int len = x1 - x0;
-        int numRows = y1 - y0;
+    // int stride = w;
+    // int offset = (y0 - y) * stride + (x0 - x);
+    // int len = x1 - x0;
+    // int numRows = y1 - y0;
 
-        if (doAlphaBlending) {
-            for (int row = 0; row < numRows; row++) {
-                for (int col = 0; col < len; col++) {
-                    int c = pixels[row * stride + offset + col];
-                    drawPixelUnsafe(col + x0, row + y0, c, true);
-                }
-            }
-        } else {
-            for (int row = 0; row < numRows; row++)
-                System.arraycopy(pixels, row * stride + offset, pixelArray, (y0 + row) * width + x0, len);
-        }
+    // if (doAlphaBlending) {
+    // for (int row = 0; row < numRows; row++) {
+    // for (int col = 0; col < len; col++) {
+    // int c = pixels[row * stride + offset + col];
+    // drawPixelUnsafe(col + x0, row + y0, c, true);
+    // }
+    // }
+    // } else {
+    // for (int row = 0; row < numRows; row++)
+    // System.arraycopy(pixels, row * stride + offset, pixelArray, (y0 + row) *
+    // width + x0, len);
+    // }
 
-        setDirty(x0, y0);
-        setDirty(x1 - 1, y1 - 1);
-    }
+    // setDirty(x0, y0);
+    // setDirty(x1 - 1, y1 - 1);
+    // }
 
     public void applyEffect(EffectInstance instance) {
         applyEffect(instance, this);
@@ -568,11 +596,11 @@ public class Image implements Cleanable {
         shader.start();
         quad.bind();
         quad.enableVBOs();
+        instance.loadUniforms();
         glViewport(0, 0, width, height);
         // glClearColor(0, 0, 0, 1);
         // glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_BLEND);
-        instance.loadUniforms();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, source.fbo.getTextureID());
         // render

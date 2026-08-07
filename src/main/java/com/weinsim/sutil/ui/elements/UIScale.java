@@ -102,22 +102,21 @@ public class UIScale extends UIDragContainer {
 
         public Slider(int orientation) {
             super(orientation, 0);
-
-            setStyle(new UIStyle(UIColors.HIGHLIGHT, () -> null, UISizes.STROKE_WEIGHT));
-
+            setStyle(new UIStyle(UIColors.HIGHLIGHT, null, null));
             addAnchor(
                     orientation == VERTICAL ? Anchor.CENTER_LEFT : Anchor.TOP_CENTER,
-                    () -> {
-                        return new SVector(getRelativeX(), getRelativeY()).mult(parent.getSize());
-                    });
+                    () -> new SVector(getRelativeX(), getRelativeY()).mult(parent.getSize()));
+        }
 
+        @Override
+        public void update() {
+            super.update();
             double len = 2 * UISizes.SCALE_SLIDER_LENGTH.get1f() + getVisualWidth();
             double width = UISizes.SCALE_SLIDER_WIDTH.get1f();
-            if (orientation == VERTICAL) {
+            if (orientation == VERTICAL)
                 setFixedSize(new SVector(len, width));
-            } else {
+            else
                 setFixedSize(new SVector(width, len));
-            }
         }
     }
 

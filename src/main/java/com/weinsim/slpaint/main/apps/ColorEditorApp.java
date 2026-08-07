@@ -7,15 +7,14 @@ import com.weinsim.slpaint.ui.ColorEditorUI;
 
 public final class ColorEditorApp extends App {
 
-    private ColorPicker colorPicker;
+    private final ColorPicker colorPicker;
 
     private MainApp mainApp;
 
-    public ColorEditorApp(MainApp mainApp, int initialColor) {
+    public ColorEditorApp(MainApp mainApp, ColorPicker colorPicker) {
         super(500, 500, Window.NORMAL, false, true, "Color Editor", mainApp);
         this.mainApp = mainApp;
-
-        colorPicker = new ColorPicker(initialColor);
+        this.colorPicker = colorPicker;
     }
 
     public ColorPicker getColorPicker() {

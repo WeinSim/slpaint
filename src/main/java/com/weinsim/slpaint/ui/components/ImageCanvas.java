@@ -249,7 +249,6 @@ public class ImageCanvas extends UIContainer {
 
         ImageDisplay() {
             super(0, 0);
-
             noBackground();
             addAnchor(Anchor.TOP_LEFT, ImageCanvas.this::getImageTranslation);
             add(new ImageContainerChild());
@@ -273,11 +272,12 @@ public class ImageCanvas extends UIContainer {
             @Override
             public void setPreferredSize() {
                 Image image = app.getImage();
-
                 size.set(image.getWidth(), image.getHeight());
                 size.scale(app.getImageZoom());
             }
+
         }
+
     }
 
     private class ImageResize extends UIFloatContainer implements Resizable {

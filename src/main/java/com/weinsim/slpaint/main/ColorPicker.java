@@ -1,150 +1,130 @@
 package com.weinsim.slpaint.main;
 
-import com.weinsim.sutil.SUtil;
-import com.weinsim.sutil.math.SVector;
+import com.weinsim.sutil.color.Color;
+import com.weinsim.sutil.color.HSL;
+import com.weinsim.sutil.color.HSV;
+import com.weinsim.sutil.color.SRGBFloat;
+import com.weinsim.sutil.color.SRGBInt;
 
 public class ColorPicker {
 
-    private int initialColor;
-    private int rgb;
+    private Color color;
 
-    private double hue;
-    private double hslSaturation;
-    private double hsvSaturation;
-    private double lightness;
-    private double value;
-
-    private int alpha;
-
-    public ColorPicker(int initialColor) {
-        this.initialColor = initialColor;
-
-        setRGB(initialColor);
+    public ColorPicker(Color color) {
+        this.color = color;
     }
 
-    public void setRGB(int rgb) {
-        this.rgb = rgb;
-        updateHSLFromRGB();
-        updateHSVFromRGB();
+    public void setColor(Color color) {
+        this.color = color;
     }
 
-    public void setHSLHue(double hue) {
-        this.hue = ((hue % 360) + 360) % 360;
-        updateRGBFromHSL();
-        updateHSVFromHSL();
+    public Color getColor() {
+        return color;
     }
 
-    public void setHSVHue(double hue) {
-        this.hue = ((hue % 360) + 360) % 360;
-        updateRGBFromHSV();
-        updateHSLFromHSV();
+    // ---------- RGB ----------
+
+    public int getRed() {
+        return color.sRGBInt().red();
     }
 
-    public void setHSLSaturation(double hslSaturation) {
-        this.hslSaturation = Math.clamp(hslSaturation, 0, 1);
-        updateRGBFromHSL();
-        updateHSVFromHSL();
+    public void setRed(int red) {
+        if (red == getRed())
+            return;
+        SRGBInt sRGB = color.sRGBInt();
+        color = Color.sRGB(red, sRGB.green(), sRGB.blue(), sRGB.alpha());
     }
 
-    public void setHSVSaturation(double hsvSaturation) {
-        this.hsvSaturation = Math.clamp(hsvSaturation, 0, 1);
-        updateRGBFromHSV();
-        updateHSLFromHSV();
+    public int getGreen() {
+        return color.sRGBInt().green();
     }
 
-    public void setLightness(double lightness) {
-        this.lightness = Math.clamp(lightness, 0, 1);
-        updateRGBFromHSL();
-        updateHSVFromHSL();
+    public void setGreen(int green) {
+        if (green == getGreen())
+            return;
+        SRGBInt sRGB = color.sRGBInt();
+        color = Color.sRGB(sRGB.red(), green, sRGB.blue(), sRGB.alpha());
     }
 
-    public void setValue(double value) {
-        this.value = Math.clamp(value, 0, 1);
-        updateRGBFromHSV();
-        updateHSLFromHSV();
+    public int getBlue() {
+        return color.sRGBInt().blue();
+    }
+
+    public void setBlue(int blue) {
+        if (blue == getBlue())
+            return;
+        SRGBInt sRGB = color.sRGBInt();
+        color = Color.sRGB(sRGB.red(), sRGB.green(), blue, sRGB.alpha());
+    }
+
+    // ---------- Alpha ----------
+
+    public int getAlpha() {
+        return color.sRGBInt().alpha();
     }
 
     public void setAlpha(int alpha) {
-        this.alpha = Math.clamp(alpha, 0, 255);
-        setComponent(24, this.alpha);
+        if (alpha == getAlpha())
+            return;
+        SRGBFloat sRGB = color.sRGBFloat();
+        color = Color.sRGB(sRGB.red(), sRGB.green(), sRGB.blue(), alpha / 255.0);
     }
 
-    public int getAlpha() {
-        return alpha;
-    }
-
-    public int getInitialColor() {
-        return initialColor;
-    }
-
-    private void setComponent(int shiftAmount, int component) {
-        int mask = 0xFF << shiftAmount;
-        rgb &= ~mask;
-        rgb |= component << shiftAmount;
-    }
-
-    public int getRGB() {
-        return rgb;
-    }
+    // ---------- HSL / HSV ----------
 
     public double getHue() {
-        return hue;
+        return color.hsl().hue();
+    }
+
+    public void setHue(double hue) {
+        if (hue == getHue())
+            return;
+        HSL hsl = color.hsl();
+        color = Color.hsl(hue, hsl.saturation(), hsl.lightness(), hsl.alpha());
     }
 
     public double getHSLSaturation() {
-        return hslSaturation;
+        return color.hsl().saturation();
     }
 
-    public double getHSVSaturation() {
-        return hsvSaturation;
+    public void setHSLSaturation(double saturation) {
+        if (saturation == getHSLSaturation())
+            return;
+        HSL hsl = color.hsl();
+        color = Color.hsl(hsl.hue(), saturation, hsl.lightness(), hsl.alpha());
     }
 
     public double getLightness() {
-        return lightness;
+        return color.hsl().lightness();
+    }
+
+    public void setLightness(double lightness) {
+        if (lightness == getLightness())
+            return;
+        HSL hsl = color.hsl();
+        color = Color.hsl(hsl.hue(), hsl.saturation(), lightness, hsl.alpha());
+    }
+
+    public double getHSVSaturation() {
+        return color.hsv().saturation();
+    }
+
+    public void setHSVSaturation(double saturation) {
+        if (saturation == getHSVSaturation())
+            return;
+        HSV hsv = color.hsv();
+        color = Color.hsv(hsv.hue(), saturation, hsv.value(), hsv.alpha());
     }
 
     public double getValue() {
-        return value;
+        return color.hsv().value();
     }
 
-    private void updateRGBFromHSL() {
-        SVector v = SUtil.hslToRGB(hue, hslSaturation, lightness);
-        rgb = SUtil.toARGB(v.x, v.y, v.z, alpha);
-    }
-
-    private void updateRGBFromHSV() {
-        SVector v = SUtil.hsvToRGB(hue, hsvSaturation, value);
-        rgb = SUtil.toARGB(v.x, v.y, v.z, alpha);
-    }
-
-    private void updateHSLFromRGB() {
-        SVector hsl = SUtil.rgbToHSL(SUtil.red(rgb), SUtil.green(rgb), SUtil.blue(rgb));
-        hue = hsl.x;
-        hslSaturation = hsl.y;
-        lightness = hsl.z;
-        alpha = SUtil.alpha(rgb);
-    }
-
-    private void updateHSLFromHSV() {
-        SVector hsl = SUtil.hsvToHSL(hue, hsvSaturation, value);
-        hue = hsl.x;
-        hslSaturation = hsl.y;
-        lightness = hsl.z;
-    }
-
-    private void updateHSVFromRGB() {
-        SVector hsv = SUtil.rgbToHSV(SUtil.red(rgb), SUtil.green(rgb), SUtil.blue(rgb));
-        hue = hsv.x;
-        hsvSaturation = hsv.y;
-        value = hsv.z;
-        alpha = SUtil.alpha(rgb);
-    }
-
-    private void updateHSVFromHSL() {
-        SVector hsv = SUtil.hslToHSV(hue, hslSaturation, lightness);
-        hue = hsv.x;
-        hsvSaturation = hsv.y;
-        value = hsv.z;
+    public void setValue(double value) {
+        if (value == getValue())
+            return;
+        HSV hsv = color.hsv();
+        color = Color.hsv(hsv.hue(), hsv.saturation(), value, hsv.alpha());
     }
 
 }
