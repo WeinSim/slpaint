@@ -91,6 +91,7 @@ public class Window {
     }
 
     private final long windowHandle;
+    private final int platform;
 
     // for NFD
     private final int nativeHandleType;
@@ -112,9 +113,10 @@ public class Window {
         // anti-aliasing
         // glfwWindowHint(GLFW_SAMPLES, 4);
 
-        if (windowMode == MAXIMIZED) {
+        if (windowMode == MAXIMIZED)
             glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-        }
+
+        platform = glfwGetPlatform();
 
         // Create the window
         // window = glfwCreateWindow(width, height, "Hello World!",
@@ -158,8 +160,13 @@ public class Window {
 
         switch (Platform.get()) {
             case FREEBSD, LINUX -> {
-                nativeHandleType = NFD_WINDOW_HANDLE_TYPE_X11;
-                nativeWindowHandle = glfwGetX11Window(windowHandle);
+                if (platform == GLFW_PLATFORM_X11) {
+                    nativeHandleType = NFD_WINDOW_HANDLE_TYPE_X11;
+                    nativeWindowHandle = glfwGetX11Window(windowHandle);
+                } else {
+                    nativeHandleType = NFD_WINDOW_HANDLE_TYPE_UNSET;
+                    nativeWindowHandle = NULL;
+                }
             }
             case MACOSX -> {
                 nativeHandleType = NFD_WINDOW_HANDLE_TYPE_COCOA;
@@ -329,6 +336,9 @@ public class Window {
     }
 
     private void center(int width, int height) {
+        // setting the window position is not available on wayland
+        if (platform == GLFW_PLATFORM_WAYLAND)
+            return;
         long primaryMonitor = glfwGetPrimaryMonitor();
         GLFWVidMode pmVideoMode = glfwGetVideoMode(primaryMonitor);
         PointerBuffer monitors = glfwGetMonitors();
@@ -340,6 +350,9 @@ public class Window {
     }
 
     public void setIcon(ArrayList<String> images) {
+        // setting the window icon is not supported on wayland
+        if (platform == GLFW_PLATFORM_WAYLAND)
+            return;
         GLFWImage.Buffer icons = GLFWImage.malloc(images.size());
         for (String path : images) {
             GLFWImage icon = loadGLFWImage(path);

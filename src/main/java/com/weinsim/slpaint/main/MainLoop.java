@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.system.Platform;
 import org.newdawn.slick.util.Log;
 
 import com.weinsim.slpaint.main.apps.App;
@@ -121,11 +122,12 @@ public class MainLoop {
                 err.invoke(error, description);
             }
         }.set();
-
-        // Initialize Most GLFW functions will not work before doing this.
-        if (!glfwInit())
+        // forcing X11 (and thus using XWayland?) provides the best results for now
+        if (Platform.get() == Platform.LINUX)
+            glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+        boolean success = glfwInit();
+        if (!success)
             throw new IllegalStateException("Unable to initialize GLFW");
-
         Window.createCursors();
     }
 

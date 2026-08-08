@@ -35,9 +35,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
 /**
  * <pre>
  * TODO continue:
- * Effects
- *   Shader effects would be cool, currently b/w takes ~60ms and contrast
- *     takes ~120ms.
  * 
  * App:
  *   Keyboard shortcuts
@@ -186,6 +183,14 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *     Debug view
  * 
  * Backend:
+ *   Completely remove slick util dependency?
+ *   Wayland / GNOME support
+ *     Add option to force X11 GLFW window?
+ *     Integrate proper native dialogs (through portals)
+ *     Make sure libdecor can use the GTK plugin (see error message on startup:
+ *         "Failed to load plugin 'libdecor-gtk.so': failed to init")
+ *     Fix window title "Unknown" in the Alt + Tab menu: this is the
+ *         application's ID, which is expected to come from a .desktop file
  *   Proper package names / structure
  *   Make SUtil a git submodule / maven subproject?
  *   Make MainApp static?
