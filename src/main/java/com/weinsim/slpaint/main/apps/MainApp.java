@@ -185,8 +185,9 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  * Backend:
  *   Completely remove slick util dependency?
  *   Wayland / GNOME support
- *     Add option to force X11 GLFW window?
+ *     Add user setting to force X11 GLFW window?
  *     Integrate proper native dialogs (through portals)
+ *     Proper window positioning
  *     Make sure libdecor can use the GTK plugin (see error message on startup:
  *         "Failed to load plugin 'libdecor-gtk.so': failed to init")
  *     Fix window title "Unknown" in the Alt + Tab menu: this is the
