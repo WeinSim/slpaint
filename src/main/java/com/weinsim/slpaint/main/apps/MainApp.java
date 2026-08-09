@@ -8,13 +8,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-
-import org.lwjglx.util.vector.Vector4f;
+import java.util.List;
 
 import com.weinsim.slpaint.main.ColorArray;
 import com.weinsim.slpaint.main.ColorPicker;
 import com.weinsim.slpaint.main.Loader;
 import com.weinsim.slpaint.main.effects.Effect;
+import com.weinsim.slpaint.main.effects.EffectInstance;
 import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.main.image.ImageFormat;
 import com.weinsim.slpaint.main.image.ImageManager;
@@ -27,126 +27,148 @@ import com.weinsim.slpaint.settings.Settings;
 import com.weinsim.slpaint.ui.AppUI;
 import com.weinsim.slpaint.ui.MainUI;
 import com.weinsim.slpaint.ui.components.ImageCanvas;
-import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
+import com.weinsim.sutil.ui.elements.UITabs;
 import com.weinsim.sutil.ui.elements.UITextInput;
 
 /**
  * <pre>
- * TODO continue:
+ * TODO:
  * 
  * App:
  *   Keyboard shortcuts
  *     Selecting one of the radio buttons in the resize ui and pressing enter
- *       closes the resize window. => add option for keyboard shortcut to not
- *       run if something is currently selected (similar to text input).
+ *         closes the resize window. => add option for keyboard shortcut to not
+ *         run if something is currently selected (similar to text input).
  *   Pencil tool
  *     Drawing with a semi-transparent color has weird artifacts because some
- *       pixels are drawn multiple times on consecutive frames, resulting in
- *       the wrong opacity
- *       => Make the pencil tool also use the temp framebuffer?
+ *         pixels are drawn multiple times on consecutive frames, resulting in
+ *         the wrong opacity
+ *       => Make the pencil tool also use a preview image (like the line tool)?
  *     Sizes 1 & 2 and 3 & 4 look the same
  *     Make sizes UI prettier
  *   Selection (/ drag tools)
  *     Shift + initial drag should force square aspect ratio (combine with
- *       analogous feature for line tool)
+ *         analogous feature for line tool)
  *     Shift + resize should lock the aspect ratio
  *       => remove "lock aspect ratio" setting?
  *   update() takes about twice as long when a modal dialog is open
  *     Maybe because of the many long textWidth() calculations?
- *   Undoing / redoing an operation that changes the image size doesn't change
- *     the temp FBO size
- *   Transparency
+ *   Maybe Image#getSubImage could be done with openGL + Resize effect?
+ *   Transparency:
  *     Selecting a semi-transparent area and pasting it over a completely
- *       transparent area messes up the pixel colors: the semi-transparent area
- *       picks up the "color" (RGB values) of the transparent background.
+ *         transparent area messes up the pixel colors: the semi-transparent area
+ *         picks up the "color" (RGB values) of the transparent background.
  *     Simply selecting a transparent area and unselecting it causes the
- *       transparency to go away. Reason: selecting the area replaces that part
- *       of the image with the secondary color. Placing the transparent
- *       selection back onto the opaque background leaves the background
- *       unaffected. What is the expected behavior here?
+ *         transparency to go away. Reason: selecting the area replaces that part
+ *         of the image with the secondary color. Placing the transparent
+ *         selection back onto the opaque background leaves the background
+ *         unaffected. What is the expected behavior here?
  *     Pixels with an alpha value of 0 are considered different if they differ
- *       in their color information. What is the expected behavior here?
+ *         in their color information. What is the expected behavior here?
  *     Pixels with an alpha value of 0 lose color information when saving and
- *       reopening. (This is a property of the .png file format that can be
- *       changed I think (?). Also, what is the expected behavior?)
- *     Pasting / drawing a half-transparent red pixel over a fully opaque green
- *       one results in brown overlap instead of yellow (see MinutePhysics
- *       video)
- *       => Add correct gamma blending? (as a setting?)
- *         Have OpenGL also do correct gamma blending?
+ *         reopening. (This is a property of the .png file format that can be
+ *         changed I think (?). Also, what is the expected behavior?)
+ *     Correct sRGB / linear RGB math: after switching to linear RGB for shader
+ *        math, semi-transparent colors appear too opaque. This is not a
+ *        calculation error but a consequence of physically correct
+ *        calculations. Whether this is deried can be debated (see
+ *        https://chatgpt.com/s/t_6a78c20c12608191bf092e075aaa181c).
+ *   Add more fun effects:
+ *     Multiplicative brightness
+ *     Color temperature
+ *     Hue cycling?
+ *     Inverting colors?
+ *     Blur?
+ *       Proper gaussian blur would require two render passes (horizontal and
+ *           vertical blur).
  *   Packaging:
  *     Why does startup take so long?
  *   (When parent app closes, children should also close)
  * 
  * UI:
- *   Combine user actions (keyboard, mouse). Combine with BooleanSupplier
- *     (active / possible)
- *   UISizes:
- *     There are multiple places where I want to set a larger margin but have
- *       to akwardly divide by the default margin because only a margin scale
- *       can be set. Solution: add UIContainer.setMargin()?
- *   Change UIContainer defaults? .zeroMargin().noOutline() is used in a ton of
- *     places and should maybe be the default.
- *   UITabs: make it a bit prettier
- *   Tool cursors
- *   Text
- *     Text input
- *       Selection (with mouse / arrow keys / Ctrl+A)
- *         Copy / cut / paste (=> conflicting keyboard shortcuts with selection
- *           tool!)
- *         Shift + cursor movement
- *       Multi-line text input
- *         Would require a variable number of UITexts as children (which is
- *           currently not possible. Why?)
- *     Text wrapping
- *   Selection
- *     When nothing is currently selected, the dropdowns for rotating and
- *       flipping the selection should be made inactive.
- *     Add option to crop selection?
- *     Add precise pixel input for scaling / cropping selection like ResizeUI?
- *   Tool + undo inconsistencies:
- *     Starting a tool action (e.g. putting a tool in the IDLE state) and then
- *       pressing Ctrl+Z should cancel (not finish) the current tool.
- *       Currently it does nothing (except sometimes with selection).
- *   Icons
- *     The current icons look kind of bad in light mode
- *       -> separate icons for light and dark mode?
- *     Create icons for:
- *       Basically everything in the menu bar (cut, copy, paste, zoom)
- *   The window icon does not work (Window.setIcon())
- *   On the first frame that the UI is rendered, the root has a black background
- *     and parts of the UI are not yet visible. This is visible when opening a
- *     child app.
- *   Ctrl + 0 can cause the image to appear completely outside of the canvas
- *     Reason: the point at the center of the canvas stays fixed. For a very
- *     zoomed out image, this is likely to be outside of the image.
- *   Mouse input: tapping the touchpad triggers a mouse press event but not
- *     mouse release event (=> logic that sets leftMousePressed and
- *     rightMousePressed based on mouse press / release events is flawed.)
- *   UIMouseButtonAction: the mods parameter in mousePressed() is not used
- *   Modal dialogs
- *     Convert other small dialogs into modal dialogs? (e.g. ResizeUI)
- *     Add options for custom button labels like in JOptionPane
- *       For what?
- *   Using Tab + Enter, multiple dropdowns can be opened simultaneously
- *   Layering inconsistency: the SizeKnobs' outline appears above the dropdowns
- *     of the top row (Rotate, Flip, font selection)
- *   Make side panel collapsable?
- *   About
- *     Make hyperlinks clickable? (=> underlined text!)
- *     Title "About" looks weird. It is a bit off-center because of the "X"
- *       button
- *   Add Alt + Letter navigation options for menu bar
- *     Would require underlined letters
- *   Add tooltips (on mouse hover)
+ *   UI in general:
+ *     Combine user actions (keyboard, mouse). Combine with BooleanSupplier
+ *         (active / possible)
+ *     Scrolling: instead of wrapping the actual container inside of a 
+ *         UIScrollBarContainerWrapper, maybe just add the scrollbar as a floating
+ *         child (and perhaps adjust size of container slightly when it's active).
+ *         Something similar to how VSCode handles scrollbars.
+ *       => reduces issues like visibilitySupplier madness and makes overall UI
+ *           structure simpler / more intuitive
+ *     UISizes:
+ *       There are multiple places where I want to set a larger margin but have
+ *           to akwardly divide by the default margin because only a margin scale
+ *           can be set. Solution: add UIContainer.setMargin()?
+ *     UITabs: make it a bit prettier
+ *     Text
+ *       Text input
+ *         Selection (with mouse / arrow keys / Ctrl+A)
+ *           Copy / cut / paste (=> conflicting keyboard shortcuts with
+ *               selection tool!)
+ *           Shift + cursor movement
+ *         Multi-line text input
+ *       Text wrapping
+ *     Use suppliers for UIContainer margin / padding / size types? This would
+ *         save a lot of update() overrides
+ *   SLPaint specific issues:
+ *     Mouse input: tapping the touchpad triggers a mouse press event but not
+ *         mouse release event (=> logic that sets leftMousePressed and
+ *         rightMousePressed based on mouse press / release events is flawed.)
+ *     UIMouseButtonAction: the mods parameter in mousePressed() is not used
+ *     On the first frame that the UI is rendered, the root has a black
+ *         background and parts of the UI are not yet visible. This is visible
+ *         when opening a child app.
+ *     Ctrl + 0 can cause the image to appear completely outside of the canvas.
+ *         Reason: the point at the center of the canvas stays fixed. For a very
+ *         zoomed out image, this is likely to be outside of the image.
+ *     Modal dialogs
+ *       Convert settings and resize windows into modal dialogs? Either using
+ *           sutil's UIModalDialog or on an actual window-level (by setting the
+ *           main app as the parent window).
+ *       Add options for custom button labels like in JOptionPane
+ *         For what?
+ *     Selection
+ *       When nothing is currently selected, the dropdowns for rotating and
+ *           flipping the selection should be made inactive.
+ *       Add option to crop selection?
+ *       Add precise pixel input for scaling / cropping selection like ResizeUI?
+ *     Using Tab + Enter, multiple dropdowns can be opened simultaneously
+ *     Add Alt + Letter navigation options for menu bar
+ *       Would require underlined letters
+ *     Layering inconsistency: the SizeKnobs' outline appears above the
+ *         dropdowns of the top row (Rotate, Flip, font selection)
+ *     HueSatField: in rectangular mode, dragging the selection all the way to
+ *           the right causes it to move over to the left
+ *     Icons
+ *       Automatically render invalid white icons as grey?
+ *         -> would require changes in rendering API
+ *       The current icons look kind of bad in light mode
+ *         -> separate icons for light and dark mode
+ *       Create icons for:
+ *         Basically everything in the menu bar (cut, copy, paste, zoom)
+ *       Make sure every transparent background's color is the same "color" as
+ *           the foreground to avoid white color-bleeding
+ *     Tool + undo inconsistencies:
+ *       Starting a tool action (e.g. putting a tool in the IDLE state) and then
+ *           pressing Ctrl+Z should cancel (not finish) the current tool.
+ *           Currently it does nothing (except sometimes with selection).
+ *     Color hex code input?
+ *     Tool cursors
+ *     About
+ *       Make hyperlinks clickable? (=> underlined text!)
+ *       Title "About" looks weird. It is a bit off-center because of the "X"
+ *           button
+ *     Add tooltips (on mouse hover)
+ *     The window icon does not work (Window.setIcon())
  * 
  * Rendering:
  *   Improve UITextInput cursor visibility
  *   A one-frame flicker occurs when flattening the text tool or the selection.
- *     Maybe this comes from some glEnable / glDisable transparency flag being
- *     set incorrectly.
+ *       Maybe this comes from some glEnable / glDisable transparency flag being
+ *       set incorrectly.
  *   Text rendering
  *     Orange text on image has yellow edges (on the left)
  *     Generate distance map (SDF) from highres, non-anti-aliassed font texture
@@ -158,26 +180,26 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *         Use SDFs (either in addition to or instead of regular bitmap fonts)?
  *     Have different subdirectories for different sizes of the same font
  *     Glitchy pixels: when using Courier New (size 36), the lowecase 'u' has a
- *       diagonal line of flickering pixels going bottom-left to top-right.
+ *         diagonal line of flickering pixels going bottom-left to top-right.
  *     Text renders inconsistently: some letters are blurry and other are not.
- *       For example, using Courier New Bold with a rasterized text size of 32,
- *       the letters 'e', 'r', 'i' and 'd' are blurry, whereas 'p', 'u', 'm'
- *       and 'b' are sharp. (it seems like most blurry letters are on page 2.)
+ *         For example, using Courier New Bold with a rasterized text size of 32,
+ *         the letters 'e', 'r', 'i' and 'd' are blurry, whereas 'p', 'u', 'm'
+ *         and 'b' are sharp. (it seems like most blurry letters are on page 2.)
  *     Potential speedups for text rendering:
  *       Only override the parts of the text VAOs that actually change from one
- *         frame to the next
+ *           frame to the next
  *   Anti aliasing doesn't work despite being enabled
- *     (glfwWindowHint(GLFW_SAMPLES, 4) and glEnable(GL_MULTISAMPLE))
+ *       (glfwWindowHint(GLFW_SAMPLES, 4) and glEnable(GL_MULTISAMPLE))
  *   Fix stuttering artifact when resizing windows on Linux
- *     (see https://www.glfw.org/docs/latest/window.html#window_refresh)
- *     Rename transformationMatrix to uiMatrix
+ *       (see https://www.glfw.org/docs/latest/window.html#window_refresh)
+ *   Rename transformationMatrix to uiMatrix
  *   Maximized windows don't show up correctly on Windows 11
  *   Possible ideas for future rendering improvements:
- *     Currently, all fragment shaders are quite similarly. => Combine all
- *       fragment shaders into a single one (that gets an int containing various
- *       flags as an input)?
+ *     Currently, all fragment shaders are quite similar. => Combine all
+ *         fragment shaders into a single one (that gets an int containing various
+ *         flags as an input)?
  *     Perhaps even combine all vertex shaders into one? (Would allow for just a
- *       single draw call, though it would probably also be a massive pain).
+ *         single draw call, though it would probably also be a massive pain).
  *   Extras (optional):
  *     3D view
  *     Debug view
@@ -192,18 +214,19 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *         "Failed to load plugin 'libdecor-gtk.so': failed to init")
  *     Fix window title "Unknown" in the Alt + Tab menu: this is the
  *         application's ID, which is expected to come from a .desktop file
- *   Proper package names / structure
  *   Make SUtil a git submodule / maven subproject?
  *   Make MainApp static?
  *   Sizes
  *     Move things that should not be part of sutil.ui into ui package
  *   GLFW key input: automatically recognize keyboard layout and remappings to
- *     avoid manual conversion between Y/Z and Esc/CapsLock (see Window.KEY_MAP)
+ *       avoid manual conversion between Y/Z and Esc/CapsLock (see Window.KEY_MAP)
  *   Performance: only ~50fps on Microsoft Surface
  *     Mouse movement has a huge impact: keeping the mouse still drops the
- *       update time from >10ms to <2ms. This even happens when we don't even
- *       call glfwGetCursorPos() and even when the mouse is not even about the
- *       window.
+ *         update time from >10ms to <2ms. This even happens when we don't even
+ *         call glfwGetCursorPos() and even when the mouse is not even above the
+ *         window.
+ *   Memory usage: image history can grow quite large (~100MiB for uncompressed
+ *       WindowsXP test image (2880x2613))
  *   Error handling
  * </pre>
  */
@@ -227,34 +250,35 @@ public final class MainApp extends App {
     /**
      * https://images.minitool.com/de.minitool.com/images/uploads/news/2022/02/microsoft-paint-herunterladen-installieren/microsoft-paint-herunterladen-installieren-1.png
      */
-    public static final int[] DEFAULT_COLORS = {
-            SUtil.toARGB(0),
-            SUtil.toARGB(63),
-            SUtil.toARGB(132, 15, 24),
-            SUtil.toARGB(230, 46, 46),
-            SUtil.toARGB(249, 131, 57),
-            SUtil.toARGB(255, 242, 65),
-            SUtil.toARGB(61, 176, 85),
-            SUtil.toARGB(39, 161, 228),
-            SUtil.toARGB(62, 73, 199),
-            SUtil.toARGB(159, 77, 161),
-            SUtil.toARGB(255),
-            SUtil.toARGB(127),
-            SUtil.toARGB(182, 123, 91),
-            SUtil.toARGB(250, 176, 201),
-            SUtil.toARGB(253, 202, 59),
-            SUtil.toARGB(239, 229, 180),
-            SUtil.toARGB(186, 229, 64),
-            SUtil.toARGB(159, 216, 235),
-            SUtil.toARGB(114, 146, 187),
-            SUtil.toARGB(199, 191, 230),
+    public static final Color[] DEFAULT_COLORS = {
+            Color.sGrey(0),
+            Color.sGrey(63),
+            Color.sRGB(132, 15, 24),
+            Color.sRGB(230, 46, 46),
+            Color.sRGB(249, 131, 57),
+            Color.sRGB(255, 242, 65),
+            Color.sRGB(61, 176, 85),
+            Color.sRGB(39, 161, 228),
+            Color.sRGB(62, 73, 199),
+            Color.sRGB(159, 77, 161),
+            Color.sGrey(255),
+            Color.sGrey(127),
+            Color.sRGB(182, 123, 91),
+            Color.sRGB(250, 176, 201),
+            Color.sRGB(253, 202, 59),
+            Color.sRGB(239, 229, 180),
+            Color.sRGB(186, 229, 64),
+            Color.sRGB(159, 216, 235),
+            Color.sRGB(114, 146, 187),
+            Color.sRGB(199, 191, 230),
     };
 
     public static final int NEW_DIALOG = 2, RESIZE_DIALOG = 3, NEW_COLOR_DIALOG = 4,
             SETTINGS_DIALOG = 7, CROP_DIALOG = 8, ABOUT_DIALOG = 9;
 
     public static final int PRIMARY_COLOR = 0, SECONDARY_COLOR = 1;
-    public static final int INITIAL_PRIMARY_COLOR = SUtil.toARGB(0), INITIAL_SECONDARY_COLOR = SUtil.toARGB(255);
+    public static final Color INITIAL_PRIMARY_COLOR = Color.sGrey(0),
+            INITIAL_SECONDARY_COLOR = Color.sGrey(255);
 
     public static final int MIN_IMAGE_SIZE = 1, MAX_IMAGE_SIZE = 65535;
 
@@ -274,10 +298,18 @@ public final class MainApp extends App {
 
     private static BooleanSetting transparentSelection = new BooleanSetting("transparentSelection");
     private static BooleanSetting lockSelectionRatio = new BooleanSetting("lockSelectionRatio");
-
     private static ColorArraySetting customUIBaseColors = new ColorArraySetting("customUIColors");
+    private static BooleanSetting showDebugPanel = new BooleanSetting("showDebugPanel");
+    private static BooleanSetting showSidePanel = new BooleanSetting("showSidePanel");
 
     private final ImageManager imageManager;
+
+    private Image previewImage;
+    /**
+     * This field indicates whether there are any preview effects that are not
+     * invisible.
+     */
+    private boolean hasActiveEffects;
 
     // this is needed for prompting the user for unsaved changes when closing the
     // window
@@ -291,11 +323,7 @@ public final class MainApp extends App {
 
     private UITextInput textToolInput;
 
-    private int primaryColor;
-    private int secondaryColor;
-    /**
-     * ColorPicker for the currently selected color
-     */
+    private Color primaryColor, secondaryColor;
     private ColorPicker selectedColorPicker;
     /**
      * 0 = primary color is selected, 1 = secondary color is selcted
@@ -303,7 +331,10 @@ public final class MainApp extends App {
     private int colorSelection;
     private ColorArray customColorButtonArray;
 
+    private List<EffectInstance> previewEffects;
+
     private ImageCanvas canvas;
+    private UITabs sidePanel;
 
     /**
      * 
@@ -318,8 +349,11 @@ public final class MainApp extends App {
         colorSelection = PRIMARY_COLOR;
         selectedColorPicker = new ColorPicker(getSelectedColor());
         customColorButtonArray = new ColorArray(MainUI.NUM_COLOR_BUTTONS_PER_ROW);
+        previewEffects = new ArrayList<>();
 
         imageManager = initialFile == null ? new ImageManager(this) : new ImageManager(this, initialFile);
+        Image image = getImage();
+        previewImage = new Image(image.getWidth(), image.getHeight());
 
         setActiveTool(ImageTool.PENCIL);
         prevTool = ImageTool.PENCIL;
@@ -328,19 +362,27 @@ public final class MainApp extends App {
 
         // load UI
         loadUI();
+
+        // int encoding = glGetFramebufferAttachmentParameteri(GL_FRAMEBUFFER,
+        // GL_BACK_LEFT, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING);
+        // System.out.format("encoding = %d, GL_LINEAR = %d\n", encoding, GL_LINEAR);
     }
 
     @Override
-    public void update(double deltaT) {
-        super.update(deltaT);
+    public void childUpdate(double deltaT) {
+        // try {
+        // Thread.sleep(200);
+        // } catch (InterruptedException e) {
+        // e.printStackTrace();
+        // }
 
         if (frameCount == 1)
             resetImageTransform();
 
         if (colorSelection == PRIMARY_COLOR)
-            primaryColor = selectedColorPicker.getRGB();
+            primaryColor = selectedColorPicker.getColor();
         else
-            secondaryColor = selectedColorPicker.getRGB();
+            secondaryColor = selectedColorPicker.getColor();
 
         String filename = getFilename();
         boolean hasUnsavedChanges = imageManager.hasUnsavedChanges();
@@ -348,10 +390,29 @@ public final class MainApp extends App {
             filename = "[Unnamed]";
             hasUnsavedChanges = false;
         }
-        window.setTitle(String.format("%s%s - SLPaint", hasUnsavedChanges ? "" + (char) 0x2022 + " " : "", filename));
+        setTitle(String.format("%s%s - SLPaint", hasUnsavedChanges ? "" + (char) 0x2022 + " " : "", filename));
 
-        // update image texture
-        getImage().updateOpenGLTexture();
+        // update preview image
+        hasActiveEffects = false;
+        Image image = getImage();
+        int width = image.getWidth(),
+                height = image.getHeight();
+        if (previewImage.getWidth() != width || previewImage.getHeight() != height)
+            previewImage = new Image(width, height);
+        for (int i = 0; i < previewEffects.size(); i++) {
+            EffectInstance effect = previewEffects.get(i);
+            if (!effect.isVisible())
+                continue;
+            if (!hasActiveEffects)
+                previewImage.applyEffect(effect, image);
+            else
+                previewImage.applyEffect(effect);
+            hasActiveEffects = true;
+        }
+        if (hasActiveEffects)
+            previewImage.syncOpenGLTexture();
+        else
+            image.syncOpenGLTexture();
     }
 
     @Override
@@ -392,12 +453,18 @@ public final class MainApp extends App {
     @Override
     protected App createChildApp(int dialogType) {
         return switch (dialogType) {
-            case NEW_COLOR_DIALOG -> new ColorEditorApp(this, getSelectedColor());
+            case NEW_COLOR_DIALOG -> new ColorEditorApp(this, selectedColorPicker);
             case SETTINGS_DIALOG -> new SettingsApp(this);
             case CROP_DIALOG -> new ResizeApp(this, ResizeApp.CROP);
             case RESIZE_DIALOG -> new ResizeApp(this, ResizeApp.SCALE);
             default -> null;
         };
+    }
+
+    @Override
+    public void reloadShaders() {
+        super.reloadShaders();
+        Effect.reloadShaders();
     }
 
     /**
@@ -410,8 +477,8 @@ public final class MainApp extends App {
         newWidth = Math.clamp(newWidth, MIN_IMAGE_SIZE, MAX_IMAGE_SIZE);
         newHeight = Math.clamp(newHeight, MIN_IMAGE_SIZE, MAX_IMAGE_SIZE);
 
-        renderer.setTempFBOSize(newWidth, newHeight);
-        renderer.resizeImage(getImage(), newWidth, newHeight);
+        // renderer.resizeImage(getImage(), newWidth, newHeight);
+        getImage().resize(newWidth, newHeight);
 
         addImageSnapshot();
     }
@@ -436,7 +503,6 @@ public final class MainApp extends App {
         newHeight = Math.clamp(newHeight, MIN_IMAGE_SIZE, MAX_IMAGE_SIZE);
 
         image.crop(x, y, newWidth, newHeight, secondaryColor);
-        renderer.setTempFBOSize(newWidth, newHeight);
         // If the top left corner of the image changes, its translation should change in
         // the opposite way such that the rest of the image stays in the same place.
         translateImage(x, y);
@@ -448,7 +514,6 @@ public final class MainApp extends App {
         finishActiveTool();
         Image image = getImage();
         image.rotateRight();
-        renderer.setTempFBOSize(image.getWidth(), image.getHeight());
         addImageSnapshot();
     }
 
@@ -456,7 +521,6 @@ public final class MainApp extends App {
         finishActiveTool();
         Image image = getImage();
         image.rotateLeft();
-        renderer.setTempFBOSize(image.getWidth(), image.getHeight());
         addImageSnapshot();
     }
 
@@ -480,12 +544,11 @@ public final class MainApp extends App {
 
     public void setImage(BufferedImage image) {
         getImage().setBufferedImage(image);
-        renderer.setTempFBOSize(image.getWidth(), image.getHeight());
         addImageSnapshot();
     }
 
     public void magic(int x, int y, int mouseButton) {
-        getImage().magic(x, y, mouseButton == GLFW_MOUSE_BUTTON_LEFT ? primaryColor : secondaryColor);
+        getImage().magic(x, y, (mouseButton == GLFW_MOUSE_BUTTON_LEFT ? primaryColor : secondaryColor));
         addImageSnapshot();
     }
 
@@ -495,15 +558,15 @@ public final class MainApp extends App {
     }
 
     public void renderTextToImage(String text, double x, double y, double size, TextFont font) {
-        renderer.renderTextToImage(text, x, y, size, toVector4f(primaryColor), font, getImage());
+        renderer.renderTextToImage(text, x, y, size, primaryColor, font, getImage());
         addImageSnapshot();
     }
 
-    public void drawLine(int x0, int y0, int x1, int y1, int size, int color) {
+    public void drawLine(int x0, int y0, int x1, int y1, int size, Color color) {
         getImage().drawLine(x0, y0, x1, y1, size, color);
     }
 
-    public void drawLine(int x0, int y0, int x1, int y1, int size, int color, boolean ignoreAlpha) {
+    public void drawLine(int x0, int y0, int x1, int y1, int size, Color color, boolean ignoreAlpha) {
         getImage().drawLine(x0, y0, x1, y1, size, color, ignoreAlpha);
     }
 
@@ -517,17 +580,6 @@ public final class MainApp extends App {
 
     public void cancelActiveTool() {
         activeTool.cancel();
-    }
-
-    public void applyEffect(Effect effect) {
-        long start = System.nanoTime();
-        effect.apply(getImage());
-        long end = System.nanoTime();
-        System.out.format("Effect \"%s\" took %.1fms\n",
-                effect.getClass().getSimpleName(),
-                (end - start) * 1e-6);
-        effect.init();
-        imageManager.addSnapshot();
     }
 
     public void undo() {
@@ -582,8 +634,16 @@ public final class MainApp extends App {
         imageManager.addSnapshot();
     }
 
+    public boolean hasActiveEffects() {
+        return hasActiveEffects;
+    }
+
     public Image getImage() {
         return imageManager.getImage();
+    }
+
+    public Image getPreviewImage() {
+        return previewImage;
     }
 
     public long getFilesize() {
@@ -614,7 +674,7 @@ public final class MainApp extends App {
         return customUIBaseColors.get();
     }
 
-    public static void addCustomUIBaseColor(int color) {
+    public static void addCustomUIBaseColor(Color color) {
         customUIBaseColors.get().addColor(color);
     }
 
@@ -654,6 +714,14 @@ public final class MainApp extends App {
         return canvas;
     }
 
+    public void setSidePanel(UITabs sidePanel) {
+        this.sidePanel = sidePanel;
+    }
+
+    public UITabs getSidePanel() {
+        return sidePanel;
+    }
+
     public UITextInput getTextToolInput() {
         return textToolInput;
     }
@@ -666,39 +734,36 @@ public final class MainApp extends App {
         return selectedColorPicker;
     }
 
-    public void selectColor(int color) {
-        if (colorSelection == PRIMARY_COLOR) {
+    public void selectColor(Color color) {
+        if (colorSelection == PRIMARY_COLOR)
             setPrimaryColor(color);
-        } else {
+        else
             setSecondaryColor(color);
-        }
     }
 
-    public void setPrimaryColor(int primaryColor) {
-        if (colorSelection == PRIMARY_COLOR) {
-            selectedColorPicker.setRGB(primaryColor);
-        } else {
+    public void setPrimaryColor(Color primaryColor) {
+        if (colorSelection == PRIMARY_COLOR)
+            selectedColorPicker.setColor(primaryColor);
+        else
             this.primaryColor = primaryColor;
-        }
     }
 
-    public int getPrimaryColor() {
+    public Color getPrimaryColor() {
         return primaryColor;
     }
 
-    public void setSecondaryColor(int secondaryColor) {
-        if (colorSelection == 1) {
-            selectedColorPicker.setRGB(secondaryColor);
-        } else {
+    public void setSecondaryColor(Color secondaryColor) {
+        if (colorSelection == SECONDARY_COLOR)
+            selectedColorPicker.setColor(secondaryColor);
+        else
             this.secondaryColor = secondaryColor;
-        }
     }
 
-    public int getSecondaryColor() {
+    public Color getSecondaryColor() {
         return secondaryColor;
     }
 
-    public int getSelectedColor() {
+    public Color getSelectedColor() {
         return colorSelection == PRIMARY_COLOR ? primaryColor : secondaryColor;
     }
 
@@ -707,9 +772,10 @@ public final class MainApp extends App {
     }
 
     public void setColorSelection(int colorSelection) {
+        if (colorSelection != PRIMARY_COLOR && colorSelection != SECONDARY_COLOR)
+            return;
         this.colorSelection = colorSelection;
-
-        selectedColorPicker.setRGB(getSelectedColor());
+        selectedColorPicker.setColor(getSelectedColor());
     }
 
     public void setActiveTool(ImageTool tool) {
@@ -735,9 +801,67 @@ public final class MainApp extends App {
         return this.activeTool;
     }
 
-    public void addCustomColor(int color) {
+    public void addCustomColor(Color color) {
         selectColor(color);
         customColorButtonArray.addColor(color);
+    }
+
+    public List<EffectInstance> getPreviewEffects() {
+        return previewEffects;
+    }
+
+    public void addPreviewEffect(Effect effect) {
+        previewEffects.add(effect.createInstance());
+    }
+
+    public void applyAllPreviewEffects() {
+        if (previewEffects.isEmpty())
+            return;
+        for (int i = 0; i < previewEffects.size(); i++) {
+            EffectInstance effect = previewEffects.get(i);
+            if (!effect.isVisible())
+                continue;
+            getImage().applyEffect(effect);
+            previewEffects.remove(i);
+            i--;
+        }
+        imageManager.addSnapshot();
+    }
+
+    public void removePreviewEffect(EffectInstance effect) {
+        previewEffects.remove(effect);
+    }
+
+    public void removeAllPreviewEffects() {
+        previewEffects.clear();
+    }
+
+    public void movePreviewEffectUp(EffectInstance effect) {
+        for (int i = 0; i < previewEffects.size() - 1; i++) {
+            if (previewEffects.get(i) == effect) {
+                EffectInstance swap = previewEffects.set(i + 1, effect);
+                previewEffects.set(i, swap);
+                break;
+            }
+        }
+    }
+
+    public void movePreviewEffectDown(EffectInstance effect) {
+        for (int i = 1; i < previewEffects.size(); i++) {
+            if (previewEffects.get(i) == effect) {
+                EffectInstance swap = previewEffects.set(i - 1, effect);
+                previewEffects.set(i, swap);
+                break;
+            }
+        }
+    }
+
+    public void showAllPreviewEffects() {
+        previewEffects.forEach(EffectInstance::show);
+    }
+
+    public void hideAllPreviewEffects() {
+        previewEffects.forEach(EffectInstance::hide);
     }
 
     public static boolean isTransparentSelection() {
@@ -754,6 +878,30 @@ public final class MainApp extends App {
 
     public static void setLockSelectionRatio(boolean lockSelectionRatio) {
         MainApp.lockSelectionRatio.set(lockSelectionRatio);
+    }
+
+    public boolean isShowSidePanel() {
+        return showSidePanel.get();
+    }
+
+    public void setShowSidePanel(boolean showSidePanel) {
+        MainApp.showSidePanel.set(showSidePanel);
+    }
+
+    public void toggleShowSidePanel() {
+        setShowSidePanel(!isShowSidePanel());
+    }
+
+    public boolean isShowDebugPanel() {
+        return showDebugPanel.get() && MainApp.DEV_BUILD;
+    }
+
+    public void setShowDebugPanel(boolean showDebugPanel) {
+        MainApp.showDebugPanel.set(showDebugPanel);
+    }
+
+    public void toggleShowDebugPanel() {
+        setShowDebugPanel(!isShowDebugPanel());
     }
 
     public static boolean isAskUnsavedChanges() {
@@ -785,14 +933,6 @@ public final class MainApp extends App {
         return canvas.getScreenPosition(imagePos);
     }
 
-    public SVector getMousePosition() {
-        return mousePos;
-    }
-
-    public SVector getPrevMousePosition() {
-        return prevMousePos;
-    }
-
     public ColorArray getCustomColorButtonArray() {
         return customColorButtonArray;
     }
@@ -813,21 +953,6 @@ public final class MainApp extends App {
             filesize = filesize >> 10;
         }
         return "[Filesize too large!]";
-    }
-
-    public static int toInt(Vector4f color) {
-        return SUtil.toARGB(color.x * 255, color.y * 255, color.z * 255, color.w * 255);
-    }
-
-    public static Vector4f toVector4f(Integer color) {
-        if (color == null)
-            return null;
-
-        int red = SUtil.red(color);
-        int green = SUtil.green(color);
-        int blue = SUtil.blue(color);
-        int alpha = SUtil.alpha(color);
-        return (Vector4f) new Vector4f(red, green, blue, alpha).scale(1.0f / 255);
     }
 
     public static int runCommand(String directory, ArrayList<String> commands) {

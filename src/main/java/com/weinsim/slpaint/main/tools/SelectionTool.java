@@ -48,7 +48,7 @@ public final class SelectionTool extends DragTool {
 
     private void createSubImage() {
         selection = new Image(app.getImage().getSubImage(x, y, width, height,
-                MainApp.isTransparentSelection() ? app.getSecondaryColor() : null));
+                MainApp.isTransparentSelection() ? app.getSecondaryColor(): null));
         app.getImage().setPixels(x, y, width, height, app.getSecondaryColor());
 
         state = IDLE;

@@ -13,7 +13,7 @@ public class UIKeyPressAction {
     protected final int key;
     protected final int mods;
     /**
-     * The {@code selected} field controls wether this UIElement has to be selected
+     * The {@code selected} field controls whether this UIElement has to be selected
      * in order for this key press action to run.
      */
     protected final boolean selected;

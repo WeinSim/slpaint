@@ -38,12 +38,15 @@ public class UINumberInput extends UITextInput {
     }
 
     @Override
-    public void update() {
+    public void handleEvents() {
+        super.handleEvents();
         if (!isSelected())
             text = Integer.toString(valueSupplier.getAsInt());
+    }
 
+    @Override
+    public void update() {
         super.update();
-
         double textSize = uiText.getTextSize();
         setHFixedSize(textSize * 3.3333);
     }

@@ -5,7 +5,10 @@ public enum ShaderType {
     INSTANCE(
             "shaders/vertex_instance/%s.glsl",
             null,
-            "shaders/fragment/%s.glsl");
+            "shaders/fragment/%s.glsl"),
+    EFFECT("shaders/effects/vertex.glsl",
+            null,
+            "shaders/effects/%s.glsl");
 
     public final String vertexPath,
             geometryPath,

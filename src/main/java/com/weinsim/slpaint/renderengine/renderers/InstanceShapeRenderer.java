@@ -12,8 +12,11 @@ import com.weinsim.slpaint.renderengine.shader.ShaderType;
 
 public abstract class InstanceShapeRenderer<C extends DrawCall> extends ShapeRenderer<C> {
 
+    protected boolean useSRGB;
+
     public InstanceShapeRenderer(String name) {
         super(name, ShaderType.INSTANCE);
+        useSRGB = false;
 
         initRawModel();
     }

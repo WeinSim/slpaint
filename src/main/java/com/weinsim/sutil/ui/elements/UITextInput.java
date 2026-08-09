@@ -34,8 +34,7 @@ public class UITextInput extends UIContainer {
         this.valueUpdater = valueUpdater;
         this.multiline = multiline;
 
-        hMarginScale = 0.5;
-        vMarginScale = 0.5;
+        setMarginScale(0.5);
         outlineNormal = true;
 
         setHFillSize();
@@ -106,15 +105,14 @@ public class UITextInput extends UIContainer {
         });
     }
 
+    protected boolean isValidChar(char c) {
+        return (c >= 32 && c <= 126) || (c >= 160 && c < 255) || (c == '\n' && multiline);
+    }
+
     @Override
     public void update() {
         super.update();
-
         boundCursorPosition();
-    }
-
-    protected boolean isValidChar(char c) {
-        return (c >= 32 && c <= 126) || (c >= 160 && c < 255) || (c == '\n' && multiline);
     }
 
     private void boundCursorPosition() {
@@ -145,6 +143,7 @@ public class UITextInput extends UIContainer {
 
         public Cursor() {
             super(0, 0);
+            withOutline();
 
             addAnchor(Anchor.TOP_LEFT, () -> {
                 SVector pos = new SVector(uiText.getPosition());
@@ -158,7 +157,7 @@ public class UITextInput extends UIContainer {
 
         @Override
         public void update() {
-            setFixedSize(new SVector(UISizes.STROKE_WEIGHT.get(), uiText.getTextSize()));
+            setFixedSize(new SVector(UISizes.STROKE_WEIGHT.get1f(), uiText.getTextSize()));
         }
     }
 

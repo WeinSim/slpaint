@@ -19,7 +19,7 @@ public class ImageHistory {
         this.image = image;
 
         history = new LinkedList<>();
-        history.add(image.createBufferedImageCopy());
+        history.add(image.getBufferedImage(true));
         index = 0;
 
         // System.out.println(this);
@@ -35,7 +35,7 @@ public class ImageHistory {
         if (history.size() == MAX_NUM_CHANGES)
             history.removeFirst();
 
-        history.add(image.createBufferedImageCopy());
+        history.add(image.getBufferedImage(true));
         index = history.size() - 1;
 
         // System.out.format("%s: Added snapshot\n", this.toString());

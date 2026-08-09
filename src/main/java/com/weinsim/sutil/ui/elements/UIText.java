@@ -3,9 +3,8 @@ package com.weinsim.sutil.ui.elements;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import org.lwjglx.util.vector.Vector4f;
-
 import com.weinsim.slpaint.renderengine.font.TextFont;
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UIColors;
@@ -25,8 +24,8 @@ public class UIText extends UIElement {
     private String fontName;
     private Supplier<String> fontUpdater = TextFont::getCurrentFontName;
 
-    private Vector4f color = new Vector4f();
-    private Supplier<Vector4f> colorUpdater = UIColors.TEXT;
+    private Color color;
+    private Supplier<Color> colorUpdater = UIColors.TEXT;
 
     public UIText(String text) {
         this(text, NORMAL);
@@ -51,7 +50,7 @@ public class UIText extends UIElement {
         text = textUpdater.get();
         textSize = textSizeUpdater.getAsDouble();
         fontName = fontUpdater.get();
-        color.set(colorUpdater.get());
+        color = colorUpdater.get();
     }
 
     @Override
@@ -106,17 +105,17 @@ public class UIText extends UIElement {
         this.textSizeUpdater = textSizeUpdater;
     }
 
-    public Vector4f getColor() {
+    public Color getColor() {
         return color;
     }
 
-    public UIText setColor(Vector4f color) {
-        this.color.set(color);
+    public UIText setColor(Color color) {
+        this.color = color;
         colorUpdater = this::getColor;
         return this;
     }
 
-    public UIText setColor(Supplier<Vector4f> colorUpdater) {
+    public UIText setColor(Supplier<Color> colorUpdater) {
         this.colorUpdater = colorUpdater;
         return this;
     }

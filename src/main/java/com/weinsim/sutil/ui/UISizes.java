@@ -1,10 +1,11 @@
 package com.weinsim.sutil.ui;
 
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import com.weinsim.sutil.math.SVector;
 
-public enum UISizes implements DoubleSupplier {
+public enum UISizes implements DoubleSupplier, Supplier<SVector> {
 
     MARGIN(8),
     PADDING(8),
@@ -67,12 +68,17 @@ public enum UISizes implements DoubleSupplier {
         return get(this);
     }
 
-    public double get() {
+    public double get1f() {
         return getAsDouble();
     }
 
-    public SVector getWidthHeight() {
+    @Override
+    public SVector get() {
         return new SVector(getSize(width, forceInteger), getSize(height, forceInteger));
+    }
+
+    public SVector get2f() {
+        return get();
     }
 
     private static double get(UISizes s) {

@@ -21,7 +21,7 @@ public class Loader {
             return in;
 
         // try loading from filesystem
-        File file = new File("res/" + path);
+        File file = new File("src/main/resources/" + path);
         if (file.exists())
             return new FileInputStream(file);
 

@@ -3,6 +3,8 @@ package com.weinsim.slpaint.main.tools;
 import java.util.LinkedList;
 
 import com.weinsim.slpaint.main.image.Image;
+import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.color.Color;
 
 public final class FillBucketTool extends ImageTool {
 
@@ -22,40 +24,36 @@ public final class FillBucketTool extends ImageTool {
     @Override
     public void click(int x, int y, int mouseButton) {
         Image image = app.getImage();
-
         if (!image.isInside(x, y))
             return;
-
-        int baseColor = image.getPixel(x, y);
-        int replaceColor = mouseButton == 0 ? app.getPrimaryColor() : app.getSecondaryColor();
-        if (baseColor == replaceColor)
+        Color baseColor = image.getPixel(x, y);
+        Color replaceColor = mouseButton == 0 ? app.getPrimaryColor() : app.getSecondaryColor();
+        if (baseColor.equals(replaceColor))
             return;
+        // high 32 bits: x, low 32 bits: y
         LinkedList<Long> boundary = new LinkedList<>();
-        boundary.add((x & 0xFFFFFFFFL) << 32 | (y & 0xFFFFFFFFL));
+        boundary.add(SUtil.hilo(x, y));
         // No noticeable performance increase with cached bitmap for discovered pixels.
         // However, disabling it causes a bug where the while loop never finsihes when
         // the fill color matches the initial pixel color.
         boolean[][] discovered = new boolean[image.getWidth()][image.getHeight()];
         while (!boundary.isEmpty()) {
             long point = boundary.removeLast();
-            int pointX = (int) ((point >> 32) & 0xFFFFFFFFL);
-            int pointY = (int) (point & 0xFFFFFFFFL);
+            int pointX = SUtil.hi(point),
+                    pointY = SUtil.lo(point);
             discovered[pointX][pointY] = true;
             image.setPixel(pointX, pointY, replaceColor);
             for (int i = 0; i < FILL_XOFF.length; i++) {
-                int newX = pointX + FILL_XOFF[i];
-                int newY = pointY + FILL_YOFF[i];
+                int newX = pointX + FILL_XOFF[i],
+                        newY = pointY + FILL_YOFF[i];
                 if (image.isInside(newX, newY)) {
                     if (discovered[newX][newY])
                         continue;
-
-                    if (image.getPixel(newX, newY) == baseColor) {
-                        boundary.add((newX & 0xFFFFFFFFL) << 32 | (newY & 0xFFFFFFFFL));
-                    }
+                    if (image.getPixel(newX, newY).equals(baseColor))
+                        boundary.add(SUtil.hilo(newX, newY));
                 }
             }
         }
-
         app.addImageSnapshot();
     }
 

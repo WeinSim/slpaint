@@ -1,14 +1,15 @@
 package com.weinsim.sutil.ui.elements;
 
+import java.util.HashMap;
 import java.util.function.BooleanSupplier;
 
-import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UISizes;
 import com.weinsim.sutil.ui.UIStyle;
 
 public class UITabs extends UIContainer {
 
     private UIContainer selectedContent;
+    private HashMap<String, UIContainer> tabs;
 
     private final UIContainer titles;
     private final UIContainer mainArea;
@@ -16,23 +17,18 @@ public class UITabs extends UIContainer {
     public UITabs() {
         super(VERTICAL, LEFT);
         selectedContent = null;
+        tabs = new HashMap<>();
 
-        noOutline();
-        zeroMargin();
         zeroPadding();
-        setMinimalSize();
-
-        add(new UIEmpty(UISizes.MARGIN::getWidthHeight));
 
         titles = new UIContainer(HORIZONTAL, BOTTOM);
-        titles.noOutline();
-        titles.setVMarginScale(0);
+        titles.withMargin();
+        titles.setBottomMarginScale(0);
         add(titles);
 
-        add(new UISeparator());
+        addSeparator();
 
         mainArea = new UIContainer(VERTICAL, LEFT);
-        mainArea.zeroMargin().noOutline();
         mainArea.setVFillSize();
         mainArea.setHFillSize();
         add(mainArea);
@@ -40,21 +36,22 @@ public class UITabs extends UIContainer {
 
     public void addTab(String name, UIContainer content) {
         UIButton title = new UIButton(name, () -> selectedContent = content);
-        title.setStyle(new UIStyle(
-                () -> selectedContent == content ? UIColors.BACKGROUND_2.get() : UIColors.BACKGROUND.get(),
-                () -> UIColors.OUTLINE.get(),
-                () -> title.mouseAbove() ? 2.0 : 1.0));
-        // title.label.setSize(
-        //         UISizes.ICON::getWidthHeight,
-        //         () -> selectedContent == content ? UISizes.TEXT.get() : UISizes.TEXT_SMALL.get());
         BooleanSupplier active = () -> selectedContent == content;
         UIStyle.setSelectableButtonStyle(title, active);
+        // title.setMarginScale(0.5);
         title.label.setTextSize(UISizes.TEXT_SMALL);
         titles.add(title);
         content.setVisibilitySupplier(active);
         mainArea.add(content);
+        tabs.put(name, content);
         if (selectedContent == null)
             selectedContent = content;
+    }
+
+    public void selectTab(String name) {
+        UIContainer tab = tabs.get(name);
+        if (tab != null)
+            selectedContent = tab;
     }
 
 }

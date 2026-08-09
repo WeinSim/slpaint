@@ -12,6 +12,8 @@ import org.lwjglx.util.vector.Vector3f;
 import org.lwjglx.util.vector.Vector4f;
 
 import com.weinsim.slpaint.renderengine.Cleanable;
+import com.weinsim.sutil.color.Color;
+import com.weinsim.sutil.color.LinearRGB;
 import com.weinsim.sutil.math.SVector;
 
 public abstract class VBO implements Cleanable {
@@ -64,6 +66,12 @@ public abstract class VBO implements Cleanable {
                         buffer.putFloat(v.y);
                         buffer.putFloat(v.z);
                     }
+                    case Color c -> {
+                        LinearRGB sRGB = c.linearRGB();
+                        buffer.putFloat((float) sRGB.red());
+                        buffer.putFloat((float) sRGB.green());
+                        buffer.putFloat((float) sRGB.blue());
+                    }
                     case Matrix3f m -> {
                         buffer.putFloat(m.m00);
                         buffer.putFloat(m.m01);
@@ -91,6 +99,13 @@ public abstract class VBO implements Cleanable {
                         buffer.putFloat(v.y);
                         buffer.putFloat(v.z);
                         buffer.putFloat(v.w);
+                    }
+                    case Color c -> {
+                        LinearRGB sRGB = c.linearRGB();
+                        buffer.putFloat((float) sRGB.red());
+                        buffer.putFloat((float) sRGB.green());
+                        buffer.putFloat((float) sRGB.blue());
+                        buffer.putFloat((float) sRGB.alpha());
                     }
                     case Matrix4f m -> {
                         buffer.putFloat(m.m00);

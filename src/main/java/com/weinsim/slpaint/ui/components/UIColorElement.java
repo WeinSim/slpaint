@@ -3,8 +3,7 @@ package com.weinsim.slpaint.ui.components;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import org.lwjglx.util.vector.Vector4f;
-
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UISizes;
@@ -12,10 +11,10 @@ import com.weinsim.sutil.ui.elements.UIElement;
 
 public class UIColorElement extends UIElement {
 
-    private Supplier<Vector4f> colorSupplier;
+    private Supplier<Color> colorSupplier;
     private Supplier<SVector> sizeSupplier;
 
-    public UIColorElement(Supplier<Vector4f> colorSupplier, DoubleSupplier sizeSupplier) {
+    public UIColorElement(Supplier<Color> colorSupplier, DoubleSupplier sizeSupplier) {
         this(
                 colorSupplier,
                 () -> {
@@ -25,7 +24,7 @@ public class UIColorElement extends UIElement {
                 true);
     }
 
-    public UIColorElement(Supplier<Vector4f> colorSupplier, Supplier<SVector> sizeSupplier, boolean outline) {
+    public UIColorElement(Supplier<Color> colorSupplier, Supplier<SVector> sizeSupplier, boolean outline) {
         this.colorSupplier = colorSupplier;
         this.sizeSupplier = sizeSupplier;
 
@@ -45,7 +44,7 @@ public class UIColorElement extends UIElement {
         size.set(sizeSupplier.get());
     }
 
-    public Vector4f getColor() {
+    public Color getColor() {
         return colorSupplier.get();
     }
 

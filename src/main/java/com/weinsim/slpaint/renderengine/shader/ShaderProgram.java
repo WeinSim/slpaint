@@ -8,16 +8,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import com.weinsim.slpaint.main.Loader;
 import com.weinsim.slpaint.renderengine.Cleanable;
 import com.weinsim.slpaint.renderengine.RawModel;
-import com.weinsim.slpaint.renderengine.bufferobjects.AttributeVBO;
-import com.weinsim.slpaint.renderengine.bufferobjects.FloatVBO;
-import com.weinsim.slpaint.renderengine.bufferobjects.IntVBO;
-import com.weinsim.slpaint.renderengine.bufferobjects.MatrixVBO;
-import com.weinsim.slpaint.renderengine.bufferobjects.UniformBufferObject;
-import com.weinsim.slpaint.renderengine.bufferobjects.VBOType;
+import com.weinsim.slpaint.renderengine.bufferobjects.*;
 
 public class ShaderProgram implements Cleanable {
 
@@ -34,7 +30,14 @@ public class ShaderProgram implements Cleanable {
     private final HashMap<String, UniformVariable> uniformVariables;
     private final HashMap<String, UniformBufferObject> uniformBufferObjects;
 
-    public ShaderProgram(String name, ShaderType type) {
+    /**
+     * @param name
+     * @param type
+     * @param vertexVBONames A list of names of vertex shader inputs that come from
+     *                       per-vertex VBOs. All other inputs are considered to
+     *                       come from per-instance VBOs.
+     */
+    public ShaderProgram(String name, ShaderType type, List<String> vertexVBONames) {
         this.type = type;
         this.name = name;
 
@@ -45,12 +48,12 @@ public class ShaderProgram implements Cleanable {
         boolean hasGeometry = type.hasGeometry();
         String vertexName, geometryName = null, fragmentName;
 
-        vertexName = String.format(type.vertexPath, name);
+        vertexName = getShaderStageName(type.vertexPath, name);
         if (hasGeometry)
-            geometryName = String.format(type.geometryPath, name);
-        fragmentName = String.format(type.fragmentPath, name);
+            geometryName = getShaderStageName(type.geometryPath, name);
+        fragmentName = getShaderStageName(type.fragmentPath, name);
 
-        vertexShaderID = loadShader(vertexName, GL_VERTEX_SHADER, vbos);
+        vertexShaderID = loadShader(vertexName, GL_VERTEX_SHADER, vbos, vertexVBONames);
         geometryShaderID = hasGeometry ? loadShader(geometryName, GL_GEOMETRY_SHADER) : 0;
         fragmentShaderID = loadShader(fragmentName, GL_FRAGMENT_SHADER);
 
@@ -81,6 +84,10 @@ public class ShaderProgram implements Cleanable {
 
         for (UniformVariable uniform : uniformVariables.values())
             uniform.setLocation(glGetUniformLocation(programID, uniform.getName()));
+    }
+
+    private static String getShaderStageName(String format, Object... args) {
+        return format.contains("%") ? String.format(format, args) : format;
     }
 
     public void start() {
@@ -140,10 +147,10 @@ public class ShaderProgram implements Cleanable {
     }
 
     private int loadShader(String filename, int type) {
-        return loadShader(filename, type, null);
+        return loadShader(filename, type, null, List.of());
     }
 
-    private int loadShader(String filename, int type, ArrayList<AttributeVBO> vbos) {
+    private int loadShader(String filename, int type, ArrayList<AttributeVBO> vbos, List<String> vertexVBONames) {
         StringBuilder shaderSource = new StringBuilder();
         int attributeNumber = 0;
 
@@ -188,10 +195,11 @@ public class ShaderProgram implements Cleanable {
                     String attributeName = parts[inIndex + 2];
                     attributeName = attributeName.substring(0, attributeName.indexOf(';'));
                     // very crude detection for now
-                    VBOType attributeType = switch (attributeName) {
-                        case "cornerPos", "offset" -> VBOType.VERTEX;
-                        default -> VBOType.INSTANCE;
-                    };
+                    // VBOType attributeType = switch (attributeName) {
+                    // case "cornerPos", "offset" -> VBOType.VERTEX;
+                    // default -> VBOType.INSTANCE;
+                    // };
+                    VBOType attributeType = vertexVBONames.contains(attributeName) ? VBOType.VERTEX : VBOType.INSTANCE;
                     Datatype datatype = Datatype.fromIdentifier(parts[inIndex + 1]);
                     AttributeVBO vbo = switch (datatype) {
                         case INT ->

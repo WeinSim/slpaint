@@ -2,8 +2,6 @@ package com.weinsim.slpaint.renderengine.renderers;
 
 import java.util.ArrayList;
 
-import org.lwjglx.util.vector.Vector4f;
-
 import com.weinsim.slpaint.renderengine.bufferobjects.FloatVBO;
 import com.weinsim.slpaint.renderengine.bufferobjects.IntVBO;
 import com.weinsim.slpaint.renderengine.bufferobjects.MatrixVBO;
@@ -32,11 +30,7 @@ public class EllipseRenderer extends InstanceShapeRenderer<EllipseDrawCall> {
                 position.putData(drawCall.position);
                 depth.putData(drawCall.depth);
                 size.putData(drawCall.size);
-                color.putData(new Vector4f(
-                        drawCall.color.x,
-                        drawCall.color.y,
-                        drawCall.color.z,
-                        drawCall.color.w));
+                color.putData(drawCall.color);
             }
             batchIndex++;
         }

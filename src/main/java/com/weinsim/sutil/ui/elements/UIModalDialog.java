@@ -5,8 +5,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.DoubleSupplier;
 
-import org.lwjglx.util.vector.Vector4f;
-
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UISizes;
 
@@ -18,27 +17,25 @@ public class UIModalDialog extends UIFloatContainer {
         super(VERTICAL, CENTER);
 
         this.fututre = future;
+        withMargin();
 
         soloInputs = true;
         addKeyPressAction(GLFW_KEY_ESCAPE, 0, false, this::cancel);
 
-        style.setBackgroundColor(new Vector4f(0.0f, 0.0f, 0.0f, 0.5f));
-        outlineNormal = false;
+        style.setBackgroundColor(Color.sGrey(0.0, 0.5));
 
         UIContainer content = new UIContainer(VERTICAL, CENTER);
-        content.zeroPadding().zeroMargin().withBackground();
-
+        content.zeroPadding().withBackground().withOutline();
         UIContainer topRow = new UIContainer(HORIZONTAL, RIGHT, CENTER);
-        topRow.setHFillSize().zeroMargin();
+        topRow.setHFillSize().withOutline();
         UIContainer titleContainer = new UIContainer(VERTICAL, CENTER);
-        titleContainer.setHFillSize().zeroMargin().noOutline();
+        titleContainer.setHFillSize();
         titleContainer.add(new UIText(title));
         topRow.add(titleContainer);
         topRow.add(new UIButton(UILabel.icon("close"), () -> finish(UI.CLOSED_OPTION)));
         content.add(topRow);
-
         UIContainer mainArea = new UIContainer(VERTICAL, CENTER);
-        mainArea.setMarginScale(UISizes.DIALOG_MARGIN.get() / UISizes.MARGIN.get());
+        mainArea.setMarginScale(UISizes.DIALOG_MARGIN.get1f() / UISizes.MARGIN.get1f());
         mainArea.setPaddingScale(0.5).setMinimalSize().noOutline();
         for (String line : message.split("\n")) {
             int alignment = LEFT;
@@ -59,15 +56,14 @@ public class UIModalDialog extends UIFloatContainer {
                 line = line.substring(endIndex + 1);
             }
             UIContainer textContainer = new UIContainer(VERTICAL, alignment);
-            textContainer.zeroMargin().setHFillSize().noOutline();
+            textContainer.setHFillSize();
             textContainer.add(new UIText(line, textSize));
             mainArea.add(textContainer);
         }
         content.add(mainArea);
-
         UIContainer bottomRow = new UIContainer(HORIZONTAL, RIGHT, CENTER);
-        bottomRow.setHFillSize();
-        bottomRow.noOutline();
+        bottomRow.withMargin().setHFillSize();
+
         String[] buttonLabels;
         int[] returnCodes;
         switch (dialogType) {
@@ -103,9 +99,7 @@ public class UIModalDialog extends UIFloatContainer {
     @Override
     public void update() {
         super.update();
-
         setFixedSize(UI.getRootSize());
-
         relativeLayer = UI.MODAL_DIALOG_LAYER - parent.relativeLayer;
     }
 

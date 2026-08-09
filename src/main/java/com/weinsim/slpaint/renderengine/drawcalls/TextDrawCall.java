@@ -1,21 +1,21 @@
 package com.weinsim.slpaint.renderengine.drawcalls;
 
 import org.lwjglx.util.vector.Matrix3f;
-import org.lwjglx.util.vector.Vector4f;
 
 import com.weinsim.slpaint.renderengine.bufferobjects.UBOEntry;
 import com.weinsim.slpaint.renderengine.font.TextFont;
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.math.SVector;
 
 public final class TextDrawCall extends DrawCall {
 
     public final double relativeSize;
-    public final Vector4f color;
+    public final Color color;
     public final String text;
     public final TextFont font;
 
     public TextDrawCall(SVector position, double depth, double relativeSize, Matrix3f uiMatrix,
-            ClipAreaInfo clipAreaInfo, Vector4f color, String text, TextFont font) {
+            ClipAreaInfo clipAreaInfo, Color color, String text, TextFont font) {
 
         // TODO: use TextFont.textWidth() to determine size
         super(position, depth, new SVector(), clipAreaInfo, uiMatrix);

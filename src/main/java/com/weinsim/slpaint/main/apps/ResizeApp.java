@@ -60,13 +60,10 @@ public final class ResizeApp extends App {
     }
 
     @Override
-    public void update(double deltaT) {
-        super.update(deltaT);
-
+    public void childUpdate(double deltaT) {
         if (frameCount == 1)
             UI.select(widthInput);
-
-        window.setTitle(getTitle());
+        setTitle(getTitle());
     }
 
     @Override

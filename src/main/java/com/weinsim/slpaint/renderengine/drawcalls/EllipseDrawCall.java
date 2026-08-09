@@ -1,20 +1,19 @@
 package com.weinsim.slpaint.renderengine.drawcalls;
 
 import org.lwjglx.util.vector.Matrix3f;
-import org.lwjglx.util.vector.Vector4f;
 
 import com.weinsim.slpaint.renderengine.bufferobjects.UBOEntry;
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.math.SVector;
 
 public final class EllipseDrawCall extends DrawCall {
 
-    public final Vector4f color;
+    public final Color color;
 
     public EllipseDrawCall(SVector position, double depth, SVector size, Matrix3f uiMatrix, ClipAreaInfo clipAreaInfo,
-            Vector4f color) {
+            Color color) {
 
         super(position, depth, size, clipAreaInfo, uiMatrix);
-
         this.color = color;
     }
 

@@ -2,9 +2,11 @@ package com.weinsim.sutil.ui.elements;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.BooleanSupplier;
 
+import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UIColors;
@@ -60,10 +62,13 @@ public class UIContainer extends UIElement {
 
     protected SVector minSize;
 
-    protected double hMarginScale = 1, vMarginScale = 1;
-    protected double paddingScale = 1;
+    private double topMarginScale = 0,
+            bottomMarginScale = 0,
+            leftMarginScale = 0,
+            rightMarginScale = 0;
+    private double paddingScale = 1;
 
-    protected boolean addSeparators = false;
+    protected boolean automaticSeparators = false;
 
     public UIContainer(int orientation, int alignment) {
         this(orientation, alignment, alignment, NONE);
@@ -77,8 +82,6 @@ public class UIContainer extends UIElement {
         super();
 
         this.scrollMode = scrollMode;
-
-        outlineNormal = true;
 
         setOrientation(orientation);
         setHAlignment(hAlignment);
@@ -108,7 +111,7 @@ public class UIContainer extends UIElement {
         soloChildren = new ChildIterable() {
             @Override
             boolean iterateOver(UIElement child) {
-                return child.soloInputs();
+                return child.isVisible() && child.soloInputs();
             }
         };
 
@@ -128,45 +131,32 @@ public class UIContainer extends UIElement {
 
     // Adding / removing children
 
-    public void add(UIElement child) {
-        if (addSeparators && !(child instanceof UIFloatContainer)) {
-            boolean containsNonFloatChildren = false;
-            for (UIElement currentChild : children) {
-                if (!(currentChild instanceof UIFloatContainer)) {
-                    containsNonFloatChildren = true;
-                    break;
-                }
-            }
-            if (containsNonFloatChildren) {
-                UISeparator separator = new UISeparator();
-                BooleanSupplier childVis = () -> {
-                    if (!child.visibilitySupplier.getAsBoolean())
-                        return false;
-
-                    // The separator should not be visible if the corresponding child is the first
-                    // visible element. Thus, we need to find another visible non-separator element
-                    // in the list of children that comes before it.
-                    // Note that this implementation depends on the fact that the updateVisibility()
-                    // method goes through all the children in order.
-
-                    for (UIElement e : getChildren()) {
-                        if (!(e instanceof UISeparator) && e != child)
-                            return true;
-                    }
-
-                    return false;
-                };
-                separator.setVisibilitySupplier(childVis);
-                addActual(separator);
-            }
-        }
-
-        addActual(child);
+    public void addSeparator() {
+        add(new UISeparator());
     }
 
-    private final void addActual(UIElement child) {
-        children.add(child);
+    public void addFill() {
+        addFill(true);
+    }
 
+    public void addFill(boolean margin) {
+        add(new UIFill(true));
+    }
+
+    public void add(UIElement child) {
+        addActual(child, false);
+    }
+
+    public void addFirst(UIElement child) {
+        addActual(child, true);
+    }
+
+    private final void addActual(UIElement child, boolean first) {
+        addActual(first ? 0 : children.size(), child);
+    }
+
+    private final void addActual(int index, UIElement child) {
+        children.add(index, child);
         child.parent = this;
     }
 
@@ -174,7 +164,35 @@ public class UIContainer extends UIElement {
         children.remove(child);
     }
 
+    /**
+     * Removes and returns all children of the specified type from this container's
+     * list of children.
+     * 
+     * @param <T>   the type of child element to remove
+     * @param clazz the type's class
+     * @return a list of all removed children
+     */
+    public <T extends UIElement> List<T> removeAll(Class<T> clazz) {
+        ArrayList<T> removed = new ArrayList<>();
+        for (int i = children.size() - 1; i >= 0; i--) {
+            UIElement child = children.get(i);
+            if (clazz.isInstance(child)) {
+                children.remove(i);
+                removed.add(clazz.cast(child));
+            }
+        }
+        return removed;
+    }
+
     // Recursive methods
+
+    @Override
+    public void handleEvents() {
+        super.handleEvents();
+        for (UIElement child : getChildren()) {
+            child.handleEvents();
+        }
+    }
 
     @Override
     public void updateVisibility() {
@@ -182,9 +200,31 @@ public class UIContainer extends UIElement {
         if (!isVisible())
             return;
 
-        for (UIElement child : children) {
+        createChildren();
+        if (automaticSeparators)
+            removeAll(UISeparator.class);
+        boolean addSeparators = false;
+        for (int i = 0; i < children.size(); i++) {
+            UIElement child = children.get(i);
             child.updateVisibility();
+            if (child.isVisible()
+                    && !(child instanceof UIFloatContainer)
+                    && !(child instanceof UISeparator)) {
+                if (automaticSeparators && addSeparators)
+                    // increment i by one because the element we just processed has moved one
+                    // position to the right
+                    addActual(i++, new UISeparator());
+                addSeparators = true;
+            }
         }
+    }
+
+    /**
+     * This method can overridden by subclasses of {@code UIContainer} to add or
+     * remove children on every UI update cycle, analogous to children having a
+     * visibility supplier.
+     */
+    protected void createChildren() {
     }
 
     @Override
@@ -221,7 +261,6 @@ public class UIContainer extends UIElement {
     @Override
     public void update() {
         super.update();
-
         for (UIElement child : getChildren()) {
             child.update();
         }
@@ -256,10 +295,10 @@ public class UIContainer extends UIElement {
         setSizeAccordingToBoundingBox();
 
         if (isHScroll() && hSizeType != SizeType.FIXED) {
-            size.x = 4 * UISizes.MARGIN.get();
+            size.x = 4 * UISizes.MARGIN.get1f();
         }
         if (isVScroll() && vSizeType != SizeType.FIXED) {
-            size.y = 4 * UISizes.MARGIN.get();
+            size.y = 4 * UISizes.MARGIN.get1f();
         }
 
         minSize.set(size);
@@ -279,9 +318,7 @@ public class UIContainer extends UIElement {
             return;
         }
 
-        double hMargin = getHMargin(), vMargin = getVMargin();
-        double padding = getPadding();
-        SVector boundingBox = getChildrenBoundingBox(hMargin, vMargin, padding);
+        SVector boundingBox = getChildrenBoundingBox();
 
         if (hSizeType != SizeType.FIXED) {
             size.x = boundingBox.x;
@@ -304,10 +341,7 @@ public class UIContainer extends UIElement {
     }
 
     private void adjustAlongAxis() {
-        double hMargin = getHMargin(),
-                vMargin = getVMargin();
-        double padding = getPadding();
-        SVector boundingBox = getChildrenBoundingBox(hMargin, vMargin, padding);
+        SVector boundingBox = getChildrenBoundingBox();
         double remainingSize = orientation == VERTICAL ? size.y - boundingBox.y : size.x - boundingBox.x;
 
         ArrayList<UIContainer> hvChildren = new ArrayList<>();
@@ -416,14 +450,14 @@ public class UIContainer extends UIElement {
     protected double getAvailableSpaceAcrossAxis() {
         boolean isScroll = orientation == VERTICAL ? isVScroll() : isHScroll();
         if (isScroll) {
-            SVector boundingBox = getChildrenBoundingBox(getHMargin(), getVMargin(), getPadding());
+            SVector boundingBox = getChildrenBoundingBox();
             return orientation == VERTICAL
-                    ? Math.max(size.x, boundingBox.x) - 2 * getHMargin()
-                    : Math.max(size.y, boundingBox.y) - 2 * getVMargin();
+                    ? Math.max(size.x, boundingBox.x) - getHMargins()
+                    : Math.max(size.y, boundingBox.y) - getVMargins();
         } else {
             return orientation == VERTICAL
-                    ? size.x - 2 * getHMargin()
-                    : size.y - 2 * getVMargin();
+                    ? size.x - getHMargins()
+                    : size.y - getVMargins();
         }
     }
 
@@ -469,9 +503,12 @@ public class UIContainer extends UIElement {
     }
 
     public void positionChildren() {
-        double hMargin = getHMargin(), vMargin = getVMargin();
+        double topMargin = getTopMargin(),
+                bottomMargin = getBottomMargin(),
+                leftMargin = getLeftMargin(),
+                rightMargin = getRightMargin();
         double padding = getPadding();
-        SVector boundingBox = getChildrenBoundingBox(hMargin, vMargin, padding);
+        SVector boundingBox = getChildrenBoundingBox();
 
         areaOvershoot = new SVector(
                 Math.max(0, boundingBox.x - size.x),
@@ -489,11 +526,11 @@ public class UIContainer extends UIElement {
                 SVector childSize = child.getSize();
 
                 childPos.x = orientation == VERTICAL
-                        ? hMargin + (size.x - 2 * hMargin - childSize.x) * hAlignment / 2.0
-                        : hMargin + runningTotal + (size.x - boundingBox.x) * hAlignment / 2.0;
+                        ? leftMargin + (size.x - (leftMargin + rightMargin) - childSize.x) * hAlignment / 2.0
+                        : leftMargin + runningTotal + (size.x - boundingBox.x) * hAlignment / 2.0;
                 childPos.y = orientation == VERTICAL
-                        ? vMargin + runningTotal + (size.y - boundingBox.y) * vAlignment / 2.0
-                        : vMargin + (size.y - 2 * vMargin - childSize.y) * vAlignment / 2.0;
+                        ? topMargin + runningTotal + (size.y - boundingBox.y) * vAlignment / 2.0
+                        : topMargin + (size.y - (topMargin + bottomMargin) - childSize.y) * vAlignment / 2.0;
 
                 runningTotal += orientation == VERTICAL ? childSize.y : childSize.x;
                 runningTotal += padding;
@@ -505,14 +542,18 @@ public class UIContainer extends UIElement {
         }
     }
 
-    protected SVector getChildrenBoundingBox(double hMargin, double vMargin, double padding) {
+    protected SVector getChildrenBoundingBox() {
+        double topMargin = getTopMargin(),
+                bottomMargin = getBottomMargin(),
+                leftMargin = getLeftMargin(),
+                rightMargin = getRightMargin();
+        double padding = getPadding();
         double sum = 0;
         double max = 0;
         int numNonFloatChildren = 0;
         for (UIElement child : getChildren()) {
-            if (child instanceof UIFloatContainer) {
+            if (child instanceof UIFloatContainer)
                 continue;
-            }
             SVector childSize = child.getSize();
             if (orientation == VERTICAL) {
                 max = Math.max(max, childSize.x);
@@ -521,46 +562,48 @@ public class UIContainer extends UIElement {
                 max = Math.max(max, childSize.y);
                 sum += childSize.x;
             }
-
             numNonFloatChildren++;
         }
-
         sum += Math.max(0, (numNonFloatChildren - 1)) * padding;
         SVector ret = switch (orientation) {
             case VERTICAL -> new SVector(max, sum);
             case HORIZONTAL -> new SVector(sum, max);
             default -> null;
         };
-        ret.x += 2 * hMargin;
-        ret.y += 2 * vMargin;
+        ret.x += leftMargin + rightMargin;
+        ret.y += topMargin + bottomMargin;
 
         return ret;
     }
 
     // Getters / setters
 
-    /**
-     * 
-     * @return the space around the outside (left and right).
-     */
-    public final double getHMargin() {
-        return UISizes.MARGIN.get() * hMarginScale;
+    private double getHMargins() {
+        return UISizes.MARGIN.get1f() * (leftMarginScale + rightMarginScale);
     }
 
-    /**
-     * 
-     * @return the space around the outside (top and bottom).
-     */
-    public final double getVMargin() {
-        return UISizes.MARGIN.get() * vMarginScale;
+    private double getVMargins() {
+        return UISizes.MARGIN.get1f() * (topMarginScale + bottomMarginScale);
     }
 
-    /**
-     * 
-     * @return the space between the children.
-     */
-    public final double getPadding() {
-        return UISizes.PADDING.get() * paddingScale;
+    private double getTopMargin() {
+        return UISizes.MARGIN.get1f() * topMarginScale;
+    }
+
+    private double getBottomMargin() {
+        return UISizes.MARGIN.get1f() * bottomMarginScale;
+    }
+
+    private double getLeftMargin() {
+        return UISizes.MARGIN.get1f() * leftMarginScale;
+    }
+
+    private double getRightMargin() {
+        return UISizes.MARGIN.get1f() * rightMarginScale;
+    }
+
+    private double getPadding() {
+        return UISizes.PADDING.get1f() * paddingScale;
     }
 
     public UIContainer setMinimalSize() {
@@ -649,18 +692,42 @@ public class UIContainer extends UIElement {
     }
 
     public UIContainer setMarginScale(double marginScale) {
-        hMarginScale = marginScale;
-        vMarginScale = marginScale;
+        topMarginScale = marginScale;
+        bottomMarginScale = marginScale;
+        leftMarginScale = marginScale;
+        rightMarginScale = marginScale;
         return this;
     }
 
     public UIContainer setHMarginScale(double hMarginScale) {
-        this.hMarginScale = hMarginScale;
+        leftMarginScale = hMarginScale;
+        rightMarginScale = hMarginScale;
         return this;
     }
 
     public UIContainer setVMarginScale(double vMarginScale) {
-        this.vMarginScale = vMarginScale;
+        topMarginScale = vMarginScale;
+        bottomMarginScale = vMarginScale;
+        return this;
+    }
+
+    public UIContainer setTopMarginScale(double topMarginScale) {
+        this.topMarginScale = topMarginScale;
+        return this;
+    }
+
+    public UIContainer setBottomMarginScale(double bottomMarginScale) {
+        this.bottomMarginScale = bottomMarginScale;
+        return this;
+    }
+
+    public UIContainer setLeftMarginScale(double leftMarginScale) {
+        this.leftMarginScale = leftMarginScale;
+        return this;
+    }
+
+    public UIContainer setRightMarginScale(double rightMarginScale) {
+        this.rightMarginScale = rightMarginScale;
         return this;
     }
 
@@ -669,22 +736,22 @@ public class UIContainer extends UIElement {
         return this;
     }
 
-    /**
-     * Removes space around the outside.
-     * 
-     * @param zeroMargin
-     */
+    public UIContainer withMargin() {
+        setMarginScale(1.0);
+        return this;
+    }
+
     public UIContainer zeroMargin() {
         setHMarginScale(0);
         setVMarginScale(0);
         return this;
     }
 
-    /**
-     * Removes space between children.
-     * 
-     * @return
-     */
+    public UIContainer withPadding() {
+        setPaddingScale(1.0);
+        return this;
+    }
+
     public UIContainer zeroPadding() {
         setPaddingScale(0);
         return this;
@@ -736,7 +803,7 @@ public class UIContainer extends UIElement {
      * @return {@code this}
      */
     public UIContainer withSeparators(boolean spaciousLayout) {
-        addSeparators = true;
+        automaticSeparators = true;
 
         if (spaciousLayout) {
             setMarginScale(2.0);
@@ -821,18 +888,68 @@ public class UIContainer extends UIElement {
                 : isHScroll() && areaOvershoot.x > EPSILON;
     }
 
+    private static class UISeparator extends UIContainer {
+
+        UISeparator() {
+            super(VERTICAL, LEFT);
+            style.setStrokeColor(UIColors.SEPARATOR);
+            zeroPadding();
+        }
+
+        @Override
+        public void update() {
+            super.update();
+
+            if (parent.getOrientation() == VERTICAL) {
+                setHFillSize();
+                setVMinimalSize();
+            } else {
+                setHMinimalSize();
+                setVFillSize();
+            }
+        }
+
+    }
+
+    private static class UIFill extends UIContainer {
+
+        private final boolean margin;
+
+        UIFill(boolean margin) {
+            super(0, 0);
+            this.margin = margin;
+        }
+
+        @Override
+        public void update() {
+            super.update();
+
+            if (parent.getOrientation() == VERTICAL) {
+                setHMinimalSize();
+                setVFillSize();
+                setHMarginScale(0.0);
+                setVMarginScale(margin ? 1.0 : 0.0);
+            } else {
+                setHFillSize();
+                setVMinimalSize();
+                setHMarginScale(margin ? 1.0 : 0.0);
+                setVMarginScale(0.0);
+            }
+        }
+
+    }
+
     private static class UIScrollbarContainerWrapper extends UIContainer {
 
-        UIContainer scrollArea;
-        UIScrollbarContainer scrollbarContainer;
+        final UIContainer scrollArea;
+        final UIScrollbarContainer scrollbarContainer;
 
         UIScrollbarContainerWrapper(int orientation, UIContainer container, UIContainer scrollArea) {
             super(1 - orientation, 0);
-
             this.scrollArea = scrollArea;
 
-            noBackground().noOutline();
-            zeroMargin().zeroPadding();
+            noBackground();
+            zeroPadding();
 
             add(container);
             scrollbarContainer = new UIScrollbarContainer(scrollArea, orientation);
@@ -851,7 +968,15 @@ public class UIContainer extends UIElement {
             if (vSizeType == SizeType.FIXED) {
                 vSizeType = SizeType.MINIMAL;
             }
+            visibilitySupplier = scrollArea.visibilitySupplier;
         }
+
+        @Override
+        public UIElement setVisibilitySupplier(BooleanSupplier visibilitySupplier) {
+            scrollArea.setVisibilitySupplier(visibilitySupplier);
+            return this;
+        }
+
     }
 
     private static class UIScrollbarContainer extends UIDragContainer {
@@ -872,11 +997,10 @@ public class UIContainer extends UIElement {
             style.setStrokeColor(scrollArea::strokeColor);
             style.setStrokeWeight(scrollArea::strokeWeight);
             withBackground();
-            zeroMargin();
 
             setVisibilitySupplier(() -> scrollArea.showScrollbar(orientation));
 
-            double min = UISizes.SCROLLBAR.get();
+            double min = UISizes.SCROLLBAR.get1f();
             if (orientation == VERTICAL) {
                 setHFixedSize(min);
                 setVFillSize();
@@ -947,6 +1071,7 @@ public class UIContainer extends UIElement {
                 scrollArea.setRelativeScrollY(y);
             }
         }
+
     }
 
     private static class UIScrollbar extends UIFloatContainer {
@@ -959,13 +1084,16 @@ public class UIContainer extends UIElement {
             this.scrollArea = scrollArea;
             this.scrollbarContainer = scrollbarContainer;
 
-            UIStyle style = new UIStyle(
-                    () -> mouseAbove || scrollbarContainer.isDragging()
-                            ? UIColors.OUTLINE.get()
-                            : UIColors.SCROLLBAR_HIGHLIGHT.get(),
-                    () -> null, () -> 0.0);
+            withMargin();
 
-            setStyle(style);
+            setStyle(new UIStyle(
+                    // () -> mouseAbove || scrollbarContainer.isDragging()
+                    // ? UIColors.OUTLINE.get()
+                    // : UIColors.SCROLLBAR_HIGHLIGHT.get(),
+                    SUtil.ifThenElse(() -> mouseAbove || scrollbarContainer.isDragging(),
+                            UIColors.OUTLINE,
+                            UIColors.SCROLLBAR_HIGHLIGHT),
+                    null, null));
 
             addAnchor(Anchor.TOP_LEFT, this::getPos);
         }
@@ -978,8 +1106,7 @@ public class UIContainer extends UIElement {
 
         @Override
         public void setMinSize() {
-            double min = UISizes.SCROLLBAR.get();
-            size.set(min, min);
+            size.set(UISizes.SCROLLBAR.get2f());
         }
 
         public void expandAsNeccessary() {
@@ -991,6 +1118,7 @@ public class UIContainer extends UIElement {
                 size.x = Math.max(size.x, scrollArea.getWidthFraction() * parent.size.x);
             }
         }
+
     }
 
     // Child list
@@ -1030,8 +1158,10 @@ public class UIContainer extends UIElement {
                     }
                     throw new NoSuchElementException();
                 }
+
             };
         }
+
     }
 
 }

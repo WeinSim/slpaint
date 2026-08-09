@@ -13,11 +13,17 @@ public class UIButton extends UIContainer {
         super(HORIZONTAL, CENTER);
         this.label = label;
 
+        withMargin();
+
         outlineNormal = false;
         backgroundHighlight = true;
         selectable = true;
-        if (clickAction != null)
-            addLeftClickAction(clickAction);
+        if (clickAction != null) {
+            addLeftClickAction(() -> {
+                if (label.isActive())
+                    clickAction.run();
+            });
+        }
 
         add(label);
     }
@@ -26,9 +32,9 @@ public class UIButton extends UIContainer {
     public void update() {
         super.update();
 
-        boolean isActive = label.isActive();
-        selectable = isActive;
-        backgroundHighlight = isActive;
+        boolean active = label.isActive();
+        selectable = active;
+        backgroundHighlight = active;
     }
 
 }

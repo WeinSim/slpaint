@@ -52,7 +52,7 @@ public class UIFloatMenu extends UIFloatContainer {
         this.closeAction = closeAction;
         this.textSizeUpdater = textSizeUpdater;
 
-        zeroMargin();
+        withOutline();
         zeroPadding();
 
         relativeLayer = 1;
@@ -61,7 +61,7 @@ public class UIFloatMenu extends UIFloatContainer {
 
         if (scroll) {
             UIContainer scrollArea = new UIContainer(VERTICAL, LEFT, TOP, UI.VERTICAL);
-            scrollArea.setVFixedSize(400).zeroMargin().zeroPadding();
+            scrollArea.setVFixedSize(400).zeroPadding();
             contents = scrollArea;
             add(scrollArea.addScrollbars(), true);
         } else {
@@ -117,15 +117,15 @@ public class UIFloatMenu extends UIFloatContainer {
         int scancode = glfwGetKeyScancode(key);
         rightText += glfwGetKeyName(key, scancode).toUpperCase();
 
-        addLabel(new UILabel(null, labelText, shortcut.getPossible()), rightText, shortcut::run);
+        addLabel(UILabel.iconText(null, labelText, shortcut.getPossible()), rightText, shortcut::run);
     }
 
     public void addLabel(String text, Runnable clickAction) {
-        addLabel(new UILabel(null, text), null, clickAction);
+        addLabel(UILabel.iconText(null, text), null, clickAction);
     }
 
     public void addLabel(String text, Runnable clickAction, BooleanSupplier active) {
-        addLabel(new UILabel(null, text, active), null, clickAction);
+        addLabel(UILabel.iconText(null, text, active), null, clickAction);
     }
 
     public void addLabel(UILabel label, Runnable clickAction) {
@@ -149,11 +149,11 @@ public class UIFloatMenu extends UIFloatContainer {
     }
 
     public UIFloatMenu addNestedMenu(String text) {
-        return addNestedMenu(new UILabel(null, text), false);
+        return addNestedMenu(UILabel.iconText(null, text), false);
     }
 
     public UIFloatMenu addNestedMenu(String text, boolean scroll) {
-        return addNestedMenu(new UILabel(null, text), scroll);
+        return addNestedMenu(UILabel.iconText(null, text), scroll);
     }
 
     public UIFloatMenu addNestedMenu(UILabel label) {
@@ -184,10 +184,11 @@ public class UIFloatMenu extends UIFloatContainer {
         return menu;
     }
 
+    @Override
     public void addSeparator() {
         UIContainer container = new UIContainer(VERTICAL, 0);
-        container.setVMarginScale(1.0).setHMarginScale(0.0).setHFillSize().noOutline();
-        container.add(new UISeparator());
+        container.setVMarginScale(1.0).setHFillSize();
+        container.addSeparator();
         add(container);
     }
 
@@ -205,29 +206,29 @@ public class UIFloatMenu extends UIFloatContainer {
         CMLabel(UILabel label, String rightText, UIIcon rightIcon) {
             super(HORIZONTAL, LEFT, CENTER);
 
-            noOutline();
             setHFillSize();
+            withMargin();
 
-            label.setSize(UISizes.ICON_SMALL::getWidthHeight, UISizes.TEXT_SMALL);
+            label.setSize(UISizes.ICON_SMALL, UISizes.TEXT_SMALL);
             add(label);
 
-            add(new UIContainer(0, 0).setVMarginScale(0).setHFillSize().noOutline());
+            addFill(true);
             if (rightText != null)
                 add(new UIText(rightText, textSizeUpdater).setColor(UIColors.TEXT_INVALID));
 
             if (rightIcon != null)
-                add(new UIImage(rightIcon, UISizes.ICON_SMALL::getWidthHeight));
+                add(new UIImage(rightIcon, UISizes.ICON_SMALL));
             else
-                add(new UIEmpty(UISizes.ICON_SMALL::getWidthHeight));
+                add(new UIEmpty(UISizes.ICON_SMALL));
         }
 
         @Override
-        public void update() {
-            super.update();
-
+        public void handleEvents() {
+            super.handleEvents();
             if (mouseAbove())
                 expandedLabel = this;
         }
+
     }
 
 }

@@ -8,14 +8,15 @@ import com.weinsim.sutil.math.SVector;
 public final class ImageDrawCall extends DrawCall {
 
     public final int textureID;
+    // public final boolean encodeSRGB;
     public int samplerID;
 
     public ImageDrawCall(SVector position, double depth, SVector size, Matrix3f uiMatrix, ClipAreaInfo clipAreaInfo,
             int textureID) {
 
         super(position, depth, size, clipAreaInfo, uiMatrix);
-
         this.textureID = textureID;
+        // this.encodeSRGB = encodeSRGB;
     }
 
     @Override
@@ -36,6 +37,7 @@ public final class ImageDrawCall extends DrawCall {
             ubo.put(Float.MAX_VALUE);
         }
         ubo.put(samplerID);
+        // ubo.put(encodeSRGB ? 1 : 0);
         ubo.putPadding(3 * Integer.BYTES);
         return ubo.finish();
     }

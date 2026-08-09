@@ -5,12 +5,13 @@ import static org.lwjgl.glfw.GLFW.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.function.Supplier;
 
 import com.weinsim.slpaint.main.MainLoop;
-import com.weinsim.slpaint.settings.BooleanSetting;
 import com.weinsim.slpaint.renderengine.AppRenderer;
 import com.weinsim.slpaint.renderengine.Window;
 import com.weinsim.slpaint.renderengine.font.TextFont;
+import com.weinsim.slpaint.settings.BooleanSetting;
 import com.weinsim.slpaint.ui.AppUI;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
@@ -18,16 +19,15 @@ import com.weinsim.sutil.ui.elements.UIRoot;
 
 public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, ResizeApp {
 
-    private static final double FRAME_TIME_GAMMA = 0.015;
-
     /**
      * 0 = normal 1 = mouse above, 2 = always
      */
     private static int debugOutline = 0;
+    private static double uiScale;
     private static BooleanSetting circularHueSatField = new BooleanSetting("hueSatCircle");
     private static BooleanSetting hslColorSpace = new BooleanSetting("hslColorSpace");
 
-    protected Window window;
+    private Window window;
 
     protected boolean[] mouseButtons;
     protected SVector mousePos, prevMousePos;
@@ -54,12 +54,22 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
     private int dialogType;
     private HashMap<Integer, App> childApps;
 
-    protected double avgFrameTime = -1;
-    protected double avgUpdateTime = -1;
-    protected int frameCount = 0;
+    protected SmoothValue avgFrameTime, avgUpdateTime;
+    protected int frameCount;
+
+    public App(Supplier<SVector> size, int windowMode, String title) {
+        SVector wh = size.get();
+        this((int) wh.x, (int) wh.y, windowMode, title);
+    }
 
     public App(int width, int height, int windowMode, String title) {
         this(width, height, windowMode, true, false, title, null);
+    }
+
+    public App(Supplier<SVector> size, int windowMode, boolean resizable, boolean adjustSizeOnInit, String title,
+            App parent) {
+        SVector wh = size.get();
+        this((int) wh.x, (int) wh.y, windowMode, resizable, adjustSizeOnInit, title, parent);
     }
 
     public App(int width, int height, int windowMode, boolean resizable, boolean adjustSizeOnInit, String title,
@@ -67,10 +77,10 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
 
         this.parent = parent;
         this.adjustSizeOnInit = adjustSizeOnInit;
-
         MainLoop.addApp(this);
 
         window = new Window(width, height, windowMode, resizable, title);
+        uiScale = window.getWindowContentScale();
         childApps = new HashMap<>();
         eventQueue = new LinkedList<>();
 
@@ -84,6 +94,10 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
             iconNames.add(String.format("logo/logo_%d.png", res));
         }
         window.setIcon(iconNames);
+
+        frameCount = 0;
+        avgFrameTime = new SmoothValue(1 / 60.0);
+        avgUpdateTime = new SmoothValue(0);
     }
 
     public final void loadUI() {
@@ -108,13 +122,9 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
         UI.setContext(ui);
     }
 
-    public void update(double deltaT) {
+    public final void update(double deltaT) {
         long updateStart = System.nanoTime();
-        if (avgFrameTime < 0) {
-            avgFrameTime = deltaT;
-        } else {
-            avgFrameTime = (1 - FRAME_TIME_GAMMA) * avgFrameTime + FRAME_TIME_GAMMA * deltaT;
-        }
+        avgFrameTime.approach(deltaT);
         frameCount++;
 
         if (ui == null) {
@@ -184,16 +194,18 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
         int[] displaySize = window.getDisplaySize();
         ui.setRootSize(displaySize[0], displaySize[1]);
 
+        ui.setUIScale(getUIScale());
         ui.update(mousePos, focus);
 
         window.setCursor(ui.getCursorShape());
 
+        childUpdate(deltaT);
+
         double updateDuration = (System.nanoTime() - updateStart) * 1e-9;
-        if (avgUpdateTime < 0) {
-            avgUpdateTime = deltaT;
-        } else {
-            avgUpdateTime = (1 - FRAME_TIME_GAMMA) * avgUpdateTime + FRAME_TIME_GAMMA * updateDuration;
-        }
+        avgUpdateTime.approach(updateDuration);
+    }
+
+    protected void childUpdate(double deltaT) {
     }
 
     public void reloadShaders() {
@@ -202,7 +214,7 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
 
     /**
      * 
-     * @return Wether to actually close the window
+     * @return Whether to actually close the window
      */
     public boolean finish() {
         renderer.cleanUp();
@@ -216,6 +228,18 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
         return window.getModifierKeys();
     }
 
+    public boolean isKeyPressed(int key) {
+        return window.isKeyPressed(key);
+    }
+
+    public SVector getMousePosition() {
+        return mousePos;
+    }
+
+    public SVector getPrevMousePosition() {
+        return prevMousePos;
+    }
+
     public void requestFocus() {
         window.requestFocus();
     }
@@ -224,9 +248,16 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
         return window.getDisplaySize();
     }
 
-    public double getWindowContentScale() {
-        float[] scale = window.getWindowContentScale();
-        return Math.sqrt(scale[0] * scale[1]);
+    public double getUIScale() {
+        return uiScale;
+    }
+
+    public static void setUIScale(double uiScale) {
+        App.uiScale = uiScale;
+    }
+
+    public void setTitle(String title) {
+        window.setTitle(title);
     }
 
     public int getNativeHandleType() {
@@ -329,11 +360,11 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
     }
 
     public double getFrameRate() {
-        return 1.0 / avgFrameTime;
+        return 1.0 / avgFrameTime.getValue();
     }
 
-    public double getAvgUpdateTime() {
-        return avgUpdateTime;
+    public double getUpdateTime() {
+        return avgUpdateTime.getValue();
     }
 
     public int getFrameCount() {
@@ -342,6 +373,45 @@ public sealed abstract class App permits MainApp, ColorEditorApp, SettingsApp, R
 
     public void setDialogType(int dialogType) {
         this.dialogType = dialogType;
+    }
+
+    private static class SmoothValue {
+
+        private static final double DEFAULT_GAMMA = 7.0;
+
+        private double value;
+        private long lastApproach;
+
+        private double gamma;
+
+        public SmoothValue(double initialValue) {
+            this(initialValue, DEFAULT_GAMMA);
+        }
+
+        public SmoothValue(double initialValue, double gamma) {
+            this.gamma = gamma;
+            set(initialValue);
+        }
+
+        public void set(double newValue) {
+            this.value = newValue;
+            lastApproach = System.nanoTime();
+        }
+
+        public void approach(double newValue) {
+            long now = System.nanoTime();
+            value += (newValue - value) * Math.min(gamma * (now - lastApproach) * 1e-9, 1);
+            lastApproach = now;
+        }
+
+        public double getValue() {
+            return value;
+        }
+
+        public void setGamma(double gamma) {
+            this.gamma = gamma;
+        }
+
     }
 
 }

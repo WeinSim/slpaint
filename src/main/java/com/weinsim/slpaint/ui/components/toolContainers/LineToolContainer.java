@@ -24,7 +24,6 @@ public final class LineToolContainer extends ToolContainer<LineTool> {
 
         addAnchor(Anchor.TOP_LEFT, () -> app.getCanvas().getImageTranslation());
 
-        zeroMargin();
         relativeLayer = 2;
 
         add(new ImageDisplay());
@@ -55,14 +54,14 @@ public final class LineToolContainer extends ToolContainer<LineTool> {
     }
 
     @Override
-    public void update() {
-        super.update();
+    public void handleEvents() {
+        super.handleEvents();
 
         Image image = app.getImage();
         int width = image.getWidth(),
                 height = image.getHeight();
-        int[] pixels = new int[width * height];
-        previewImage.resize(width, height, pixels);
+        // int[] pixels = new int[width * height];
+        previewImage.setSizeAndClear(width, height, 0);
 
         switch (tool.getState()) {
             case LineTool.INITIAL_DRAG -> {
@@ -101,7 +100,7 @@ public final class LineToolContainer extends ToolContainer<LineTool> {
             }
         }
 
-        previewImage.updateOpenGLTexture();
+        previewImage.sync();
     }
 
     private void drawPreviewLine() {

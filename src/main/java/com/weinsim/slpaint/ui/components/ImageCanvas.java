@@ -4,25 +4,18 @@ import static org.lwjgl.glfw.GLFW.*;
 
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.image.Image;
-import com.weinsim.slpaint.main.tools.ImageTool;
-import com.weinsim.slpaint.main.tools.LineTool;
-import com.weinsim.slpaint.main.tools.PencilTool;
-import com.weinsim.slpaint.main.tools.Resizable;
-import com.weinsim.slpaint.main.tools.SelectionTool;
-import com.weinsim.slpaint.main.tools.TextTool;
-import com.weinsim.slpaint.ui.components.toolContainers.LineToolContainer;
-import com.weinsim.slpaint.ui.components.toolContainers.PencilToolContainer;
-import com.weinsim.slpaint.ui.components.toolContainers.SelectionToolContainer;
-import com.weinsim.slpaint.ui.components.toolContainers.TextToolContainer;
-import com.weinsim.slpaint.ui.components.toolContainers.ToolContainer;
+import com.weinsim.slpaint.main.tools.*;
+import com.weinsim.slpaint.ui.components.toolContainers.*;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UISizes;
+import com.weinsim.sutil.ui.elements.UIButton;
 import com.weinsim.sutil.ui.elements.UIContainer;
 import com.weinsim.sutil.ui.elements.UIElement;
 import com.weinsim.sutil.ui.elements.UIFloatContainer;
 import com.weinsim.sutil.ui.elements.UIImage;
+import com.weinsim.sutil.ui.elements.UILabel;
 
 public class ImageCanvas extends UIContainer {
 
@@ -30,7 +23,7 @@ public class ImageCanvas extends UIContainer {
     private static final int MAX_ZOOM_LEVEL = 8;
     private static final double ZOOM_BASE = 1.6;
 
-    private MainApp app;
+    private final MainApp app;
 
     private SVector imageTranslation;
     private int imageZoomLevel;
@@ -39,25 +32,18 @@ public class ImageCanvas extends UIContainer {
     private int newX, newY, newWidth, newHeight;
     private boolean resizing;
 
-    public ImageCanvas(int orientation, int hAlignment, int vAlignment, MainApp app) {
-        super(orientation, hAlignment, vAlignment);
-
+    public ImageCanvas(MainApp app) {
+        super(HORIZONTAL, CENTER, TOP);
         this.app = app;
         app.setCanvas(this);
 
-        noOutline();
         setFillSize();
-        zeroMargin();
-
         setCursorShape(() -> draggingImage ? GLFW_POINTING_HAND_CURSOR : null);
-
         style.setBackgroundColor(UIColors.CANVAS);
-
         clipChildren = true;
 
         add(new ImageResize());
         add(new ImageDisplay());
-
         for (ImageTool tool : ImageTool.INSTANCES) {
             add(switch (tool) {
                 case PencilTool _ -> new PencilToolContainer(app);
@@ -67,17 +53,18 @@ public class ImageCanvas extends UIContainer {
                 default -> new ToolContainer<ImageTool>(tool, app);
             });
         }
-
-        resetImageTransform();
-        // imageTranslation = new SVector();
-        // imageZoomLevel = 0;
-
-        draggingImage = false;
-        resizing = false;
+        add(new UIButton(
+                UILabel.icons("expand_left", "expand_right", app::isShowSidePanel).alwaysActive().small(),
+                app::toggleShowSidePanel));
+        if (MainApp.DEV_BUILD) {
+            addFill();
+            add(new UIButton(
+                    UILabel.icons("expand_right", "expand_left", app::isShowDebugPanel).alwaysActive().small(),
+                    app::toggleShowDebugPanel));
+        }
 
         addMousePressAction(GLFW_MOUSE_BUTTON_LEFT, false, this::leftClick);
         addMousePressAction(GLFW_MOUSE_BUTTON_RIGHT, false, this::rightClick);
-
         // zoom
         addMouseWheelAction(GLFW_MOD_CONTROL, false, this::canDoScrollZoom,
                 scroll -> {
@@ -95,11 +82,15 @@ public class ImageCanvas extends UIContainer {
                     imageTranslation.add(new SVector(scroll.y, scroll.x));
                     return true;
                 });
+
+        resetImageTransform();
+        draggingImage = false;
+        resizing = false;
     }
 
     @Override
-    public void update() {
-        super.update();
+    public void handleEvents() {
+        super.handleEvents();
 
         // stop dragging image
         if (draggingImage) {
@@ -109,7 +100,6 @@ public class ImageCanvas extends UIContainer {
                 draggingImage = false;
             }
         }
-
         // dragging image
         if (draggingImage) {
             SVector mouseMovement = new SVector(app.getMousePosition()).sub(app.getPrevMousePosition());
@@ -261,13 +251,8 @@ public class ImageCanvas extends UIContainer {
 
         ImageDisplay() {
             super(0, 0);
-
-            noOutline();
             noBackground();
-            zeroMargin();
-
             addAnchor(Anchor.TOP_LEFT, ImageCanvas.this::getImageTranslation);
-
             add(new ImageContainerChild());
         }
 
@@ -277,19 +262,24 @@ public class ImageCanvas extends UIContainer {
         private class ImageContainerChild extends UIImage {
 
             ImageContainerChild() {
-                super(() -> app.getImage().getTextureID(), new SVector());
-
+                super(
+                        () -> (app.hasActiveEffects()
+                                ? app.getPreviewImage()
+                                : app.getImage())
+                                .getTextureID(),
+                        new SVector());
                 style.setBackgroundCheckerboard(UIColors.TRANSPARENCY_1, UIColors.TRANSPARENCY_2, UISizes.CHECKERBOARD);
             }
 
             @Override
             public void setPreferredSize() {
                 Image image = app.getImage();
-
                 size.set(image.getWidth(), image.getHeight());
                 size.scale(app.getImageZoom());
             }
+
         }
+
     }
 
     private class ImageResize extends UIFloatContainer implements Resizable {
@@ -297,16 +287,13 @@ public class ImageCanvas extends UIContainer {
         ImageResize() {
             super(0, 0);
 
-            noOutline();
             noBackground();
-            zeroMargin();
-
             style.setStrokeCheckerboard(
                     () -> resizing,
                     UIColors.SELECTION_BORDER_1,
                     UIColors.SELECTION_BORDER_2,
-                    () -> UISizes.CHECKERBOARD.get());
-            style.setStrokeWeight(() -> 2 * UISizes.STROKE_WEIGHT.get());
+                    UISizes.CHECKERBOARD);
+            style.setStrokeWeight(() -> 2 * UISizes.STROKE_WEIGHT.get1f());
 
             addAnchor(Anchor.TOP_LEFT, this::getPos);
 

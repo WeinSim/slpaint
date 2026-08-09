@@ -14,8 +14,8 @@ public abstract class UIDragContainer extends UIContainer {
     }
 
     @Override
-    public void update() {
-        super.update();
+    public void handleEvents() {
+        super.handleEvents();
 
         if (!UI.isLeftMousePressed())
             dragging = false;

@@ -10,25 +10,14 @@ public final class SelectionToolContainer extends DragToolContainer<SelectionToo
 
     public SelectionToolContainer(MainApp app) {
         super(ImageTool.SELECTION, app);
-
-        zeroMargin();
-
         add(new SelectionImage());
     }
 
     private class SelectionImage extends UIImage {
 
         SelectionImage() {
-            super(0, new SVector());
-
+            super(() -> ImageTool.SELECTION.getSelection().getTextureID(), new SVector());
             setVisibilitySupplier(() -> ImageTool.SELECTION.getSelection() != null);
-        }
-
-        @Override
-        public void update() {
-            super.update();
-
-            setTextureID(ImageTool.SELECTION.getSelection().getTextureID());
         }
 
         @Override

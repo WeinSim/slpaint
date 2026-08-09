@@ -4,6 +4,7 @@ struct GroupData {
     vec2 boundingBoxMin;
     vec2 boundingBoxMax;
     int samplerID;
+    // int encodeSRGB;
     // 3 * 4 bytes padding
 };
 
@@ -26,6 +27,7 @@ out vec2 relativeBoundingBoxMin;
 out vec2 relativeBoundingBoxMax;
 out vec2 uvCoords;
 flat out int samplerID;
+// flat out int encodeSRGB;
 
 vec4 getGLPos(vec3 screenPos, float depth) {
     screenPos.x = floor(screenPos.x);
@@ -45,6 +47,7 @@ void main(void) {
 
     uvCoords = cornerPos;
     samplerID = gData.samplerID;
+    // encodeSRGB = gData.encodeSRGB;
 
     relativeBoundingBoxMin = gData.boundingBoxMin - basePos.xy;
     relativeBoundingBoxMax = gData.boundingBoxMax - basePos.xy;

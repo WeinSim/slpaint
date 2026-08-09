@@ -31,7 +31,8 @@ import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.system.Platform;
 
 import com.weinsim.slpaint.main.Loader;
-import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.color.Color;
+import com.weinsim.sutil.color.SRGBInt;
 import com.weinsim.sutil.math.SVector;
 
 public class Window {
@@ -109,6 +110,7 @@ public class Window {
         glfwDefaultWindowHints(); // optional, the current window hints are already the default
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
         glfwWindowHint(GLFW_RESIZABLE, resizable ? GLFW_TRUE : GLFW_FALSE);
+        glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
 
         // anti-aliasing
         // glfwWindowHint(GLFW_SAMPLES, 4);
@@ -253,19 +255,16 @@ public class Window {
         }
     }
 
-    public float[] getWindowContentScale() {
+    public double getWindowContentScale() {
         float[] xScale = new float[1],
                 yScale = new float[1];
-
         // Note: the return value of this method does not change if the system's UI
         // scale is changed while the app is running (on linux mint: System Settings >
         // Font Selection > Text Scaling Factor).
         glfwGetWindowContentScale(windowHandle, xScale, yScale);
-
         // System.out.format("GLFW window content scale: x = %.1f, y = %.1f\n",
         // xScale[0], yScale[0]);
-
-        return new float[] { xScale[0], yScale[0] };
+        return Math.sqrt(xScale[0] * yScale[0]);
     }
 
     public int getNativeHandleType() {
@@ -291,6 +290,10 @@ public class Window {
                 mods |= flags[i];
         }
         return mods;
+    }
+
+    public boolean isKeyPressed(int key) {
+        return glfwGetKey(windowHandle, key) == GLFW_PRESS;
     }
 
     public SVector getMousePosition() {
@@ -377,11 +380,12 @@ public class Window {
         ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * 4);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                int color = bufferedImage.getRGB(x, y);
-                buffer.put((byte) SUtil.red(color));
-                buffer.put((byte) SUtil.green(color));
-                buffer.put((byte) SUtil.blue(color));
-                buffer.put((byte) SUtil.alpha(color));
+                Color color = Color.sRGB(bufferedImage.getRGB(x, y));
+                SRGBInt sRGB = color.sRGBInt();
+                buffer.put((byte) sRGB.red());
+                buffer.put((byte) sRGB.blue());
+                buffer.put((byte) sRGB.green());
+                buffer.put((byte) sRGB.alpha());
             }
         }
         buffer.flip();

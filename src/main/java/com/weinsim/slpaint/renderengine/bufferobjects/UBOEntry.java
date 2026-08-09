@@ -10,6 +10,8 @@ import org.lwjglx.util.vector.Vector2f;
 import org.lwjglx.util.vector.Vector3f;
 import org.lwjglx.util.vector.Vector4f;
 
+import com.weinsim.sutil.color.Color;
+
 public class UBOEntry {
 
     private ByteBuffer buffer;
@@ -39,6 +41,7 @@ public class UBOEntry {
             case Matrix3f _ -> 3;
             case Vector4f _ -> 4;
             case Matrix4f _ -> 4;
+            case Color _ -> 4;
             default -> 0;
         }, buffer, true);
 

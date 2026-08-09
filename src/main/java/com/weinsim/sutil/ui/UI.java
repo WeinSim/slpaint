@@ -8,8 +8,7 @@ import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BooleanSupplier;
 
-import org.lwjglx.util.vector.Vector4f;
-
+import com.weinsim.sutil.color.Color;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.elements.UIContainer;
 import com.weinsim.sutil.ui.elements.UIElement;
@@ -94,7 +93,7 @@ public abstract class UI {
         this.uiScale = uiScale;
 
         root = new UIRoot(VERTICAL, LEFT);
-        root.zeroMargin().zeroPadding().noOutline().withBackground();
+        root.zeroPadding().withBackground();
         root.setFixedSize(initialRootSize);
         rootSize = new SVector(initialRootSize);
 
@@ -107,10 +106,28 @@ public abstract class UI {
 
     protected abstract void init();
 
+    /**
+     * The order of UI operations should be the following:
+     * <ul>
+     * <li>UI or background processes change state
+     * <li>UI reacts to state: which elements exist / are visible, which ones have
+     * {@code mouseAbove} set, where are they and how big are they?
+     * <li>UI is rendered in this state
+     * <li>Repeat
+     * </ul>
+     * This means that an element's {@code update} method must not change the state
+     * 
+     * @param mousePos
+     * @param focus
+     */
     public void update(SVector mousePos, boolean focus) {
+        // state changes:
         while (!eventQueue.isEmpty())
             eventQueue.removeFirst().run();
+        dragging = false;
+        root.handleEvents();
 
+        // ui reacts to state:
         root.updateVisibility();
 
         // This could potentially cause some weird behavior if the selected element's
@@ -119,15 +136,10 @@ public abstract class UI {
         if (selectedElement != null && !selectedElement.isVisible())
             select(null);
 
+        root.update();
+        root.updateSize();
         root.updateMousePosition(mousePos);
         root.updateMouseAbove(!dragging);
-
-        // The dragging variable lags one frame behind (because it is being used before
-        // it is being set)
-        dragging = false;
-        root.update();
-
-        root.updateSize();
     }
 
     public void mousePressed(int mouseButton, int mods) {
@@ -360,11 +372,16 @@ public abstract class UI {
 
     protected abstract boolean isDarkModeImpl();
 
-    public static Vector4f getBaseColor() {
+    /**
+     * Ths returned color is expected to be in sRGB format.
+     * 
+     * @return
+     */
+    public static Color getBaseColor() {
         return context.getBaseColorImpl();
     }
 
-    protected abstract Vector4f getBaseColorImpl();
+    protected abstract Color getBaseColorImpl();
 
     public static double getUIScale() {
         return context.uiScale;

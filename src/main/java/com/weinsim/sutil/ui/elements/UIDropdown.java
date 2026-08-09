@@ -6,7 +6,6 @@ import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 import com.weinsim.sutil.ui.UIColors;
-import com.weinsim.sutil.ui.UIIcon;
 
 public class UIDropdown extends UIButton {
 
@@ -18,9 +17,8 @@ public class UIDropdown extends UIButton {
         this(label, false);
     }
 
-    public UIDropdown(UIIcon icon, Supplier<String> textSupplier, boolean scroll) {
-        this(icon == null ? new UILabel() : new UILabel(icon));
-
+    public UIDropdown(Supplier<String> textSupplier, boolean scroll) {
+        this(UILabel.empty());
         label.add(new UIText(textSupplier));
     }
 
@@ -29,8 +27,7 @@ public class UIDropdown extends UIButton {
 
         style.setBackgroundColor(() -> mouseAbove || expanded ? UIColors.BACKGROUND_HIGHLIGHT.get() : null);
 
-        add(new UIImage(new UIIcon("expand_up")).setVisibilitySupplier(() -> expanded));
-        add(new UIImage(new UIIcon("expand_down")).setVisibilitySupplier(() -> !expanded));
+        add(UILabel.icons("expand_up", "expand_down", () -> expanded));
 
         floatMenu = new UIFloatMenu(() -> expanded, () -> expanded = false, scroll, UIText.NORMAL);
         floatMenu.addAnchor(UIFloatContainer.Anchor.TOP_LEFT, UIFloatContainer.Anchor.BOTTOM_LEFT);
@@ -49,7 +46,7 @@ public class UIDropdown extends UIButton {
     public UIDropdown(String[] options, IntSupplier valueSupplier, IntConsumer valueSetter,
             boolean scroll) {
 
-        this(null, () -> options[valueSupplier.getAsInt()], scroll);
+        this(() -> options[valueSupplier.getAsInt()], scroll);
 
         outlineNormal = true;
 
@@ -66,7 +63,7 @@ public class UIDropdown extends UIButton {
     public UIDropdown(String[] options, Supplier<String> nameSupplier, Consumer<String> nameConsumer,
             boolean scroll) {
 
-        this(null, nameSupplier, scroll);
+        this(nameSupplier, scroll);
 
         outlineNormal = true;
 

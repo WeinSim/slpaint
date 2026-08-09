@@ -21,7 +21,6 @@ public class ColorEditorUI extends AppUI<ColorEditorApp> {
                     app.requestClose();
                 },
                 VERTICAL,
-                true,
                 true));
     }
 

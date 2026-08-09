@@ -1,23 +1,28 @@
 package com.weinsim.slpaint.renderengine.font;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL21.*;
 import static org.lwjgl.opengl.GL30.*;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.newdawn.slick.opengl.Texture;
-import org.newdawn.slick.opengl.TextureLoader;
+import javax.imageio.ImageIO;
 
 import com.weinsim.slpaint.main.Loader;
 import com.weinsim.slpaint.main.apps.MainApp;
+import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.renderengine.UIRenderMaster;
 import com.weinsim.slpaint.renderengine.bufferobjects.FloatVBO;
 import com.weinsim.slpaint.renderengine.bufferobjects.IntVBO;
 import com.weinsim.slpaint.renderengine.drawcalls.TextDrawCall;
 import com.weinsim.slpaint.settings.StringSetting;
-import com.weinsim.sutil.SUtil;
+import com.weinsim.sutil.color.Color;
+import com.weinsim.sutil.color.SRGBInt;
 import com.weinsim.sutil.json.JSONParser;
 import com.weinsim.sutil.json.values.JSONArray;
 import com.weinsim.sutil.json.values.JSONObject;
@@ -196,16 +201,21 @@ public record TextFont(String name, int size, int lineHeight, int base, String[]
     public int[] loadTextures() throws IOException {
         int[] textureIDs = new int[textureFilenames.length];
         for (int i = 0; i < textureFilenames.length; i++) {
-            String textureFile = String.format("%s%s/%s", FONT_DIRECTORY, name, textureFilenames[i]);
-            Texture texture = null;
+            String filename = String.format("%s%s/%s", FONT_DIRECTORY, name, textureFilenames[i]);
+            BufferedImage image;
             try {
-                texture = TextureLoader.getTexture("PNG", Loader.getInputStream(textureFile));
-            } catch (Exception e) {
-                loadFail("Unable to load texture \"%s\"", name, textureFile);
+                image = Image.toARGB(ImageIO.read(Loader.getInputStream(filename)));
+            } catch (IOException e) {
+                loadFail("Unable to load font atlas \"%s\"", name, filename);
+                // will never be reached
+                return null;
             }
-            int textureID = texture.getTextureID();
+            int textureID = glGenTextures();
             textureIDs[i] = textureID;
             glBindTexture(GL_TEXTURE_2D, textureID);
+            int[] pixelData = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, image.getWidth(), image.getHeight(), 0, GL_BGRA,
+                    GL_UNSIGNED_INT_8_8_8_8_REV, pixelData);
             glGenerateMipmap(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, 0);
         }
@@ -318,8 +328,7 @@ public record TextFont(String name, int size, int lineHeight, int base, String[]
 
         String directoryName = String.format("res/%s%s/", FONT_DIRECTORY, name);
         MainApp.runCommand(directoryName,
-                getFontGenerationCommand(name, 2, 256, 256, textSize,
-                        CHAR_RANGES, EXTRA_CHARS, 0));
+                getFontGenerationCommand(name, 2, 256, 256, textSize, CHAR_RANGES, EXTRA_CHARS, Color.sGrey(0)));
     }
 
     private static void addArgument(ArrayList<String> commands, String argument, int value) {
@@ -332,7 +341,7 @@ public record TextFont(String name, int size, int lineHeight, int base, String[]
     }
 
     private static ArrayList<String> getFontGenerationCommand(String fontName, int padding, int textureWidth,
-            int textureHeight, int fontSize, char[] charRanges, char[] extraChars, int bgColor) {
+            int textureHeight, int fontSize, char[] charRanges, char[] extraChars, Color bgColor) {
 
         ArrayList<String> commands = new ArrayList<>();
         // commands.add("/home/simon/code/executables/fontbm/fontbm");
@@ -354,8 +363,8 @@ public record TextFont(String name, int size, int lineHeight, int base, String[]
         if (len > 0)
             charsBuilder.deleteCharAt(len - 1);
         addArgument(commands, "chars", charsBuilder.toString());
-        addArgument(commands, "background-color", "%d,%d,%d".formatted(
-                SUtil.red(bgColor), SUtil.green(bgColor), SUtil.blue(bgColor)));
+        SRGBInt sRGB = bgColor.sRGBInt();
+        addArgument(commands, "background-color", "%d,%d,%d".formatted(sRGB.red(), sRGB.green(), sRGB.blue()));
         // System.out.print("Generated command: ");
         // for (String str : commands) {
         // System.out.print(str + " ");

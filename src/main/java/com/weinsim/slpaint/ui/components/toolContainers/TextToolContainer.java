@@ -28,9 +28,7 @@ public final class TextToolContainer extends DragToolContainer<TextTool> {
         TextInput() {
             super(ImageTool.TEXT::getText, ImageTool.TEXT::setText);
 
-            zeroMargin();
             setFillSize();
-            noOutline();
 
             hAlignment = LEFT;
             vAlignment = TOP;
@@ -41,7 +39,7 @@ public final class TextToolContainer extends DragToolContainer<TextTool> {
 
             uiText.setTextSize(() -> tool.getSize() * app.getImageZoom());
             // uiText.setFontName(tool::getFont);
-            uiText.setColor(() -> MainApp.toVector4f(app.getPrimaryColor()));
+            uiText.setColor(app::getPrimaryColor);
 
             app.setTextToolInput(this);
         }

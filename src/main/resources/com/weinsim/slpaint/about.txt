@@ -1,6 +1,7 @@
 <c>SLPaint
 <cs>version 0.1
 
+
 SLPaint (short for Simon - Linux - Paint) is a simple image editing program for
 Linux, inspired by Microsoft Paint.
 
@@ -17,5 +18,6 @@ The source code is available at
 
 This project is licenced under GPL-3.0-or-later. See
 <c>https://www.gnu.org/licenses/gpl-3.0.html
+
 
 <cs>Copyright © 2026 Simon Weinzierl

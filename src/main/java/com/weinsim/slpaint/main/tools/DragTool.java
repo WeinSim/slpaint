@@ -37,7 +37,7 @@ public abstract sealed class DragTool extends ImageTool implements Resizable per
 
     /**
      * 
-     * @return Wether the {@code IDLE} state should be entered after the initial
+     * @return Whether the {@code IDLE} state should be entered after the initial
      *         drag
      */
     public abstract boolean enterIdle();

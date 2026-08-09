@@ -23,7 +23,6 @@ import com.weinsim.sutil.ui.elements.UIContainer;
 import com.weinsim.sutil.ui.elements.UIContextMenu;
 import com.weinsim.sutil.ui.elements.UIDropdown;
 import com.weinsim.sutil.ui.elements.UIFloatMenu;
-import com.weinsim.sutil.ui.elements.UISeparator;
 import com.weinsim.sutil.ui.elements.UIText;
 
 public class SettingsUI extends AppUI<SettingsApp> {
@@ -47,12 +46,11 @@ public class SettingsUI extends AppUI<SettingsApp> {
 
     @Override
     protected void init() {
-        root.setMarginScale(1);
-        root.setPaddingScale(1);
+        root.withMargin();
+        root.withPadding();
 
-        UIContainer mainContainer = new UIContainer(VERTICAL, LEFT, TOP,
-                BOTH);
-        mainContainer.setFillSize();
+        UIContainer mainContainer = new UIContainer(VERTICAL, LEFT, TOP, BOTH);
+        mainContainer.setFillSize().withMargin().withOutline();
 
         mainContainer.add(createBaseColor());
         mainContainer.add(createDropdown(
@@ -75,6 +73,7 @@ public class SettingsUI extends AppUI<SettingsApp> {
                 fonts,
                 TextFont::getCurrentFontName,
                 s -> app.queueEvent(() -> TextFont.setCurrentFontName(s))));
+        // TODO continue: add dropdown to set App.uiScale
 
         if (MainApp.DEV_BUILD) {
             UIContextMenu contextMenu = new UIContextMenu(mainContainer, false);
@@ -90,11 +89,9 @@ public class SettingsUI extends AppUI<SettingsApp> {
         root.add(mainContainer.addScrollbars());
 
         UIContainer bottomRow = new UIContainer(HORIZONTAL, TOP);
-        bottomRow.setHFillSize().zeroMargin().noOutline();
+        bottomRow.setHFillSize();
         bottomRow.add(new UIButton("Done", app::requestClose));
-        UIContainer fill = new UIContainer(0, 0);
-        fill.setHFillSize().noOutline();
-        bottomRow.add(fill);
+        bottomRow.addFill(false);
         bottomRow.add(new UIButton("Reset Settings", () -> Settings.setDefaultSettings()));
 
         root.add(bottomRow);
@@ -102,48 +99,41 @@ public class SettingsUI extends AppUI<SettingsApp> {
 
     private UIContainer createBaseColor() {
         UIContainer baseColor = new UIContainer(VERTICAL, LEFT);
-        baseColor.withSeparators(true);
+        baseColor.withSeparators(true).withOutline();
 
         UIContainer baseColorHeading = new UIContainer(HORIZONTAL, LEFT, CENTER);
-        baseColorHeading.zeroMargin().noOutline();
         baseColorHeading.setBackgroundHighlight(true);
         baseColorHeading.setHFillSize();
         baseColorHeading.add(new UIText("UI Base Color:"));
-        UIContainer gap = new UIContainer(0, 0).zeroMargin().zeroPadding();
-        gap.noOutline();
-        baseColorHeading.add(gap);
+        baseColorHeading.addFill(false);
         UIColorElement baseColorButton = new UIColorElement(AppUI::getBaseColor, UISizes.COLOR_BUTTON);
         baseColorHeading.add(baseColorButton);
         baseColorHeading.addLeftClickAction(() -> colorSelectionExpanded = !colorSelectionExpanded);
         baseColor.add(baseColorHeading);
 
         UIContainer allColorsContainer = new UIContainer(HORIZONTAL, LEFT, CENTER);
-        allColorsContainer.zeroMargin().setPaddingScale(2.0).noOutline();
+        allColorsContainer.setPaddingScale(2.0);
         allColorsContainer.setVisibilitySupplier(() -> colorSelectionExpanded);
 
         UIContainer defaultColors = new UIContainer(VERTICAL, CENTER);
-        defaultColors.zeroMargin().noOutline();
         UIContainer defaultColorContainer = new UIContainer(HORIZONTAL, CENTER);
-        defaultColorContainer.zeroMargin().noOutline();
         int numDefaultColors = AppUI.getNumDefaultUIColors();
         for (int i = 0; i < numDefaultColors; i++) {
             final int j = i;
             UIColorElement button = new UIColorElement(() -> AppUI.getDefaultUIColors()[j], UISizes.COLOR_BUTTON);
-            button.addLeftClickAction(() -> app.setUIColor(MainApp.toInt(AppUI.getDefaultUIColors()[j])));
+            button.addLeftClickAction(() -> app.setUIColor(AppUI.getDefaultUIColors()[j]));
             defaultColorContainer.add(button);
         }
         defaultColors.add(defaultColorContainer);
         defaultColors.add(new UIText("Default Colors", UIText.SMALL));
         allColorsContainer.add(defaultColors);
 
-        allColorsContainer.add(new UISeparator());
+        allColorsContainer.addSeparator();
 
         UIContainer customColors = new UIContainer(VERTICAL, CENTER);
-        customColors.zeroMargin().noOutline();
         CustomColorContainer ccc = new CustomColorContainer(HORIZONTAL,
                 MainApp.getCustomUIBaseColors(),
-                c -> app.setUIColor(MainApp.toInt(c)));
-        ccc.zeroMargin().noOutline();
+                app::setUIColor);
         customColors.add(ccc);
         customColors.add(new UIText("Custom Colors", UIText.SMALL));
         allColorsContainer.add(customColors);
@@ -153,11 +143,8 @@ public class SettingsUI extends AppUI<SettingsApp> {
         baseColor.add(allColorsContainer);
 
         ColorPicker colorPicker = app.getColorPicker();
-        ColorPickContainer colorPickContainer = new ColorPickContainer(
-                colorPicker,
-                MainApp::addCustomUIBaseColor,
-                // UISizes.COLOR_PICKER_PANEL,
-                HORIZONTAL, false, true);
+        ColorPickContainer colorPickContainer = new ColorPickContainer(colorPicker, MainApp::addCustomUIBaseColor,
+                HORIZONTAL, false);
         colorPickContainer.setVisibilitySupplier(() -> colorSelectionExpanded);
         baseColor.add(colorPickContainer);
 
@@ -178,7 +165,6 @@ public class SettingsUI extends AppUI<SettingsApp> {
 
     private UIContainer createDropdown(String name, UIDropdown dropdown) {
         UIContainer container = new UIContainer(HORIZONTAL, CENTER);
-        container.zeroMargin().noOutline();
         container.add(new UIText(name));
         container.add(dropdown);
         return container;
