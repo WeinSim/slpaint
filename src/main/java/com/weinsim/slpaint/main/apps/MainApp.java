@@ -113,7 +113,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       Text wrapping
  *     Use suppliers for UIContainer margin / padding / size types? This would
  *         save a lot of update() overrides
- *   SLPaint specific issues:
  *     Mouse input: tapping the touchpad triggers a mouse press event but not
  *         mouse release event (=> logic that sets leftMousePressed and
  *         rightMousePressed based on mouse press / release events is flawed.)
@@ -121,6 +120,8 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *     On the first frame that the UI is rendered, the root has a black
  *         background and parts of the UI are not yet visible. This is visible
  *         when opening a child app.
+ *   SLPaint specific issues:
+ *     Add fullscreen mode (+ user setting)
  *     Ctrl + 0 can cause the image to appear completely outside of the canvas.
  *         Reason: the point at the center of the canvas stays fixed. For a very
  *         zoomed out image, this is likely to be outside of the image.
