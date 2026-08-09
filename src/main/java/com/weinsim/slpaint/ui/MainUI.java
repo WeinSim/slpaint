@@ -7,8 +7,6 @@ import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-import org.lwjglx.util.vector.Vector4f;
-
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.main.image.ImageFormat;
@@ -81,11 +79,7 @@ public class MainUI extends AppUI<MainApp> {
         mainRow.withSeparators(false);
         mainRow.setFillSize();
         mainRow.add(createSidePanel());
-        mainRow.add(new ImageCanvas(VERTICAL, RIGHT, TOP, app));
-        if (MainApp.DEV_BUILD)
-            mainRow.add(new UIButton(
-                    UILabel.icons("expand_right", "expand_left", MainApp::isShowDebugPanel).alwaysActive(),
-                    MainApp::toggleShowDebugPanel));
+        mainRow.add(new ImageCanvas(app));
         mainRow.add(createDebugPanel());
         root.add(mainRow);
 
@@ -360,12 +354,13 @@ public class MainUI extends AppUI<MainApp> {
     }
 
     private UIContainer createSidePanel() {
-        UITabs tabs = new UITabs();
-        tabs.setVFillSize();
-        tabs.addTab("Colors", createColorPanel());
-        tabs.addTab("Effects", new EffectsPanel(app));
-        app.setSidePanel(tabs);
-        return tabs;
+        UITabs sidePanel = new UITabs();
+        sidePanel.setVFillSize();
+        sidePanel.addTab("Colors", createColorPanel());
+        sidePanel.addTab("Effects", new EffectsPanel(app));
+        sidePanel.setVisibilitySupplier(app::isShowSidePanel);
+        app.setSidePanel(sidePanel);
+        return sidePanel;
     }
 
     private UIContainer createColorPanel() {
@@ -431,7 +426,7 @@ public class MainUI extends AppUI<MainApp> {
 
     private UIContainer createDebugPanel() {
         UIContainer debugPanel = new UIContainer(VERTICAL, CENTER, TOP, VERTICAL);
-        debugPanel.setVisibilitySupplier(MainApp::isShowDebugPanel);
+        debugPanel.setVisibilitySupplier(app::isShowDebugPanel);
         debugPanel.withMargin().setVFillSize();
 
         debugPanel.add(UILabel.text("DEBUG"));

@@ -36,18 +36,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
 /**
  * <pre>
  * TODO:
- * sutil.color
- *   Fix color issues (text looks weird, things seemingly are not transparent
- *       enough?)
- * Add more fun effects
- *   Multiplicative brightness
- *   Color temperature
- *   Hue cycling?
- *   Inverting colors?
- *   Blur?
- *     Proper gaussian blur would require two render passes (horizontal and
- *         vertical blur).
- * Maybe Image#getSubImage could be done with openGL + Resize effect?
  *
  * App:
  *   Keyboard shortcuts
@@ -68,6 +56,7 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       => remove "lock aspect ratio" setting?
  *   update() takes about twice as long when a modal dialog is open
  *     Maybe because of the many long textWidth() calculations?
+ *   Maybe Image#getSubImage could be done with openGL + Resize effect?
  *   Transparency:
  *     Selecting a semi-transparent area and pasting it over a completely
  *         transparent area messes up the pixel colors: the semi-transparent area
@@ -82,6 +71,19 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *     Pixels with an alpha value of 0 lose color information when saving and
  *         reopening. (This is a property of the .png file format that can be
  *         changed I think (?). Also, what is the expected behavior?)
+ *     Correct sRGB / linear RGB math: after switching to linear RGB for shader
+ *        math, semi-transparent colors appear too opaque. This is not a
+ *        calculation error but a consequence of physically correct
+ *        calculations. Whether this is deried can be debated (see
+ *        https://chatgpt.com/s/t_6a78c20c12608191bf092e075aaa181c).
+ *   Add more fun effects:
+ *     Multiplicative brightness
+ *     Color temperature
+ *     Hue cycling?
+ *     Inverting colors?
+ *     Blur?
+ *       Proper gaussian blur would require two render passes (horizontal and
+ *           vertical blur).
  *   Packaging:
  *     Why does startup take so long?
  *   (When parent app closes, children should also close)
@@ -90,6 +92,12 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *   UI in general:
  *     Combine user actions (keyboard, mouse). Combine with BooleanSupplier
  *         (active / possible)
+ *     Scrolling: instead of wrapping the actual container inside of a 
+ *         UIScrollBarContainerWrapper, maybe just add the scrollbar as a floating
+ *         child (and perhaps adjust size of container slightly when it's active).
+ *         Something similar to how VSCode handles scrollbars.
+ *       => reduces issues like visibilitySupplier madness and makes overall UI
+ *           structure simpler / more intuitive
  *     UISizes:
  *       There are multiple places where I want to set a larger margin but have
  *           to akwardly divide by the default margin because only a margin scale
@@ -103,12 +111,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *           Shift + cursor movement
  *         Multi-line text input
  *       Text wrapping
- *     Scrolling: instead of wrapping the actual container inside of a 
- *         UIScrollBarContainerWrapper, maybe just add the scrollbar as a floating
- *         child (and perhaps adjust size of container slightly when it's active).
- *         Something similar to how VSCode handles scrollbars.
- *       => reduces issues like visibilitySupplier madness and makes overall UI
- *           structure simpler / more intuitive
  *     Use suppliers for UIContainer margin / padding / size types? This would
  *         save a lot of update() overrides
  *   SLPaint specific issues:
@@ -123,7 +125,9 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *         Reason: the point at the center of the canvas stays fixed. For a very
  *         zoomed out image, this is likely to be outside of the image.
  *     Modal dialogs
- *       Convert other small dialogs into modal dialogs? (e.g. ResizeUI)
+ *       Convert settings and resize windows into modal dialogs? Either using
+ *           sutil's UIModalDialog or on an actual window-level (by setting the
+ *           main app as the parent window).
  *       Add options for custom button labels like in JOptionPane
  *         For what?
  *     Selection
@@ -152,7 +156,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *           pressing Ctrl+Z should cancel (not finish) the current tool.
  *           Currently it does nothing (except sometimes with selection).
  *     Color hex code input?
- *     Make side panel collapsable?
  *     Tool cursors
  *     About
  *       Make hyperlinks clickable? (=> underlined text!)
@@ -288,6 +291,7 @@ public final class MainApp extends App {
     private static BooleanSetting lockSelectionRatio = new BooleanSetting("lockSelectionRatio");
     private static ColorArraySetting customUIBaseColors = new ColorArraySetting("customUIColors");
     private static BooleanSetting showDebugPanel = new BooleanSetting("showDebugPanel");
+    private static BooleanSetting showSidePanel = new BooleanSetting("showSidePanel");
 
     private final ImageManager imageManager;
 
@@ -867,15 +871,27 @@ public final class MainApp extends App {
         MainApp.lockSelectionRatio.set(lockSelectionRatio);
     }
 
-    public static boolean isShowDebugPanel() {
+    public boolean isShowSidePanel() {
+        return showSidePanel.get();
+    }
+
+    public void setShowSidePanel(boolean showSidePanel) {
+        MainApp.showSidePanel.set(showSidePanel);
+    }
+
+    public void toggleShowSidePanel() {
+        setShowSidePanel(!isShowSidePanel());
+    }
+
+    public boolean isShowDebugPanel() {
         return showDebugPanel.get() && MainApp.DEV_BUILD;
     }
 
-    public static void setShowDebugPanel(boolean showDebugPanel) {
+    public void setShowDebugPanel(boolean showDebugPanel) {
         MainApp.showDebugPanel.set(showDebugPanel);
     }
 
-    public static void toggleShowDebugPanel() {
+    public void toggleShowDebugPanel() {
         setShowDebugPanel(!isShowDebugPanel());
     }
 

@@ -473,7 +473,11 @@ public class Image implements Cleanable {
     public void magic(int x0, int y0, Color color) {
         final int size = 256;
         for (int y = 0; y < size; y++) {
+            if (y0 + y < 0 || y0 + y >= height)
+                continue;
             for (int x = 0; x < size; x++) {
+                if (x0 + x < 0 || x0 + x >= width)
+                    continue;
                 if ((x + y) % 2 == 0)
                     setPixel(x0 + x, y0 + y, color);
             }

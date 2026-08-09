@@ -15,5 +15,6 @@
     "applyTransparency": false,
     "lockSelectionRatio": true,
     "font": "UbuntuSansMono",
-    "showDebugPanel": false
+    "showDebugPanel": false,
+    "showSidePanel": true
 }

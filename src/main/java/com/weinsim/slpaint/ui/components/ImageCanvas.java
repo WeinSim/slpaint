@@ -10,10 +10,12 @@ import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UISizes;
+import com.weinsim.sutil.ui.elements.UIButton;
 import com.weinsim.sutil.ui.elements.UIContainer;
 import com.weinsim.sutil.ui.elements.UIElement;
 import com.weinsim.sutil.ui.elements.UIFloatContainer;
 import com.weinsim.sutil.ui.elements.UIImage;
+import com.weinsim.sutil.ui.elements.UILabel;
 
 public class ImageCanvas extends UIContainer {
 
@@ -21,7 +23,7 @@ public class ImageCanvas extends UIContainer {
     private static final int MAX_ZOOM_LEVEL = 8;
     private static final double ZOOM_BASE = 1.6;
 
-    private MainApp app;
+    private final MainApp app;
 
     private SVector imageTranslation;
     private int imageZoomLevel;
@@ -30,23 +32,18 @@ public class ImageCanvas extends UIContainer {
     private int newX, newY, newWidth, newHeight;
     private boolean resizing;
 
-    public ImageCanvas(int orientation, int hAlignment, int vAlignment, MainApp app) {
-        super(orientation, hAlignment, vAlignment);
-
+    public ImageCanvas(MainApp app) {
+        super(HORIZONTAL, CENTER, TOP);
         this.app = app;
         app.setCanvas(this);
 
         setFillSize();
-
         setCursorShape(() -> draggingImage ? GLFW_POINTING_HAND_CURSOR : null);
-
         style.setBackgroundColor(UIColors.CANVAS);
-
         clipChildren = true;
 
         add(new ImageResize());
         add(new ImageDisplay());
-
         for (ImageTool tool : ImageTool.INSTANCES) {
             add(switch (tool) {
                 case PencilTool _ -> new PencilToolContainer(app);
@@ -56,17 +53,18 @@ public class ImageCanvas extends UIContainer {
                 default -> new ToolContainer<ImageTool>(tool, app);
             });
         }
-
-        resetImageTransform();
-        // imageTranslation = new SVector();
-        // imageZoomLevel = 0;
-
-        draggingImage = false;
-        resizing = false;
+        add(new UIButton(
+                UILabel.icons("expand_left", "expand_right", app::isShowSidePanel).alwaysActive().small(),
+                app::toggleShowSidePanel));
+        if (MainApp.DEV_BUILD) {
+            addFill();
+            add(new UIButton(
+                    UILabel.icons("expand_right", "expand_left", app::isShowDebugPanel).alwaysActive().small(),
+                    app::toggleShowDebugPanel));
+        }
 
         addMousePressAction(GLFW_MOUSE_BUTTON_LEFT, false, this::leftClick);
         addMousePressAction(GLFW_MOUSE_BUTTON_RIGHT, false, this::rightClick);
-
         // zoom
         addMouseWheelAction(GLFW_MOD_CONTROL, false, this::canDoScrollZoom,
                 scroll -> {
@@ -84,6 +82,10 @@ public class ImageCanvas extends UIContainer {
                     imageTranslation.add(new SVector(scroll.y, scroll.x));
                     return true;
                 });
+
+        resetImageTransform();
+        draggingImage = false;
+        resizing = false;
     }
 
     @Override
