@@ -3,10 +3,7 @@ package com.weinsim.slpaint.main.apps;
 import static org.lwjgl.glfw.GLFW.*;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +33,12 @@ import com.weinsim.sutil.ui.elements.UITextInput;
 /**
  * <pre>
  * TODO:
+ *   Text SDF rendering:
+ *     Use texts of different sizes in debug panel
+ *     Fix artifacts (single pixels at the bottom of letters)
+ *     Find good parameters: texture size, mapping distance <-> greyscale values
+ *     Turn magic numbers into constants / uniform variables
+ *     Error handling in font generation
  * 
  * App:
  *   Keyboard shortcuts
@@ -171,13 +174,9 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       set incorrectly.
  *   Text rendering
  *     Orange text on image has yellow edges (on the left)
- *     Generate distance map (SDF) from highres, non-anti-aliassed font texture
- *       => should allow for fonts of different sizes
- *       => glyphs aren't locked to integer positions
  *     How to handle fonts?
  *       How to handle big font sizes?
  *         Generate texture atlas using fontbm on demand?
- *         Use SDFs (either in addition to or instead of regular bitmap fonts)?
  *     Have different subdirectories for different sizes of the same font
  *     Glitchy pixels: when using Courier New (size 36), the lowecase 'u' has a
  *         diagonal line of flickering pixels going bottom-left to top-right.
@@ -955,35 +954,4 @@ public final class MainApp extends App {
         return "[Filesize too large!]";
     }
 
-    public static int runCommand(String directory, ArrayList<String> commands) {
-        int exitVal = 1;
-        try {
-            // ProcessBuilder pb = new ProcessBuilder("sh", "-c", "ls");
-            ProcessBuilder pb = new ProcessBuilder(commands);
-            // pb.directory(new File(System.getProperty("user.home")));
-            pb.directory(new File(directory));
-            Process process = pb.start();
-
-            StringBuilder output = new StringBuilder();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line + "\n");
-            }
-
-            if (!output.isEmpty())
-                System.out.print(output);
-
-            exitVal = process.waitFor();
-            // if (exitVal == 0) {
-            // System.out.println(output);
-            // }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return exitVal;
-    }
 }

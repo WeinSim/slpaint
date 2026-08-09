@@ -2,7 +2,6 @@ package com.weinsim.slpaint.renderengine.font;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
-import static org.lwjgl.opengl.GL21.*;
 import static org.lwjgl.opengl.GL30.*;
 
 import java.awt.image.BufferedImage;
@@ -14,38 +13,26 @@ import java.util.HashMap;
 import javax.imageio.ImageIO;
 
 import com.weinsim.slpaint.main.Loader;
-import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.main.image.Image;
 import com.weinsim.slpaint.renderengine.UIRenderMaster;
 import com.weinsim.slpaint.renderengine.bufferobjects.FloatVBO;
 import com.weinsim.slpaint.renderengine.bufferobjects.IntVBO;
 import com.weinsim.slpaint.renderengine.drawcalls.TextDrawCall;
 import com.weinsim.slpaint.settings.StringSetting;
-import com.weinsim.sutil.color.Color;
-import com.weinsim.sutil.color.SRGBInt;
 import com.weinsim.sutil.json.JSONParser;
 import com.weinsim.sutil.json.values.JSONArray;
 import com.weinsim.sutil.json.values.JSONObject;
 import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 
-public record TextFont(String name, int size, int lineHeight, int base, String[] textureFilenames,
-        int textureWidth, int textureHeight, FontChar[] fontChars, HashMap<Character, Integer> charIDs,
-        int unknownCharIndex, float[] uboData) {
+public record TextFont(String name, int size, int paddingTop, int paddingRight, int paddingDown, int paddingLeft,
+        int lineHeight, int base, String[] textureFilenames, int textureWidth, int textureHeight, FontChar[] fontChars,
+        HashMap<Character, Integer> charIDs, int unknownCharIndex, float[] uboData) {
 
-    private static final String FONT_DIRECTORY = "fonts/";
+    static final String FONT_DIRECTORY = "fonts/";
     private static final String FONT_FILE = "fonts.json";
 
-    private static final char[] CHAR_RANGES = {
-            0x0020, 0x007E,
-            0x00A0, 0x00FF
-    };
-    private static final char UNKNOWN_CHAR = 0x25A1; // □ (WHITE SQUARE)
-    // private static final char BULLET_CHAR = 0x2022; // • (BULLET)
-    private static final char[] EXTRA_CHARS = {
-            UNKNOWN_CHAR,
-            // BULLET_CHAR,
-    };
+    static final char UNKNOWN_CHAR = 0x25A1; // □ (WHITE SQUARE)
 
     static {
         init();
@@ -88,7 +75,7 @@ public record TextFont(String name, int size, int lineHeight, int base, String[]
         int fontSize;
         fontSize = UI.getUIScale() > 1.5 ? 36 : 18;
         // fontSize = 36;
-        // fontSize = 50;
+        fontSize = 50;
 
         String fontInfoFile = String.format("%s%s/output_%d.fnt", FONT_DIRECTORY, name, fontSize);
         String[] allLines = null;
@@ -99,7 +86,8 @@ public record TextFont(String name, int size, int lineHeight, int base, String[]
         }
 
         ArrayList<FontChar> chars = new ArrayList<>();
-        int size = 0, lineHeight = 0, base = 0, pages = 0, textureWidth = 0, textureHeight = 0;
+        int size = 0, paddingUp = 0, paddingRight = 0, paddingDown = 0, paddingLeft = 0, lineHeight = 0, base = 0,
+                pages = 0, textureWidth = 0, textureHeight = 0;
         String[] textureFilenames = null;
         for (String line : allLines) {
             ArrayList<String> parts = new ArrayList<>();
@@ -116,18 +104,20 @@ public record TextFont(String name, int size, int lineHeight, int base, String[]
                 if (keyValue.length != 2)
                     continue;
                 String key = keyValue[0];
-                if (keyValue[1].startsWith("\"")) {
+                try {
+                    properties.put(key, Integer.parseInt(keyValue[1]));
+                } catch (NumberFormatException _) {
                     properties.put(key, keyValue[1].replaceAll("\"", ""));
-                } else {
-                    try {
-                        properties.put(key, Integer.parseInt(keyValue[1]));
-                    } catch (NumberFormatException e) {
-                    }
                 }
             }
             switch (lineType) {
                 case "info" -> {
                     size = Math.abs((int) properties.get("size"));
+                    String[] paddings = ((String) properties.get("padding")).split(",");
+                    paddingUp = Integer.parseInt(paddings[0]);
+                    paddingRight = Integer.parseInt(paddings[1]);
+                    paddingDown = Integer.parseInt(paddings[2]);
+                    paddingLeft = Integer.parseInt(paddings[3]);
                 }
                 case "common" -> {
                     lineHeight = (int) properties.get("lineHeight");
@@ -188,8 +178,8 @@ public record TextFont(String name, int size, int lineHeight, int base, String[]
             // (int) UNKNOWN_CHAR);
             unknownCharIndex = 0;
 
-        return new TextFont(name, size, lineHeight, base, textureFilenames, textureWidth, textureHeight, fontChars,
-                charIDs, unknownCharIndex, uboData);
+        return new TextFont(name, size, paddingUp, paddingRight, paddingDown, paddingLeft, lineHeight, base,
+                textureFilenames, textureWidth, textureHeight, fontChars, charIDs, unknownCharIndex, uboData);
     }
 
     private static void loadFail(String message, String name, Object... params) throws IOException {
@@ -214,7 +204,7 @@ public record TextFont(String name, int size, int lineHeight, int base, String[]
             textureIDs[i] = textureID;
             glBindTexture(GL_TEXTURE_2D, textureID);
             int[] pixelData = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, image.getWidth(), image.getHeight(), 0, GL_BGRA,
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.getWidth(), image.getHeight(), 0, GL_BGRA,
                     GL_UNSIGNED_INT_8_8_8_8_REV, pixelData);
             glGenerateMipmap(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, 0);
@@ -264,7 +254,7 @@ public record TextFont(String name, int size, int lineHeight, int base, String[]
         double x = drawCall.position.x,
                 y = drawCall.position.y;
         char[] chars = drawCall.text.toCharArray();
-        for (char c: chars) {
+        for (char c : chars) {
             FontChar fontChar = getFontChar(c);
             dataIndex.putData(batchIndex);
             charIndex.putData(charIDs.get((char) fontChar.id()));
@@ -316,61 +306,6 @@ public record TextFont(String name, int size, int lineHeight, int base, String[]
         TextFont font = getFont(name);
         if (font.name.equals(name))
             currentFont.set(name);
-    }
-
-    public static void createFontAtlas(String name, int textSize) {
-        // doesn't work, don't know why
-        // delete old files
-        // ArrayList<String> deleteArgs = new ArrayList<>();
-        // deleteArgs.add("rm");
-        // deleteArgs.add("output*");
-        // MainApp.runCommand(String.format("%s%s", FONT_DIRECTORY, name), deleteArgs);
-
-        String directoryName = String.format("res/%s%s/", FONT_DIRECTORY, name);
-        MainApp.runCommand(directoryName,
-                getFontGenerationCommand(name, 2, 256, 256, textSize, CHAR_RANGES, EXTRA_CHARS, Color.sGrey(0)));
-    }
-
-    private static void addArgument(ArrayList<String> commands, String argument, int value) {
-        addArgument(commands, argument, Integer.toString(value));
-    }
-
-    private static void addArgument(ArrayList<String> commands, String argument, String value) {
-        commands.add("--" + argument);
-        commands.add(value);
-    }
-
-    private static ArrayList<String> getFontGenerationCommand(String fontName, int padding, int textureWidth,
-            int textureHeight, int fontSize, char[] charRanges, char[] extraChars, Color bgColor) {
-
-        ArrayList<String> commands = new ArrayList<>();
-        // commands.add("/home/simon/code/executables/fontbm/fontbm");
-        commands.add("fontbm");
-        addArgument(commands, "font-file", "%s.ttf".formatted(fontName));
-        addArgument(commands, "output", "output_%s".formatted(fontSize));
-        addArgument(commands, "padding-up", padding);
-        addArgument(commands, "padding-down", padding);
-        addArgument(commands, "padding-left", padding);
-        addArgument(commands, "padding-right", padding);
-        addArgument(commands, "texture-size", "%dx%d".formatted(textureWidth, textureHeight));
-        addArgument(commands, "font-size", fontSize);
-        StringBuilder charsBuilder = new StringBuilder();
-        for (int i = 0; i < charRanges.length / 2; i++)
-            charsBuilder.append("%d-%d,".formatted((int) charRanges[2 * i], (int) charRanges[2 * i + 1]));
-        for (int extraChar : extraChars)
-            charsBuilder.append("%d,".formatted((int) extraChar));
-        int len = charsBuilder.length();
-        if (len > 0)
-            charsBuilder.deleteCharAt(len - 1);
-        addArgument(commands, "chars", charsBuilder.toString());
-        SRGBInt sRGB = bgColor.sRGBInt();
-        addArgument(commands, "background-color", "%d,%d,%d".formatted(sRGB.red(), sRGB.green(), sRGB.blue()));
-        // System.out.print("Generated command: ");
-        // for (String str : commands) {
-        // System.out.print(str + " ");
-        // }
-        // System.out.println();
-        return commands;
     }
 
 }
