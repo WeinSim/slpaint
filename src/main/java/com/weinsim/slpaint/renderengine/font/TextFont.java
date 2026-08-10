@@ -23,11 +23,10 @@ import com.weinsim.sutil.json.JSONParser;
 import com.weinsim.sutil.json.values.JSONArray;
 import com.weinsim.sutil.json.values.JSONObject;
 import com.weinsim.sutil.math.SVector;
-import com.weinsim.sutil.ui.UI;
 
 public record TextFont(String name, int size, int paddingTop, int paddingRight, int paddingDown, int paddingLeft,
-        int lineHeight, int base, String[] textureFilenames, int textureWidth, int textureHeight, FontChar[] fontChars,
-        HashMap<Character, Integer> charIDs, int unknownCharIndex, float[] uboData) {
+        int sdfMaxDist, int lineHeight, int base, String[] textureFilenames, int textureWidth, int textureHeight,
+        FontChar[] fontChars, HashMap<Character, Integer> charIDs, int unknownCharIndex, float[] uboData) {
 
     static final String FONT_DIRECTORY = "fonts/";
     private static final String FONT_FILE = "fonts.json";
@@ -71,13 +70,7 @@ public record TextFont(String name, int size, int paddingTop, int paddingRight, 
     }
 
     private static TextFont load(String name) throws IOException {
-        // this is just a hack for now
-        int fontSize;
-        fontSize = UI.getUIScale() > 1.5 ? 36 : 18;
-        // fontSize = 36;
-        fontSize = 50;
-
-        String fontInfoFile = String.format("%s%s/output_%d.fnt", FONT_DIRECTORY, name, fontSize);
+        String fontInfoFile = String.format("%s%s/output.fnt", FONT_DIRECTORY, name);
         String[] allLines = null;
         try {
             allLines = Loader.getString(fontInfoFile).split("\n");
@@ -86,8 +79,8 @@ public record TextFont(String name, int size, int paddingTop, int paddingRight, 
         }
 
         ArrayList<FontChar> chars = new ArrayList<>();
-        int size = 0, paddingUp = 0, paddingRight = 0, paddingDown = 0, paddingLeft = 0, lineHeight = 0, base = 0,
-                pages = 0, textureWidth = 0, textureHeight = 0;
+        int size = 0, paddingUp = 0, paddingRight = 0, paddingDown = 0, paddingLeft = 0, sdfMaxDist = 0, lineHeight = 0,
+                base = 0, pages = 0, textureWidth = 0, textureHeight = 0;
         String[] textureFilenames = null;
         for (String line : allLines) {
             ArrayList<String> parts = new ArrayList<>();
@@ -118,6 +111,8 @@ public record TextFont(String name, int size, int paddingTop, int paddingRight, 
                     paddingRight = Integer.parseInt(paddings[1]);
                     paddingDown = Integer.parseInt(paddings[2]);
                     paddingLeft = Integer.parseInt(paddings[3]);
+                    // we assume the distance range of the SDF to be the minimum of the 4 paddings
+                    sdfMaxDist = Math.min(Math.min(Math.min(paddingUp, paddingRight), paddingDown), paddingLeft);
                 }
                 case "common" -> {
                     lineHeight = (int) properties.get("lineHeight");
@@ -178,7 +173,7 @@ public record TextFont(String name, int size, int paddingTop, int paddingRight, 
             // (int) UNKNOWN_CHAR);
             unknownCharIndex = 0;
 
-        return new TextFont(name, size, paddingUp, paddingRight, paddingDown, paddingLeft, lineHeight, base,
+        return new TextFont(name, size, paddingUp, paddingRight, paddingDown, paddingLeft, sdfMaxDist, lineHeight, base,
                 textureFilenames, textureWidth, textureHeight, fontChars, charIDs, unknownCharIndex, uboData);
     }
 

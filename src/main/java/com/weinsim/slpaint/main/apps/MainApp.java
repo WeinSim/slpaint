@@ -34,11 +34,9 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  * <pre>
  * TODO:
  *   Text SDF rendering:
- *     Use texts of different sizes in debug panel
- *     Fix artifacts (single pixels at the bottom of letters)
- *     Find good parameters: texture size, mapping distance <-> greyscale values
- *     Turn magic numbers into constants / uniform variables
- *     Error handling in font generation
+ *     Error handling in font atlas generation
+ *     Use proper SDFs without monochrome rasterized fontbm bitmap?
+ *       See e.g. https://github.com/Chlumsky/msdf-atlas-gen
  * 
  * App:
  *   Keyboard shortcuts
@@ -74,7 +72,7 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *     Pixels with an alpha value of 0 lose color information when saving and
  *         reopening. (This is a property of the .png file format that can be
  *         changed I think (?). Also, what is the expected behavior?)
- *     Correct sRGB / linear RGB math: after switching to linear RGB for shader
+ *     Correct sRGB / linear RGB math: since switching to linear RGB for shader
  *        math, semi-transparent colors appear too opaque. This is not a
  *        calculation error but a consequence of physically correct
  *        calculations. Whether this is deried can be debated (see
@@ -107,13 +105,13 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *           can be set. Solution: add UIContainer.setMargin()?
  *     UITabs: make it a bit prettier
  *     Text
+ *       Text wrapping
  *       Text input
+ *         Multi-line text input
  *         Selection (with mouse / arrow keys / Ctrl+A)
+ *           Shift + cursor movement
  *           Copy / cut / paste (=> conflicting keyboard shortcuts with
  *               selection tool!)
- *           Shift + cursor movement
- *         Multi-line text input
- *       Text wrapping
  *     Use suppliers for UIContainer margin / padding / size types? This would
  *         save a lot of update() overrides
  *   SLPaint specific issues:
@@ -174,31 +172,29 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       set incorrectly.
  *   Text rendering
  *     Orange text on image has yellow edges (on the left)
- *     How to handle fonts?
- *       How to handle big font sizes?
- *         Generate texture atlas using fontbm on demand?
- *     Have different subdirectories for different sizes of the same font
- *     Glitchy pixels: when using Courier New (size 36), the lowecase 'u' has a
- *         diagonal line of flickering pixels going bottom-left to top-right.
- *     Text renders inconsistently: some letters are blurry and other are not.
- *         For example, using Courier New Bold with a rasterized text size of 32,
- *         the letters 'e', 'r', 'i' and 'd' are blurry, whereas 'p', 'u', 'm'
- *         and 'b' are sharp. (it seems like most blurry letters are on page 2.)
+ *       Need to check: is this still the case?
+ *     How to handle different fonts?
+ *       Generate font atlasses on demand?
  *     Potential speedups for text rendering:
  *       Only override the parts of the text VAOs that actually change from one
  *           frame to the next
  *   Anti aliasing doesn't work despite being enabled
  *       (glfwWindowHint(GLFW_SAMPLES, 4) and glEnable(GL_MULTISAMPLE))
  *   Fix stuttering artifact when resizing windows on Linux
- *       (see https://www.glfw.org/docs/latest/window.html#window_refresh)
+ *     (see https://www.glfw.org/docs/latest/window.html#window_refresh)
+ *     Mostly gone when using Wayland
+ *   Fix icon color bleeding:
+ *     Upload texture data with premulitplied alpha (in linear space)
+ *     Use glBlendFunc(GL_ONE, GL_ONE_MINUS_SCR_ALPHA)
+ *     (see https://chatgpt.com/s/t_6a79fab930a8819190f181604306e243)
  *   Rename transformationMatrix to uiMatrix
- *   Maximized windows don't show up correctly on Windows 11
  *   Possible ideas for future rendering improvements:
  *     Currently, all fragment shaders are quite similar. => Combine all
  *         fragment shaders into a single one (that gets an int containing various
  *         flags as an input)?
  *     Perhaps even combine all vertex shaders into one? (Would allow for just a
  *         single draw call, though it would probably also be a massive pain).
+ *   Maximized windows don't show up correctly on Windows 11
  *   Extras (optional):
  *     3D view
  *     Debug view
@@ -342,29 +338,20 @@ public final class MainApp extends App {
      */
     public MainApp(String initialFile) {
         super(1280, 720, Window.MAXIMIZED, "SLPaint");
-
         primaryColor = INITIAL_PRIMARY_COLOR;
         secondaryColor = INITIAL_SECONDARY_COLOR;
         colorSelection = PRIMARY_COLOR;
         selectedColorPicker = new ColorPicker(getSelectedColor());
         customColorButtonArray = new ColorArray(MainUI.NUM_COLOR_BUTTONS_PER_ROW);
         previewEffects = new ArrayList<>();
-
         imageManager = initialFile == null ? new ImageManager(this) : new ImageManager(this, initialFile);
         Image image = getImage();
         previewImage = new Image(image.getWidth(), image.getHeight());
-
         setActiveTool(ImageTool.PENCIL);
         prevTool = ImageTool.PENCIL;
         for (ImageTool tool : ImageTool.INSTANCES)
             tool.setApp(this);
-
-        // load UI
         loadUI();
-
-        // int encoding = glGetFramebufferAttachmentParameteri(GL_FRAMEBUFFER,
-        // GL_BACK_LEFT, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING);
-        // System.out.format("encoding = %d, GL_LINEAR = %d\n", encoding, GL_LINEAR);
     }
 
     @Override

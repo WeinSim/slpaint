@@ -12,7 +12,7 @@ public final class TextToolContainer extends DragToolContainer<TextTool> {
 
     public TextToolContainer(MainApp app) {
         super(ImageTool.TEXT, app);
-
+        withMargin();
         textInput = new TextInput();
         add(textInput);
     }

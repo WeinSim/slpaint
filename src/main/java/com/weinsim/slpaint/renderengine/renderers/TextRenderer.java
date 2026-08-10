@@ -59,6 +59,7 @@ public class TextRenderer extends InstanceShapeRenderer<TextDrawCall> {
 
         shaderProgram.start();
         shaderProgram.loadUBOData("FontData", uboBuffer);
+        shaderProgram.loadUniform("sdfMaxDist", font.sdfMaxDist());
 
         super.render(viewMatrix);
     }

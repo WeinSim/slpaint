@@ -25,14 +25,20 @@ public class FontGenerator {
             // BULLET_CHAR,
     };
 
+    private FontGenerator() {
+    }
+
     public static void createFontAtlas(String name, int textSize) throws IOException {
-        // delete old files
+        System.out.format("Generating font atlas for font \"%s\" at size %d:\n", name, textSize);
         String directory = String.format(
                 "src/main/resources/com/weinsim/slpaint/%s%s/",
                 TextFont.FONT_DIRECTORY,
                 name);
+        // delete old files
+        System.out.println("  Deleting old files...");
         Files.list(Path.of(directory))
-                .filter(p -> p.getFileName().toString().contains(String.format("output_%d", textSize)))
+                .filter(p -> p.getFileName().toString().contains(String.format("output",
+                        textSize)))
                 .forEach(p -> {
                     try {
                         Files.delete(p);
@@ -42,11 +48,21 @@ public class FontGenerator {
                 });
 
         // create base bitmap
-        runCommand(directory,
-                getFontGenerationCommand(name, 10, 1, 512, 512, textSize, CHAR_RANGES, EXTRA_CHARS, Color.sGrey(0)));
+        System.out.println("  Generating font bitmaps...");
+        runCommand(directory, getFontGenerationCommand(
+                name,
+                SDFGenerator.SDF_MAX_DIST,
+                1,
+                512,
+                512,
+                textSize,
+                CHAR_RANGES,
+                EXTRA_CHARS,
+                Color.sGrey(0)));
 
         // convert generated images into SDFs
-        String fntFileName = String.format("output_%d.fnt", textSize);
+        System.out.println("  Generating SDFs...");
+        String fntFileName = String.format("output.fnt", textSize);
         BufferedReader reader = new BufferedReader(new FileReader(new File(directory, fntFileName)));
         String line;
         while ((line = reader.readLine()) != null) {
@@ -58,6 +74,7 @@ public class FontGenerator {
             SDFGenerator.turnIntoSDF(new File(directory, filename));
         }
         reader.close();
+        System.out.println("Done");
     }
 
     private static ArrayList<String> getFontGenerationCommand(String fontName, int padding, int spacing,
@@ -66,7 +83,7 @@ public class FontGenerator {
         ArrayList<String> commands = new ArrayList<>();
         commands.add("fontbm");
         addArgument(commands, "font-file", "%s.ttf".formatted(fontName));
-        addArgument(commands, "output", "output_%s".formatted(fontSize));
+        addArgument(commands, "output", "output");
         addArgument(commands, "padding-up", padding);
         addArgument(commands, "padding-down", padding);
         addArgument(commands, "padding-left", padding);

@@ -17,7 +17,6 @@ import org.newdawn.slick.util.Log;
 import com.weinsim.slpaint.main.apps.App;
 import com.weinsim.slpaint.main.apps.MainApp;
 import com.weinsim.slpaint.renderengine.Window;
-import com.weinsim.slpaint.renderengine.font.FontGenerator;
 import com.weinsim.sutil.SUtil;
 
 public class MainLoop {
@@ -35,15 +34,17 @@ public class MainLoop {
             testImports();
         }
 
-        String font1 = "UbuntuSansMono";
-        try {
-            FontGenerator.createFontAtlas(font1, 50);
-            // FontGenerator.createFontAtlas(font1, 36);
-            // FontGenerator.createFontAtlas(font2, 36);
-            // FontGenerator.createFontAtlas(font2, 18);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // // final String font1 = "UbuntuSansMono";
+        // final String[] fonts = { "FreeMono", "FreeMonoBold", "UbuntuSans",
+        // "UbuntuSansMono" };
+        // try {
+        // // FontGenerator.createFontAtlas(font1, 100);
+        // for (String font : fonts) {
+        // FontGenerator.createFontAtlas(font, 100);
+        // }
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
 
         // Disables the message
         // "INFO:Use Java PNG Loader = true"
