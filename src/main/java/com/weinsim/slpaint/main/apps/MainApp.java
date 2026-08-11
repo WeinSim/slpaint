@@ -33,10 +33,6 @@ import com.weinsim.sutil.ui.elements.UITextInput;
 /**
  * <pre>
  * TODO:
- *   Text SDF rendering:
- *     Error handling in font atlas generation
- *     Use proper SDFs without monochrome rasterized fontbm bitmap?
- *       See e.g. https://github.com/Chlumsky/msdf-atlas-gen
  * 
  * App:
  *   Keyboard shortcuts
@@ -171,10 +167,16 @@ import com.weinsim.sutil.ui.elements.UITextInput;
  *       Maybe this comes from some glEnable / glDisable transparency flag being
  *       set incorrectly.
  *   Text rendering
+ *     Scaling (e.g. py holding 'W') messes up the relativeTextSize and makes
+ *         text appear too blurry
+ *     For small text, each letter's bounding box becomes visible.
+ *       Is this an artifact of mipmapping blurring neighboring letters?
+ *     Use proper SDFs without monochrome rasterized fontbm bitmap?
+ *       See e.g. https://github.com/Chlumsky/msdf-atlas-gen
+ *     How to handle different fonts? (i.e. let user choose any system font)
+ *       Generate font atlasses on demand?
  *     Orange text on image has yellow edges (on the left)
  *       Need to check: is this still the case?
- *     How to handle different fonts?
- *       Generate font atlasses on demand?
  *     Potential speedups for text rendering:
  *       Only override the parts of the text VAOs that actually change from one
  *           frame to the next

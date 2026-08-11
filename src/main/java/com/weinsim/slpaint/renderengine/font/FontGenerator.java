@@ -28,7 +28,7 @@ public class FontGenerator {
     private FontGenerator() {
     }
 
-    public static void createFontAtlas(String name, int textSize) throws IOException {
+    public static void createFontAtlas(String name, int textSize) {
         System.out.format("Generating font atlas for font \"%s\" at size %d:\n", name, textSize);
         String directory = String.format(
                 "src/main/resources/com/weinsim/slpaint/%s%s/",
@@ -36,44 +36,62 @@ public class FontGenerator {
                 name);
         // delete old files
         System.out.println("  Deleting old files...");
-        Files.list(Path.of(directory))
-                .filter(p -> p.getFileName().toString().contains(String.format("output",
-                        textSize)))
-                .forEach(p -> {
-                    try {
-                        Files.delete(p);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+        try {
+            Files.list(Path.of(directory))
+                    .filter(p -> p.getFileName().toString().contains(String.format("output",
+                            textSize)))
+                    .forEach(p -> {
+                        try {
+                            Files.delete(p);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // create base bitmap
         System.out.println("  Generating font bitmaps...");
-        runCommand(directory, getFontGenerationCommand(
-                name,
-                SDFGenerator.SDF_MAX_DIST,
-                1,
-                512,
-                512,
-                textSize,
-                CHAR_RANGES,
-                EXTRA_CHARS,
-                Color.sGrey(0)));
+        try {
+            runCommand(directory, getFontGenerationCommand(
+                    name,
+                    SDFGenerator.SDF_MAX_DIST,
+                    10,
+                    512,
+                    512,
+                    textSize,
+                    CHAR_RANGES,
+                    EXTRA_CHARS,
+                    Color.sGrey(0)));
+        } catch (IOException e) {
+            System.err.println("Error running fontbm command. No font files are generated.");
+            e.printStackTrace();
+        }
 
         // convert generated images into SDFs
         System.out.println("  Generating SDFs...");
-        String fntFileName = String.format("output.fnt", textSize);
-        BufferedReader reader = new BufferedReader(new FileReader(new File(directory, fntFileName)));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] parts = line.split(" ");
-            if (!parts[0].equals("page"))
-                continue;
-            int eqIndex = parts[2].indexOf('=');
-            String filename = parts[2].substring(eqIndex + 2, parts[2].length() - 1);
-            SDFGenerator.turnIntoSDF(new File(directory, filename));
+        File fontFile = new File(directory, "output.fnt");
+        try (BufferedReader reader = new BufferedReader(new FileReader(fontFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(" ");
+                if (!parts[0].equals("page"))
+                    continue;
+                int eqIndex = parts[2].indexOf('=');
+                String filename = parts[2].substring(eqIndex + 2, parts[2].length() - 1);
+                File file = new File(directory, filename);
+                try {
+                    SDFGenerator.turnIntoSDF(file);
+                } catch (IOException e) {
+                    System.err.format("Error generating SDF for file %s\n", file.getAbsolutePath());
+                    e.printStackTrace();
+                }
+            }
+        } catch (IOException e) {
+            System.err.format("Error reading font info file (%s)\n", fontFile.getAbsolutePath());
+            e.printStackTrace();
         }
-        reader.close();
         System.out.println("Done");
     }
 

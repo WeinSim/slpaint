@@ -8,7 +8,8 @@ in vec4 color;
 
 out vec4 outColor;
 
-uniform sampler2D textureSamplers[4];
+// see UIRenderMaster.MAX_FONT_ATLASSES
+uniform sampler2D textureSamplers[8];
 uniform float sdfMaxDist;
 
 void main(void) {

@@ -23,6 +23,7 @@ import com.weinsim.slpaint.ui.components.ImageCanvas;
 import com.weinsim.slpaint.ui.components.UIColorElement;
 import com.weinsim.sutil.SUtil;
 import com.weinsim.sutil.color.Color;
+import com.weinsim.sutil.math.SVector;
 import com.weinsim.sutil.ui.UI;
 import com.weinsim.sutil.ui.UIColors;
 import com.weinsim.sutil.ui.UISizes;
@@ -34,6 +35,7 @@ public class MainUI extends AppUI<MainApp> {
     public static final int NUM_COLOR_BUTTONS_PER_ROW = 10;
 
     private String debugString = "";
+    private double debugTextSize = UISizes.TEXT.get1f();
 
     public MainUI(MainApp app) {
         super(app);
@@ -431,13 +433,16 @@ public class MainUI extends AppUI<MainApp> {
 
         debugPanel.add(UILabel.text("DEBUG"));
 
-        // String[] directions = { "up", "down", "left", "right" };
-        // for (String direction : directions) {
-        // debugPanel.add(UILabel.icon(String.format("arrow_%s", direction)));
-        // }
-
         debugPanel.add(createImagePreview("Image", app::getImage));
         debugPanel.add(createImagePreview("Preview Image", app::getPreviewImage));
+
+        debugPanel.add(new UIEmpty(new SVector(500, 0)));
+        debugPanel.add(new UIText("Text size test", () -> debugTextSize));
+        final double minTextSize = 1, maxTextSize = 100;
+        debugPanel.add(new UIScale(
+                HORIZONTAL,
+                () -> SUtil.map(debugTextSize, minTextSize, maxTextSize, 0, 1),
+                s -> debugTextSize = SUtil.map(s, 0, 1, minTextSize, maxTextSize)));
 
         debugPanel.add(new UIText("Tools"));
         for (ImageTool tool : ImageTool.INSTANCES) {
@@ -550,6 +555,15 @@ public class MainUI extends AppUI<MainApp> {
         return statusBar;
     }
 
+    private int countUIElements(UIElement element) {
+        int sum = 1;
+        if (element instanceof UIContainer container) {
+            for (UIElement child : container.getChildren())
+                sum += countUIElements(child);
+        }
+        return sum;
+    }
+
     private UIContainer addStatusBarLabel(UIContainer statusBar, Supplier<String> textSupplier) {
         UIContainer container = new UIContainer(HORIZONTAL, CENTER);
         container.withMargin();
@@ -564,15 +578,6 @@ public class MainUI extends AppUI<MainApp> {
 
     public void setDebugString(String debugString) {
         this.debugString = debugString;
-    }
-
-    private int countUIElements(UIElement element) {
-        int sum = 1;
-        if (element instanceof UIContainer container) {
-            for (UIElement child : container.getChildren())
-                sum += countUIElements(child);
-        }
-        return sum;
     }
 
 }

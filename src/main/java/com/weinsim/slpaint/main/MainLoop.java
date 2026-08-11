@@ -34,17 +34,11 @@ public class MainLoop {
             testImports();
         }
 
-        // // final String font1 = "UbuntuSansMono";
+        // // FontGenerator.createFontAtlas("UbuntuSansMono", 100);
         // final String[] fonts = { "FreeMono", "FreeMonoBold", "UbuntuSans",
         // "UbuntuSansMono" };
-        // try {
-        // // FontGenerator.createFontAtlas(font1, 100);
-        // for (String font : fonts) {
+        // for (String font : fonts)
         // FontGenerator.createFontAtlas(font, 100);
-        // }
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
 
         // Disables the message
         // "INFO:Use Java PNG Loader = true"
