@@ -243,7 +243,7 @@ public final class MainApp extends App {
      * <li>Adds a test context menu to the settings window
      * </ul>
      */
-    public static final boolean DEV_BUILD = true;
+    public static final boolean DEV_BUILD = false;
 
     /**
      * https://images.minitool.com/de.minitool.com/images/uploads/news/2022/02/microsoft-paint-herunterladen-installieren/microsoft-paint-herunterladen-installieren-1.png
