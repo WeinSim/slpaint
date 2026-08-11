@@ -37,7 +37,8 @@ import com.weinsim.sutil.math.SVector;
 
 public class UIRenderMaster {
 
-    public static final int MAX_FONT_ATLASSES = 4;
+    // see shaders/fragment/text.glsl -> uniform sampler2D textureSamplers[]
+    public static final int MAX_FONT_ATLASSES = 8;
     public static final int MAX_FONT_CHARS = 256;
     public static final int MAX_TEXT_DATA = 256;
 

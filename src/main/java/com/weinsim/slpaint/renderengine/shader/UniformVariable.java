@@ -30,11 +30,7 @@ public class UniformVariable {
     public void load(Object value) {
         switch (type) {
             case INT, SAMPLER_2D -> glUniform1i(location, (int) value);
-            case FLOAT ->
-                glUniform1f(location,
-                        value instanceof Double d
-                                ? d.floatValue()
-                                : (value instanceof Float f ? f : 0));
+            case FLOAT -> glUniform1f(location, value instanceof Number n ? n.floatValue() : 0);
             case VEC2 -> {
                 SVector v = (SVector) value;
                 glUniform2f(location, (float) v.x, (float) v.y);
@@ -45,7 +41,7 @@ public class UniformVariable {
             }
             case VEC4 -> {
                 Vector4f v = (Vector4f) value;
-                glUniform4f(location,  v.x,  v.y,  v.z, v.w);
+                glUniform4f(location, v.x, v.y, v.z, v.w);
             }
             case MAT2 -> {
                 Matrix2f matrix = (Matrix2f) value;

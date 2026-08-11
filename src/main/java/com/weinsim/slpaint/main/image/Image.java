@@ -508,7 +508,7 @@ public class Image implements Cleanable {
         int srcStride = width,
                 dstStride = w;
 
-        if (backgroundColor.equals(Color.sGrey(0))) {
+        if (backgroundColor == null || backgroundColor.equals(Color.sGrey(0))) {
             for (int row = 0; row < h; row++)
                 System.arraycopy(pixelArray, (y + row) * srcStride + x, outPixels, row * dstStride, w);
             return out;

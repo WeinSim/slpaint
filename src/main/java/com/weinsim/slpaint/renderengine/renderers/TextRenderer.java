@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import org.lwjgl.BufferUtils;
 import org.lwjglx.util.vector.Matrix3f;
 
+import com.weinsim.slpaint.renderengine.UIRenderMaster;
 import com.weinsim.slpaint.renderengine.bufferobjects.FloatVBO;
 import com.weinsim.slpaint.renderengine.bufferobjects.IntVBO;
 import com.weinsim.slpaint.renderengine.drawcalls.TextDrawCall;
@@ -31,7 +32,7 @@ public class TextRenderer extends InstanceShapeRenderer<TextDrawCall> {
         }
 
         shaderProgram.start();
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < UIRenderMaster.MAX_FONT_ATLASSES; i++) {
             String name = String.format("textureSamplers[%d]", i);
             shaderProgram.loadUniform(name, i);
         }
@@ -59,6 +60,7 @@ public class TextRenderer extends InstanceShapeRenderer<TextDrawCall> {
 
         shaderProgram.start();
         shaderProgram.loadUBOData("FontData", uboBuffer);
+        shaderProgram.loadUniform("sdfMaxDist", font.sdfMaxDist());
 
         super.render(viewMatrix);
     }

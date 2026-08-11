@@ -34,11 +34,11 @@ public class MainLoop {
             testImports();
         }
 
-        // String font1 = TextFont.DEFAULT_FONT_NAME;
-        // TextFont.createFontAtlas(font1, 50);
-        // TextFont.createFontAtlas(font1, 36);
-        // TextFont.createFontAtlas(font2, 36);
-        // TextFont.createFontAtlas(font2, 18);
+        // // FontGenerator.createFontAtlas("UbuntuSansMono", 100);
+        // final String[] fonts = { "FreeMono", "FreeMonoBold", "UbuntuSans",
+        // "UbuntuSansMono" };
+        // for (String font : fonts)
+        // FontGenerator.createFontAtlas(font, 100);
 
         // Disables the message
         // "INFO:Use Java PNG Loader = true"

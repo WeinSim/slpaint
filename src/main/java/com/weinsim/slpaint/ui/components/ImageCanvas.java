@@ -308,14 +308,17 @@ public class ImageCanvas extends UIContainer {
         }
 
         @Override
-        public void update() {
+        public void handleEvents() {
             newX = 0;
             newY = 0;
             newWidth = app.getImage().getWidth();
             newHeight = app.getImage().getHeight();
+            super.handleEvents();
+        }
 
+        @Override
+        public void update() {
             super.update();
-
             setFixedSize(new SVector(newWidth, newHeight).scale(getImageZoom()));
         }
 

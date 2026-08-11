@@ -37,11 +37,12 @@ in int charIndex;
 out vec2 relativeBoundingBoxMin;
 out vec2 relativeBoundingBoxMax;
 out vec2 textureCoords;
+out float relativeTextSize;
 out vec4 color;
 
 vec4 getGLPos(vec3 screenPos, float depth) {
-    screenPos.x = floor(screenPos.x);
-    screenPos.y = floor(screenPos.y);
+    // screenPos.x = floor(screenPos.x);
+    // screenPos.y = floor(screenPos.y);
     return vec4(
         (viewMatrix * screenPos).xy,
         depth,
@@ -59,6 +60,7 @@ void main(void) {
     gl_Position = getGLPos(basePos, depth);
 
     color = gData.color;
+    relativeTextSize = gData.relativeTextSize;
     textureCoords = (glyph.position + cornerPos * glyph.size) / textureSize;
 
     relativeBoundingBoxMin = gData.boundingBoxMin - basePos.xy;
