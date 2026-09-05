@@ -33,7 +33,7 @@ public class ImageCanvas extends UIContainer {
     private boolean resizing;
 
     public ImageCanvas(MainApp app) {
-        super(HORIZONTAL, CENTER, TOP);
+        super(HORIZONTAL, LEFT, TOP);
         this.app = app;
         app.setCanvas(this);
 
